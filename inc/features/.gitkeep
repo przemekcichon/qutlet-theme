@@ -1,0 +1,4 @@
+# Katalog na slice'y imperatywne motywu (PSR-4: Qutlet\Theme\ → inc/).
+# Kod imperatywny ładowany z functions.php (block bindings, dynamiczne patterny,
+# glue do renderu) układamy tu w slice'ach, np. inc/features/AllegroChannel/.
+# Pusty w FAZIE 0 — wypełniają go kolejne fazy (render, FAZA 8).
