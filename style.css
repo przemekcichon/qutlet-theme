@@ -1,0 +1,19 @@
+/*
+Theme Name:        Qutlet
+Theme URI:         https://github.com/przemekcichon/qutlet-theme
+Author:            Qutlet
+Author URI:        https://qutlet.pl
+Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
+Version:           0.1.0
+Requires at least: 6.4
+Requires PHP:      7.4
+License:           proprietary
+Text Domain:       qutlet-theme
+*/
+
+/*
+ * FAZA 0 = czysty szkielet: żadnych reguł stylu.
+ * Kolory, typografia i layout przychodzą w fazie renderu (FAZA 8) — z prototypu
+ * design/vanilla, głównie przez theme.json + patterny. Ten plik trzyma na razie
+ * wyłącznie nagłówek motywu wymagany przez WordPress.
+ */
