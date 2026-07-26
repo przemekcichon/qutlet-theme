@@ -119,6 +119,16 @@ function enqueue_assets(): void {
  */
 function add_woocommerce_theme_support(): void {
 	add_theme_support( 'woocommerce' );
+
+	// Motyw dostarcza własny wrapper (.wrap w woocommerce/content-single-product.php
+	// i analogicznie w P-8.6a/b/c) oraz własny breadcrumb portowany z prototypu —
+	// domyślne hooki Woo (na `wc-template-hooks.php`) dublowałyby oba: otwierałyby
+	// nieużywany <div id="primary"><main id="main"> i drukowały nieostylowany
+	// .woocommerce-breadcrumb OBOK naszego. Standardowa integracja motywu z Woo
+	// (identyczna do tej w motywach domyślnych WP, np. class-wc-twenty*.php).
+	remove_action( 'woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10 );
+	remove_action( 'woocommerce_before_main_content', 'woocommerce_breadcrumb', 20 );
+	remove_action( 'woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10 );
 }
 
 /**
