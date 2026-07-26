@@ -2,6 +2,79 @@
 	"$schema": "https://schemas.wp.org/trunk/theme.json",
 	"version": 3,
 	"settings": {
-		"appearanceTools": true
-	}
+		"appearanceTools": true,
+		"color": {
+			"palette": [
+				{ "slug": "ink", "color": "#17141b", "name": "Ink" },
+				{ "slug": "ink-soft", "color": "#48444f", "name": "Ink soft" },
+				{ "slug": "muted", "color": "#767379", "name": "Muted" },
+				{ "slug": "line", "color": "#e8e7ea", "name": "Line" },
+				{ "slug": "line-soft", "color": "#f0eff2", "name": "Line soft" },
+				{ "slug": "bg", "color": "#f6f6f7", "name": "Background" },
+				{ "slug": "panel", "color": "#f1f1f3", "name": "Panel" },
+				{ "slug": "accent", "color": "#7c2fe0", "name": "Accent" },
+				{ "slug": "accent-deep", "color": "#6620c4", "name": "Accent deep" },
+				{ "slug": "accent-ink", "color": "#6b40ab", "name": "Accent ink" },
+				{ "slug": "lime", "color": "#a8e832", "name": "Lime" },
+				{ "slug": "lime-ink", "color": "#243d00", "name": "Lime ink" },
+				{ "slug": "plum", "color": "#1e0a36", "name": "Plum" },
+				{ "slug": "plum-deep", "color": "#150726", "name": "Plum deep" },
+				{ "slug": "green-bg", "color": "#ecfccb", "name": "Green background" },
+				{ "slug": "green-ink", "color": "#3f6212", "name": "Green ink" },
+				{ "slug": "amber-bg", "color": "#fef6e0", "name": "Amber background" },
+				{ "slug": "amber-ink", "color": "#8a5a00", "name": "Amber ink" },
+				{ "slug": "error", "color": "#d4453f", "name": "Error" }
+			]
+		},
+		"typography": {
+			"fontFamilies": [
+				{
+					"fontFamily": "'Sora', system-ui, sans-serif",
+					"slug": "display",
+					"name": "Sora",
+					"fontFace": [
+						{
+							"fontFamily": "Sora",
+							"fontStyle": "normal",
+							"fontWeight": "400 800",
+							"fontDisplay": "swap",
+							"src": [ "file:./assets/fonts/sora-latin-ext.woff2" ]
+						},
+						{
+							"fontFamily": "Sora",
+							"fontStyle": "normal",
+							"fontWeight": "400 800",
+							"fontDisplay": "swap",
+							"src": [ "file:./assets/fonts/sora-latin.woff2" ]
+						}
+					]
+				},
+				{
+					"fontFamily": "'Manrope', system-ui, sans-serif",
+					"slug": "body",
+					"name": "Manrope",
+					"fontFace": [
+						{
+							"fontFamily": "Manrope",
+							"fontStyle": "normal",
+							"fontWeight": "400 800",
+							"fontDisplay": "swap",
+							"src": [ "file:./assets/fonts/manrope-latin-ext.woff2" ]
+						},
+						{
+							"fontFamily": "Manrope",
+							"fontStyle": "normal",
+							"fontWeight": "400 800",
+							"fontDisplay": "swap",
+							"src": [ "file:./assets/fonts/manrope-latin.woff2" ]
+						}
+					]
+				}
+			]
+		}
+	},
+	"templateParts": [
+		{ "name": "header", "title": "Header", "area": "uncategorized" },
+		{ "name": "footer", "title": "Footer", "area": "uncategorized" }
+	]
 }
