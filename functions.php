@@ -39,11 +39,7 @@ $qutlet_theme_autoload = __DIR__ . '/vendor/autoload.php';
 if ( is_readable( $qutlet_theme_autoload ) ) {
 	require_once $qutlet_theme_autoload;
 
-	/*
-	 * TODO (FAZA 8 — render): tu wpinamy inicjalizację slice'ów imperatywnych
-	 * z inc/features/ (block bindings, dynamiczne patterny, glue do renderu)
-	 * z przestrzeni Qutlet\Theme.
-	 */
+	\Qutlet\Theme\features\HeaderNav\HeaderNav::boot();
 } else {
 	add_action( 'admin_notices', __NAMESPACE__ . '\\render_missing_autoloader_notice' );
 }
