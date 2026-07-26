@@ -40,12 +40,19 @@ if ( is_readable( $qutlet_theme_autoload ) ) {
 	require_once $qutlet_theme_autoload;
 
 	\Qutlet\Theme\features\HeaderNav\HeaderNav::boot();
+	\Qutlet\Theme\features\ProductPage\ProductPage::boot();
 } else {
 	add_action( 'admin_notices', __NAMESPACE__ . '\\render_missing_autoloader_notice' );
 }
 
 // Zależności miękko weryfikujemy w odpowiedniku plugins_loaded dla motywu.
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\check_dependencies' );
+
+// Deklaracja wsparcia WooCommerce (D-8.G1: motyw nadpisuje jego szablony —
+// P-8.2a startuje od woocommerce/content-single-product.php). Bez własnej
+// galerii Woo (zoom/slider/lightbox) — strona produktu ma własną, portowaną
+// z prototypu (assets/js/product-gallery.js).
+add_action( 'after_setup_theme', __NAMESPACE__ . '\\add_woocommerce_theme_support' );
 
 // Placeholder enqueue: rejestrujemy arkusz motywu (na razie pusty — FAZA 8).
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_assets' );
@@ -98,6 +105,20 @@ function enqueue_assets(): void {
 		array(),
 		VERSION
 	);
+}
+
+/**
+ * Deklaruje wsparcie WooCommerce (dokumentowana konwencja motywu przejmującego
+ * nadpisania szablonów — `woocommerce/` w korzeniu motywu, P-8.2a).
+ *
+ * Bez `wc-product-gallery-zoom`/`-slider`/`-lightbox`: strona produktu nie
+ * korzysta z natywnego renderu galerii Woo — własny markup + JS portowane
+ * z prototypu (woocommerce/content-single-product.php, assets/js/product-gallery.js).
+ *
+ * @return void
+ */
+function add_woocommerce_theme_support(): void {
+	add_theme_support( 'woocommerce' );
 }
 
 /**
