@@ -2,11 +2,12 @@
 /**
  * Slice ProductPage — render strony produktu (port design/vanilla/produkt.html).
  *
- * P-8.2a: szkielet + galeria + nagłówek. Taby zakupu/kanał Allegro (P-8.2b) i
- * sekcja treści/specyfikacji (P-8.2c) rozbudują ten slice w kolejnych punktach
- * FAZY 8. Markup mieszka w woocommerce/content-single-product.php (nadpisanie
- * szablonu WooCommerce); ta klasa trzyma enqueue JS + pomocnicze funkcje
- * odczytu/prezentacji współdzielone przez ten szablon.
+ * P-8.2a: szkielet + galeria + nagłówek. P-8.2b: przełącznik kanału zakupu
+ * (taby Qutlet/Allegro + buybar + sekcja „jak-to-dziala"), pełna semantyka
+ * D-8.G1. Sekcja treści/specyfikacji (P-8.2c) rozbuduje ten slice w kolejnym
+ * punkcie FAZY 8. Markup mieszka w woocommerce/content-single-product.php
+ * (nadpisanie szablonu WooCommerce); ta klasa trzyma enqueue JS + pomocnicze
+ * funkcje odczytu/prezentacji współdzielone przez ten szablon.
  *
  * @package Qutlet\Theme
  */
@@ -31,10 +32,11 @@ final class ProductPage {
 	 */
 	public static function boot(): void {
 		add_action( 'wp_enqueue_scripts', array( self::class, 'enqueue' ) );
+		add_filter( 'body_class', array( self::class, 'body_class' ) );
 	}
 
 	/**
-	 * Rejestruje i ładuje assets/js/product-gallery.js — wyłącznie na stronie produktu.
+	 * Rejestruje i ładuje JS strony produktu — wyłącznie na stronie produktu.
 	 *
 	 * @return void
 	 */
@@ -50,6 +52,39 @@ final class ProductPage {
 			\Qutlet\Theme\VERSION,
 			true
 		);
+
+		wp_enqueue_script(
+			'qutlet-theme-product-buy-tabs',
+			get_theme_file_uri( 'assets/js/product-buy-tabs.js' ),
+			array(),
+			\Qutlet\Theme\VERSION,
+			true
+		);
+	}
+
+	/**
+	 * Dokłada `body.allegro-off` na stronie produktu z wyłączonym kanałem
+	 * Allegro (D-8.G1) — jedyny cel: CSS-owy przełącznik `.info-3col` → 2
+	 * kolumny w sekcji „Dostawa i zwroty" (`docs/kontrakt-danych.md` §4,
+	 * „Semantyka renderu"). Elementy `[data-allegro-only]` motyw i tak NIE
+	 * renderuje przy wyłączonym kanale (patrz szablon) — ta klasa istnieje
+	 * wyłącznie dla layoutu, nie dla ukrywania markupu.
+	 *
+	 * @param string[] $classes Klasy `<body>` zebrane przez WP.
+	 * @return string[]
+	 */
+	public static function body_class( array $classes ): array {
+		if ( ! function_exists( 'is_product' ) || ! is_product() ) {
+			return $classes;
+		}
+
+		$product_id = get_queried_object_id();
+
+		if ( $product_id && ! self::is_allegro_enabled( $product_id ) ) {
+			$classes[] = 'allegro-off';
+		}
+
+		return $classes;
 	}
 
 	/**
@@ -87,18 +122,75 @@ final class ProductPage {
 	}
 
 	/**
-	 * Rabat „-X%" liczony z ceny rynkowej nowego vs cena sprzedaży (kontrakt §6,
-	 * `data.js` QT.savePct). NIE przechowywane — liczone przez motyw.
+	 * Procent, o jaki `$reference_price` jest WYŻSZA od `$sale_price` —
+	 * relatywnie do `$reference_price` (nie do `$sale_price`), czyli
+	 * `round((1 − sale/reference) * 100)`. Dwa zastosowania w tym szablonie
+	 * (ta sama formuła, inny punkt odniesienia):
+	 * 1) rabat „-X%" — `$reference_price` = `cena_rynkowa_nowego` (ACF),
+	 *    kontrakt §6, `data.js` QT.savePct. NIE przechowywane.
+	 * 2) nota „Cena wyższa o ~X%" w panelu Allegro — `$reference_price` =
+	 *    `cena_allegro` (ACF). Kontrakt §4/§6 nie precyzuje kierunku formuły;
+	 *    kierunek „relatywnie do ceny wyższej" dobrany tak, by odtworzyć
+	 *    dokładnie przykład z prototypu (`cena_allegro` 199,00 zł vs cena
+	 *    sprzedaży 179,10 zł → ~10%, jak w `produkt.html:109`) — licząc
+	 *    względem ceny sprzedaży (`(cena_allegro−sale)/sale`) wyszłoby ~11%.
 	 *
-	 * @param float $sale_price   Cena sprzedaży (Woo `_price`).
-	 * @param float $market_price Cena rynkowa nowego (ACF `cena_rynkowa_nowego`).
-	 * @return int Zaokrąglony procent rabatu; 0, gdy cena rynkowa nie jest dodatnia.
+	 * @param float $sale_price      Cena niższa (Woo `_price`).
+	 * @param float $reference_price Cena wyższa, punkt odniesienia procentu
+	 *                               (`cena_rynkowa_nowego` LUB `cena_allegro`).
+	 * @return int Zaokrąglony procent; 0, gdy `$reference_price` nie jest dodatnia.
 	 */
-	public static function save_percent( float $sale_price, float $market_price ): int {
-		if ( $market_price <= 0.0 ) {
+	public static function save_percent( float $sale_price, float $reference_price ): int {
+		if ( $reference_price <= 0.0 ) {
 			return 0;
 		}
 
-		return (int) round( ( 1 - $sale_price / $market_price ) * 100 );
+		return (int) round( ( 1 - $sale_price / $reference_price ) * 100 );
+	}
+
+	/**
+	 * Czy kanał Allegro jest włączony dla produktu (kontrakt §4, „Semantyka
+	 * renderu"): `allegro_wlaczone=false` LUB pusty `allegro_url` → kanał
+	 * wyłączony, motyw nie renderuje `[data-allegro-only]`.
+	 *
+	 * @param int $post_id Id produktu.
+	 * @return bool
+	 */
+	public static function is_allegro_enabled( int $post_id ): bool {
+		$enabled = (bool) self::acf_field( 'allegro_wlaczone', $post_id );
+		$url     = (string) self::acf_field( 'allegro_url', $post_id );
+
+		return $enabled && '' !== trim( $url );
+	}
+
+	/**
+	 * Cena jako czysty tekst (bez znaczników `wc_price()`) — potrzebne tam,
+	 * gdzie cena trafia do atrybutu `data-*` czytanego przez JS
+	 * (`assets/js/product-buy-tabs.js`, aktualizacja ceny w buybarze przy
+	 * przełączeniu taba).
+	 *
+	 * @param float $price Cena w groszach/PLN (jak `wc_price()`).
+	 * @return string
+	 */
+	public static function price_text( float $price ): string {
+		if ( ! function_exists( 'wc_price' ) ) {
+			return '';
+		}
+
+		return trim( wp_strip_all_tags( wc_price( $price ) ) );
+	}
+
+	/**
+	 * Wstrzykuje pogrubiony fragment do przetłumaczalnego szablonu — statyczna
+	 * treść informacyjna portowana z prototypu (kontrakt §4, „Brak pola
+	 * perks/korzyści": korzyści kanału Allegro to treść szablonu, NIE dane
+	 * produktu), więc treść jest literałem w szablonie, nie z ACF.
+	 *
+	 * @param string $template Tekst z JEDNYM `%s` (miejsce na pogrubienie).
+	 * @param string $bold     Tekst do pogrubienia (escapowany tu).
+	 * @return string Gotowy HTML — do wypisania przez `echo` bez dalszego escape'owania.
+	 */
+	public static function bold_text( string $template, string $bold ): string {
+		return wp_kses_post( sprintf( $template, '<b>' . esc_html( $bold ) . '</b>' ) );
 	}
 }
