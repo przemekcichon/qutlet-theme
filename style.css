@@ -24,9 +24,13 @@ Text Domain:       qutlet-theme
    (używane w header/footer) + header + footer.
    ZAKRES P-8.2a (produkt: szkielet + galeria + nagłówek): breadcrumbs,
    placeholder zdjęcia (.ph-stripes), siatka .pd-grid, galeria, klasa
-   stanu, tytuł, ceny. Reszta prototypu (buy-tabs/buybar P-8.2b, taby
-   treści P-8.2c, karty produktu, filtry, strony pomocy…) dochodzi w
-   kolejnych punktach fazy.
+   stanu, tytuł, ceny.
+   ZAKRES P-8.2b (produkt: przełącznik kanału zakupu): taby Qutlet/Allegro,
+   panele zakupu (eco-note/perk-list/warn-note/btn-buy), sticky buybar,
+   sekcja „Wszystko, co warto wiedzieć" (#jak-to-dziala: akordeon,
+   class-table, info-2col/3col, karta „Kupuj przez Allegro"). Reszta
+   prototypu (taby treści P-8.2c, karty produktu, filtry, strony pomocy…)
+   dochodzi w kolejnych punktach fazy.
    ============================================================ */
 
 :root {
@@ -320,6 +324,183 @@ body[data-page="newsletter"] .nlband { display: none; }
 .pd-old .note { font-size: 12.5px; color: var(--muted); font-weight: 600; }
 .pd-save { background: var(--green-bg); color: var(--green-ink); font-weight: 800; font-size: 13px; border-radius: 10px; padding-top: 8px; padding-bottom: 8px; padding-left: 13px; padding-right: 13px; }
 
+/* ---------- Strona produktu (P-8.2b: przełącznik kanału zakupu) ---------- */
+.eco-note {
+	background: linear-gradient(135deg, #f6fbe9, #eef8d8); border: 1px solid #dcedb4; border-radius: 10px;
+	display: flex; gap: 11px; font-size: 13.5px; color: #41600f; line-height: 1.5; margin-top: 4px; margin-bottom: 20px;
+	padding-top: 14px; padding-bottom: 14px; padding-left: 16px; padding-right: 16px;
+}
+.eco-note svg { flex-shrink: 0; margin-top: 1px; }
+.eco-note b { color: #2f4a08; }
+.perk-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+.perk-row { display: flex; align-items: center; gap: 13px; font-size: 15px; font-weight: 600; }
+.perk-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--panel); display: grid; place-items: center; color: var(--accent); flex-shrink: 0; }
+.perk-tag {
+	font-size: 11px; font-weight: 800; letter-spacing: .03em; background: var(--amber-bg); color: var(--amber-ink);
+	border-radius: 7px; border: 1px solid #f5d98a; text-transform: uppercase;
+	padding-top: 4px; padding-bottom: 4px; padding-left: 9px; padding-right: 9px;
+}
+.warn-note {
+	background: var(--amber-bg); border: 1px solid #f5d98a; border-radius: 10px; font-size: 13.5px; line-height: 1.5;
+	color: #6e4d12; margin-bottom: 22px; display: flex; gap: 11px;
+	padding-top: 14px; padding-bottom: 14px; padding-left: 16px; padding-right: 16px;
+}
+.warn-note svg { flex-shrink: 0; margin-top: 1px; }
+.warn-note b { color: #5a3d0a; }
+.btn-buy {
+	width: 100%; background: var(--accent); color: #fff; font-family: var(--font-display); font-weight: 800;
+	font-size: 17px; letter-spacing: .02em; border-radius: 14px; border: 0; cursor: pointer;
+	display: flex; align-items: center; justify-content: center; gap: 10px;
+	padding-top: 19px; padding-bottom: 19px;
+}
+.btn-buy:hover { background: var(--accent-deep); }
+.pd-fine { text-align: center; font-size: 13px; color: var(--muted); margin-top: 13px; }
+
+/* Kanał zakupu: QUTLET / Allegro (→ w WP: pola ACF allegro_wlaczone/allegro_url;
+   gdy kanał wyłączony, motyw nie renderuje [data-buy-tabs] ani panelu
+   [data-buy-pane="allegro"] — zostaje sam panel qutlet, patrz kontrakt §4) */
+[data-buy-pane][hidden],
+[data-buybar-qutlet][hidden],
+[data-buybar-allegro][hidden] { display: none !important; }
+
+.buy-tabs-label { font-size: 13px; font-weight: 700; color: var(--muted); text-decoration: underline; margin-top: 20px; }
+.buy-tabs { display: grid; grid-template-columns: 1fr 1fr; margin-top: 12px; border-bottom: 1.5px solid var(--line); }
+.buy-tab { background: none; border: 0; border-bottom: 3px solid transparent; padding: 4px 8px 14px; cursor: pointer; text-align: center; }
+.buy-tab-name { display: block; font-family: var(--font-display); font-size: 15.5px; font-weight: 800; color: var(--muted); }
+.buy-tab-sub { display: block; font-size: 12.5px; font-weight: 600; color: #98959c; margin-top: 3px; }
+.buy-tab.active { border-bottom-color: var(--accent); }
+.buy-tab.active .buy-tab-name { color: var(--ink); }
+.buy-tab-allegro.active { border-bottom-color: #ff5a00; }
+.buy-tab-allegro.active .buy-tab-name { color: #ff5a00; }
+
+.pd-price-row-allegro { align-items: flex-start; justify-content: space-between; }
+.pd-price-note { font-size: 13.5px; font-weight: 600; color: #98959c; margin-top: 2px; }
+.protect-pill {
+	font-size: 11px; font-weight: 800; letter-spacing: .03em; background: #fff0e6; color: #ff5a00;
+	border-radius: 999px; border: 1px solid #ffd6b8; text-transform: uppercase; white-space: nowrap;
+	padding-top: 5px; padding-bottom: 5px; padding-left: 11px; padding-right: 11px;
+}
+.perk-icon-allegro { background: #fff0e6; color: #ff5a00; }
+.perk-tag-green { background: #e6f7ee; color: #1c7c4c; border-color: #bfe8d2; }
+.ok-note {
+	background: #eafaf0; border: 1px solid #cdeeda; border-radius: 10px; font-size: 13.5px; line-height: 1.5;
+	color: #1f5c3a; margin-bottom: 22px;
+	padding-top: 14px; padding-bottom: 14px; padding-left: 16px; padding-right: 16px;
+}
+.ok-note b { color: #124228; }
+a.btn-buy-allegro { background: #ff5a00; box-sizing: border-box; text-decoration: none; }
+a.btn-buy-allegro:hover { background: #e65100; }
+
+/* ---------- Sticky buy bar ---------- */
+.buybar {
+	position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; background: rgba(255,255,255,.95);
+	border-top: 1px solid var(--line); box-shadow: 0 -10px 40px -20px rgba(22,16,31,.35);
+	padding-top: 12px; padding-bottom: 12px;
+	transform: translateY(110%); transition: transform .25s;
+}
+.buybar.visible { transform: translateY(0); }
+.buybar-inner { display: flex; align-items: center; gap: 18px; }
+.buybar-product { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
+.buybar-thumb { width: 48px; height: 48px; border-radius: 11px; background: var(--panel); border: 1px solid var(--line); padding: 5px; flex-shrink: 0; }
+.buybar-thumb img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+.buybar-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.buybar-price-row { display: flex; align-items: baseline; gap: 9px; margin-top: 1px; }
+.buybar-class { font-size: 11px; font-weight: 800; background: var(--ink); color: #fff; border-radius: 999px; padding-top: 3px; padding-bottom: 3px; padding-left: 8px; padding-right: 8px; }
+.buybar-price { font-family: var(--font-display); font-weight: 800; font-size: 18px; }
+.buybar-old { font-size: 12.5px; color: var(--muted); text-decoration: line-through; }
+.buybar-allegro-note { font-size: 12.5px; color: #ff5a00; font-weight: 700; }
+.buybar .btn-primary { flex-shrink: 0; font-family: var(--font-display); font-size: 15px; border-radius: 12px; padding-top: 14px; padding-bottom: 14px; padding-left: 26px; padding-right: 26px; }
+.buybar .btn-buybar-allegro {
+	flex-shrink: 0; font-family: var(--font-display); font-size: 15px; font-weight: 800; text-decoration: none; color: #fff;
+	background: #ff5a00; border-radius: 12px; display: inline-flex; align-items: center;
+	padding-top: 14px; padding-bottom: 14px; padding-left: 26px; padding-right: 26px;
+}
+.buybar .btn-buybar-allegro:hover { background: #e65100; }
+
+/* ---------- „Wszystko, co warto wiedzieć" (#jak-to-dziala) ---------- */
+.know {
+	background: var(--panel); border-radius: 26px; margin-top: 54px; margin-bottom: 54px;
+	padding-top: 48px; padding-bottom: 48px; padding-left: clamp(24px, 4vw, 56px); padding-right: clamp(24px, 4vw, 56px);
+}
+.know > h2 { font-size: clamp(26px, 3vw, 38px); font-weight: 800; margin: 0 0 30px; }
+.acc-item { border-bottom: 1px solid var(--line); }
+.acc-item:first-of-type { border-top: 1px solid var(--line); }
+.acc-btn {
+	width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; text-align: left;
+	font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--ink);
+	background: none; border: 0; cursor: pointer;
+	padding-top: 24px; padding-bottom: 24px; padding-left: 4px; padding-right: 4px;
+}
+.acc-btn .sign { color: var(--accent); }
+.acc-body { padding-top: 4px; padding-bottom: 30px; padding-left: 4px; padding-right: 4px; }
+.acc-body[hidden] { display: none; }
+.class-table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.class-table th {
+	text-align: left; font-size: 13px; background: var(--panel); font-family: var(--font-display); font-weight: 700;
+	border-bottom: 1px solid var(--line);
+	padding-top: 15px; padding-bottom: 15px; padding-left: 18px; padding-right: 18px;
+}
+.class-table td { font-size: 14px; padding-top: 15px; padding-bottom: 15px; padding-left: 18px; padding-right: 18px; }
+.class-table tr + tr td { border-top: 1px solid var(--line-soft); }
+.class-table td:first-child { font-weight: 800; white-space: nowrap; }
+.class-table td:nth-child(2) { font-weight: 600; }
+.class-table td:nth-child(3) { color: var(--ink-soft); }
+.class-name { display: inline-flex; align-items: center; gap: 8px; }
+.class-name .dot { width: 10px; height: 10px; }
+.dot-a { background: #3f9b3f; }
+.dot-b { background: #9bbd2f; }
+.dot-c { background: #e0a32f; }
+.dot-d { background: #b07a7a; }
+.info-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.info-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding-top: 22px; padding-bottom: 22px; padding-left: 24px; padding-right: 24px; }
+.info-card-icon { width: 42px; height: 42px; border-radius: 11px; background: var(--panel); display: grid; place-items: center; color: var(--accent); margin-bottom: 14px; }
+.info-card h4 { font-size: 16.5px; font-weight: 700; margin: 0 0 7px; }
+.info-card p { font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; margin: 0; }
+.know-fine { margin-top: 18px; font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+/* Dostawa i zwroty — wariant 3 kart (gdy sprzedaż na Allegro włączona) */
+.info-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.info-card-slim h4 { display: flex; align-items: center; gap: 10px; margin: 0 0 9px; }
+.info-card-mini { display: grid; place-items: center; color: inherit; flex-shrink: 0; }
+.info-card-amber { background: var(--amber-bg); border-color: #f0dca6; }
+.info-card-amber h4 { color: var(--amber-ink); }
+.info-card-green { background: #eafaf0; border-color: #cdeeda; }
+.info-card-green h4 { color: #1f7a4d; }
+
+/* Tweak: sprzedaż na Allegro wyłączona (opcja ACF allegro_wlaczone=false LUB
+   pusty allegro_url — kontrakt §4 „Semantyka renderu"; klasę na <body> dokłada
+   ProductPage::body_class(), WYŁĄCZNIE po to, żeby .info-3col (2 realnie
+   wyrenderowane karty — trzecią motyw pomija w PHP) zajęła 2 kolumny zamiast
+   zostawiać pustą trzecią) */
+[data-allegro-off-only] { display: none; }
+body.allegro-off [data-allegro-only] { display: none !important; }
+body.allegro-off [data-allegro-off-only] { display: revert; }
+body.allegro-off .info-3col { grid-template-columns: repeat(2, 1fr); }
+body.allegro-off .info-card-amber { background: #fff; border-color: var(--line); }
+body.allegro-off .info-card-amber h4 { color: inherit; }
+
+.acc-btn-allegro .sign { color: #ff5a00; }
+.allegro-card {
+	display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; background: #fff; border: 1px solid var(--line);
+	border-radius: var(--radius); padding-top: 34px; padding-bottom: 34px; padding-left: 36px; padding-right: 36px;
+}
+.allegro-card h3 { font-family: var(--font-display); font-size: 17px; font-weight: 800; margin: 0 0 10px; }
+.allegro-card .lead { font-size: 13.5px; color: var(--ink-soft); line-height: 1.85; margin: 0 0 24px; }
+.btn-allegro {
+	display: inline-flex; align-items: center; gap: 8px; background: #ff5a00; color: #fff; text-decoration: none;
+	font-family: var(--font-display); font-weight: 800; font-size: 14.5px; border-radius: 12px;
+	padding-top: 13px; padding-bottom: 13px; padding-left: 22px; padding-right: 22px;
+}
+.btn-allegro:hover { background: #e65100; color: #fff; }
+.allegro-fine { margin-top: 14px; font-size: 12.5px; color: var(--muted); }
+.allegro-step { display: flex; gap: 14px; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); padding-top: 16px; padding-bottom: 16px; }
+.allegro-step:first-child { padding-top: 6px; }
+.allegro-step:last-child { border-bottom: 0; padding-bottom: 6px; }
+.allegro-step b { color: var(--ink); }
+.allegro-step-num {
+	display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+	background: var(--panel); font-family: var(--font-display); font-weight: 800; font-size: 12.5px; color: var(--ink-soft);
+}
+
 /* ============================================================
    RESPONSYWNOŚĆ
    (paddingi poziome .wrap zmieniają się TYLKO przez
@@ -330,6 +511,8 @@ body[data-page="newsletter"] .nlband { display: none; }
 	.footer-grid { grid-template-columns: 1fr 1fr; }
 	.mega-grid { grid-template-columns: repeat(2, 1fr); }
 	.pd-grid { grid-template-columns: 1fr; }
+	.info-2col, .info-3col { grid-template-columns: 1fr; }
+	body.allegro-off .info-3col { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 860px) {
@@ -341,8 +524,11 @@ body[data-page="newsletter"] .nlband { display: none; }
 	.subnav { overflow-x: auto; }
 	.more-btn { display: none; }
 	.cart-menu { width: min(360px, calc(100vw - 32px)); }
+	.buybar .btn-primary span { display: none; }
+	.allegro-card { grid-template-columns: 1fr; padding-top: 26px; padding-bottom: 26px; }
 }
 
 @media (max-width: 560px) {
 	.nlband-inner { padding-left: 24px; padding-right: 24px; }
+	.know { padding-left: 20px; padding-right: 20px; }
 }
