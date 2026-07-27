@@ -301,12 +301,14 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 
 	<?php if ( $has_ship || $has_desc ) : ?>
 	<div class="pd-tabs-section">
-		<?php if ( $has_ship && $has_desc ) : ?>
-			<div class="pd-tabs">
+		<div class="pd-tabs">
+			<?php if ( $has_ship ) : ?>
 				<button type="button" class="pd-tab active" data-pd-tab="ship"><?php esc_html_e( 'Co w przesyłce', 'qutlet-theme' ); ?></button>
-				<button type="button" class="pd-tab" data-pd-tab="desc"><?php esc_html_e( 'Opis i specyfikacja', 'qutlet-theme' ); ?></button>
-			</div>
-		<?php endif; ?>
+			<?php endif; ?>
+			<?php if ( $has_desc ) : ?>
+				<button type="button" class="pd-tab<?php echo $has_ship ? '' : ' active'; ?>" data-pd-tab="desc"><?php esc_html_e( 'Opis i specyfikacja', 'qutlet-theme' ); ?></button>
+			<?php endif; ?>
+		</div>
 
 		<?php if ( $has_ship ) : ?>
 			<div class="tab-pane" data-pd-pane="ship">
