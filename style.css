@@ -299,7 +299,11 @@ body[data-page="newsletter"] .nlband { display: none; }
 .pd-main-img { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); aspect-ratio: 1/1; display: grid; place-items: center; overflow: hidden; position: relative; }
 .pd-main-img img { width: 100%; height: 100%; object-fit: contain; padding: 42px; mix-blend-mode: multiply; }
 .pd-main-img .ph-stripes { font-size: 12px; }
-.pd-thumbs { display: flex; gap: 12px; margin-top: 14px; }
+/* `flex-wrap: wrap` dodane względem prototypu (design/vanilla ma na stałe 4
+   miniatury i nigdy nie zawija) — realne produkty potrafią mieć kilkanaście
+   zdjęć galerii; bez zawijania rząd miniatur poszerzał całą stronę poza
+   `.wrap`. */
+.pd-thumbs { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
 .pd-thumb { width: 78px; height: 78px; border-radius: 12px; background: #fff; overflow: hidden; padding: 8px; cursor: pointer; border: 1.5px solid var(--line); }
 .pd-thumb.active { border-color: var(--accent); }
 .pd-thumb img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
