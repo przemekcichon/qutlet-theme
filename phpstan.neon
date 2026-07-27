@@ -13,3 +13,9 @@ parameters:
         - inc/
     excludePaths:
         - vendor/
+    # Stuby WooCommerce — twarda zależność motywu (D-G5: theme → Woo + core).
+    # Dają realne typowanie (`WC_Product`, `WC_Product_Attribute`,
+    # `wc_get_product_terms`, `wc_attribute_label`) zamiast ignorowania błędów
+    # (P-8.2c, ProductPage::specification_rows()).
+    scanFiles:
+        - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
