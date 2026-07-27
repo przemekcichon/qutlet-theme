@@ -28,9 +28,11 @@ Text Domain:       qutlet-theme
    ZAKRES P-8.2b (produkt: przełącznik kanału zakupu): taby Qutlet/Allegro,
    panele zakupu (eco-note/perk-list/warn-note/btn-buy), sticky buybar,
    sekcja „Wszystko, co warto wiedzieć" (#jak-to-dziala: akordeon,
-   class-table, info-2col/3col, karta „Kupuj przez Allegro"). Reszta
-   prototypu (taby treści P-8.2c, karty produktu, filtry, strony pomocy…)
-   dochodzi w kolejnych punktach fazy.
+   class-table, info-2col/3col, karta „Kupuj przez Allegro").
+   ZAKRES P-8.2c (produkt: sekcja treści): taby pd-tabs-section, karuzela
+   „Co w przesyłce" + included-card, desc-grid/spec-table „Opis i
+   specyfikacja". Reszta prototypu (karty produktu, filtry, strony
+   pomocy…) dochodzi w kolejnych punktach fazy.
    ============================================================ */
 
 :root {
@@ -434,6 +436,57 @@ a.btn-buy-allegro:hover { background: #e65100; }
 }
 .buybar .btn-buybar-allegro:hover { background: #e65100; }
 
+/* ---------- Sekcja treści: taby „Co w przesyłce" / „Opis i specyfikacja" ---------- */
+.pd-tabs-section { padding-top: 48px; padding-bottom: 8px; }
+.pd-tabs { display: flex; gap: 30px; border-bottom: 1.5px solid var(--line); margin-bottom: 30px; }
+.pd-tab {
+	padding-top: 0; padding-bottom: 16px; padding-left: 0; padding-right: 0;
+	font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--muted); position: relative;
+	background: none; border: 0; border-bottom: 3px solid transparent; cursor: pointer;
+}
+.pd-tab.active { color: var(--ink); border-bottom-color: var(--accent); }
+.tab-pane[hidden] { display: none; }
+
+.ship-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 40px; align-items: start; }
+.carousel { position: relative; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.carousel-track { display: flex; transition: transform .35s cubic-bezier(.4, 0, .2, 1); }
+.carousel-slide { min-width: 100%; aspect-ratio: 4/3; display: grid; place-items: center; background: #fff; position: relative; }
+.carousel-slide img { width: 100%; height: 100%; object-fit: contain; padding: 36px; mix-blend-mode: multiply; }
+.carousel-nav {
+	position: absolute; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border-radius: 50%;
+	background: rgba(255,255,255,.9); display: grid; place-items: center; color: var(--ink); border: 0; cursor: pointer;
+}
+.carousel-nav.prev { left: 14px; }
+.carousel-nav.next { right: 14px; }
+.carousel-dots { position: absolute; bottom: 14px; left: 0; right: 0; display: flex; justify-content: center; gap: 7px; }
+.carousel-dot { width: 7px; height: 7px; border-radius: 4px; background: var(--line); border: 0; cursor: pointer; padding: 0; transition: width .2s; }
+.carousel-dot.active { width: 20px; background: var(--accent); }
+.carousel-caption { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); font-weight: 600; padding-top: 13px; padding-bottom: 13px; padding-left: 16px; padding-right: 16px; }
+
+.included-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding-top: 26px; padding-bottom: 26px; padding-left: 28px; padding-right: 28px; }
+.included-card h3 { font-size: 19px; font-weight: 700; margin: 0 0 16px; }
+.included-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 13px; }
+.included-list li { display: flex; gap: 12px; font-size: 14.5px; line-height: 1.45; }
+.check-ico { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; flex-shrink: 0; margin-top: 1px; background: var(--green-bg); color: var(--green-ink); }
+.cross-ico { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; flex-shrink: 0; margin-top: 1px; background: #fbe9e9; color: #b4332f; }
+.included-note { margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+.desc-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 44px; align-items: start; }
+.desc-grid h3 { font-size: 21px; font-weight: 700; margin: 0 0 14px; }
+.desc-grid p { font-size: 15px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 16px; margin-top: 0; }
+.spec-table { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.spec-table h4 {
+	font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+	background: var(--panel); margin: 0;
+	padding-top: 16px; padding-bottom: 16px; padding-left: 18px; padding-right: 18px;
+}
+.spec-row {
+	display: grid; grid-template-columns: 1fr 1.1fr; gap: 14px; border-top: 1px solid var(--line-soft); font-size: 14px;
+	padding-top: 13px; padding-bottom: 13px; padding-left: 18px; padding-right: 18px;
+}
+.spec-row span:first-child { color: var(--muted); font-weight: 600; }
+.spec-row span:last-child { font-weight: 700; color: var(--ink); }
+
 /* ---------- „Wszystko, co warto wiedzieć" (#jak-to-dziala) ---------- */
 .know {
 	background: var(--panel); border-radius: 26px; margin-top: 54px; margin-bottom: 54px;
@@ -527,7 +580,7 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 	.nlband-inner { grid-template-columns: 1fr; padding-left: 32px; padding-right: 32px; }
 	.footer-grid { grid-template-columns: 1fr 1fr; }
 	.mega-grid { grid-template-columns: repeat(2, 1fr); }
-	.pd-grid { grid-template-columns: 1fr; }
+	.pd-grid, .ship-grid, .desc-grid { grid-template-columns: 1fr; }
 	.info-2col, .info-3col { grid-template-columns: 1fr; }
 	body.allegro-off .info-3col { grid-template-columns: 1fr; }
 }

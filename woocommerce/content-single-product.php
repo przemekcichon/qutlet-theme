@@ -11,9 +11,11 @@
  * pełna semantyka D-8.G1 ([data-allegro-only]/[data-allegro-off-only],
  * `.info-3col`/2-kolumnowy wariant przez `body.allegro-off`) oraz sekcja
  * „Wszystko, co warto wiedzieć" (`#jak-to-dziala`) — to jedyne miejsce w
- * prototypie, gdzie te selektory realnie żyją (kontrakt §4). Sekcja
- * treści/specyfikacji (zakładki „Co w przesyłce" / „Opis i specyfikacja")
- * dochodzi w P-8.2c — wchodzi MIĘDZY `.pd-grid` a `.know` niżej.
+ * prototypie, gdzie te selektory realnie żyją (kontrakt §4). P-8.2c: sekcja
+ * treści/specyfikacji MIĘDZY `.pd-grid` a `.know` niżej — taby „Co w
+ * przesyłce" (karuzela + checklista z repeatera ACF `zawartosc_zestawu_pozycje`,
+ * P-9.2/D-9.2.1 — zastąpił WYSIWYG z P-1.2) / „Opis i specyfikacja" (`opis`
+ * ACF WYSIWYG z P-5.1b + natywne atrybuty WooCommerce, kontrakt §9.2).
  *
  * @package Qutlet\Theme
  */
@@ -59,6 +61,27 @@ $cena_allegro    = (float) ProductPage::acf_field( 'cena_allegro', $product_id )
 $sale_price_text    = ProductPage::price_text( $sale_price );
 $allegro_price_text = $allegro_enabled ? ProductPage::price_text( $cena_allegro ) : '';
 $allegro_markup_pct = $allegro_enabled ? ProductPage::save_percent( $sale_price, $cena_allegro ) : 0;
+
+/*
+ * Sekcja treści (P-8.2c): taby „Co w przesyłce" / „Opis i specyfikacja".
+ * Zawartość zestawu = repeater ACF `zawartosc_zestawu_pozycje` (P-9.2,
+ * D-9.2.1 — zastąpił WYSIWYG z P-1.2). Karuzela dostaje TYLKO wiersze ze
+ * zdjęciem; checklista pokazuje wszystkie pozycje (patrz kontrakt §2).
+ */
+$ship_items          = ProductPage::ship_items( $product_id );
+$ship_carousel_items = array_values(
+	array_filter(
+		$ship_items,
+		static function ( array $item ): bool {
+			return $item['image_id'] > 0;
+		}
+	)
+);
+$has_ship = array() !== $ship_items;
+
+$description_html   = (string) ProductPage::acf_field( 'opis', $product_id );
+$specification_rows = ProductPage::specification_rows( $product, $condition_code, $condition_label );
+$has_desc           = '' !== trim( $description_html ) || array() !== $specification_rows;
 
 $categories = wc_get_product_terms( $product_id, 'product_cat', array( 'orderby' => 'parent', 'order' => 'DESC' ) );
 $category   = $categories ? reset( $categories ) : null;
@@ -276,13 +299,91 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 		</div>
 	</div>
 
-	<?php
-	/*
-	 * Sekcja treści (P-8.2c: taby „Co w przesyłce" / „Opis i specyfikacja")
-	 * wchodzi TUTAJ, między `.pd-grid` a `.know` niżej — kolejność z prototypu
-	 * (produkt.html). Nie implementujemy jej w tym punkcie (P-8.2b).
-	 */
-	?>
+	<?php if ( $has_ship || $has_desc ) : ?>
+	<div class="pd-tabs-section">
+		<?php if ( $has_ship && $has_desc ) : ?>
+			<div class="pd-tabs">
+				<button type="button" class="pd-tab active" data-pd-tab="ship"><?php esc_html_e( 'Co w przesyłce', 'qutlet-theme' ); ?></button>
+				<button type="button" class="pd-tab" data-pd-tab="desc"><?php esc_html_e( 'Opis i specyfikacja', 'qutlet-theme' ); ?></button>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( $has_ship ) : ?>
+			<div class="tab-pane" data-pd-pane="ship">
+				<div class="ship-grid">
+					<?php if ( $ship_carousel_items ) : ?>
+						<div class="carousel">
+							<div class="carousel-track" data-car-track>
+								<?php foreach ( $ship_carousel_items as $item ) : ?>
+									<div class="carousel-slide" data-car-label="<?php echo esc_attr( $item['label'] ); ?>">
+										<?php echo wp_get_attachment_image( $item['image_id'], 'large' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+									</div>
+								<?php endforeach; ?>
+							</div>
+							<?php if ( count( $ship_carousel_items ) > 1 ) : ?>
+								<button type="button" class="carousel-nav prev" data-car-prev aria-label="<?php esc_attr_e( 'Poprzednie', 'qutlet-theme' ); ?>"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+								<button type="button" class="carousel-nav next" data-car-next aria-label="<?php esc_attr_e( 'Następne', 'qutlet-theme' ); ?>"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></button>
+								<div class="carousel-dots">
+									<?php foreach ( $ship_carousel_items as $index => $item ) : ?>
+										<button
+											type="button"
+											class="carousel-dot<?php echo 0 === $index ? ' active' : ''; ?>"
+											data-car-dot="<?php echo esc_attr( (string) $index ); ?>"
+											aria-label="<?php
+												/* translators: %d: photo number. */
+												echo esc_attr( sprintf( __( 'Zdjęcie %d', 'qutlet-theme' ), $index + 1 ) );
+											?>"
+										></button>
+									<?php endforeach; ?>
+								</div>
+							<?php endif; ?>
+							<div class="carousel-caption" data-car-caption></div>
+						</div>
+					<?php endif; ?>
+
+					<div class="included-card">
+						<h3><?php esc_html_e( 'Co dokładnie otrzymasz', 'qutlet-theme' ); ?></h3>
+						<ul class="included-list">
+							<?php foreach ( $ship_items as $item ) : ?>
+								<li>
+									<?php if ( $item['included'] ) : ?>
+										<span class="check-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+									<?php else : ?>
+										<span class="cross-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></span>
+									<?php endif; ?>
+									<span><?php echo esc_html( $item['label'] ); ?></span>
+								</li>
+							<?php endforeach; ?>
+						</ul>
+						<p class="included-note"><?php esc_html_e( 'Zawartość spisujemy ręcznie dla każdego egzemplarza. Jeśli czegoś brakuje na zdjęciu — nie ma tego w zestawie.', 'qutlet-theme' ); ?></p>
+					</div>
+				</div>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( $has_desc ) : ?>
+			<div class="tab-pane" data-pd-pane="desc"<?php echo $has_ship ? ' hidden' : ''; ?>>
+				<div class="desc-grid">
+					<?php if ( '' !== trim( $description_html ) ) : ?>
+						<div>
+							<h3><?php esc_html_e( 'O produkcie', 'qutlet-theme' ); ?></h3>
+							<?php echo wp_kses_post( $description_html ); ?>
+						</div>
+					<?php endif; ?>
+
+					<?php if ( $specification_rows ) : ?>
+						<div class="spec-table">
+							<h4><?php esc_html_e( 'Specyfikacja', 'qutlet-theme' ); ?></h4>
+							<?php foreach ( $specification_rows as $row ) : ?>
+								<div class="spec-row"><span><?php echo esc_html( $row['label'] ); ?></span><span><?php echo esc_html( $row['value'] ); ?></span></div>
+							<?php endforeach; ?>
+						</div>
+					<?php endif; ?>
+				</div>
+			</div>
+		<?php endif; ?>
+	</div>
+	<?php endif; ?>
 
 	<div class="know" id="jak-to-dziala">
 		<h2><?php esc_html_e( 'Wszystko, co warto wiedzieć przed zakupem', 'qutlet-theme' ); ?></h2>
