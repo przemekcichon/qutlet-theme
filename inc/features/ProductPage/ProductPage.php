@@ -122,19 +122,30 @@ final class ProductPage {
 	}
 
 	/**
-	 * Rabat „-X%" liczony z ceny rynkowej nowego vs cena sprzedaży (kontrakt §6,
-	 * `data.js` QT.savePct). NIE przechowywane — liczone przez motyw.
+	 * Procent, o jaki `$reference_price` jest WYŻSZA od `$sale_price` —
+	 * relatywnie do `$reference_price` (nie do `$sale_price`), czyli
+	 * `round((1 − sale/reference) * 100)`. Dwa zastosowania w tym szablonie
+	 * (ta sama formuła, inny punkt odniesienia):
+	 * 1) rabat „-X%" — `$reference_price` = `cena_rynkowa_nowego` (ACF),
+	 *    kontrakt §6, `data.js` QT.savePct. NIE przechowywane.
+	 * 2) nota „Cena wyższa o ~X%" w panelu Allegro — `$reference_price` =
+	 *    `cena_allegro` (ACF). Kontrakt §4/§6 nie precyzuje kierunku formuły;
+	 *    kierunek „relatywnie do ceny wyższej" dobrany tak, by odtworzyć
+	 *    dokładnie przykład z prototypu (`cena_allegro` 199,00 zł vs cena
+	 *    sprzedaży 179,10 zł → ~10%, jak w `produkt.html:109`) — licząc
+	 *    względem ceny sprzedaży (`(cena_allegro−sale)/sale`) wyszłoby ~11%.
 	 *
-	 * @param float $sale_price   Cena sprzedaży (Woo `_price`).
-	 * @param float $market_price Cena rynkowa nowego (ACF `cena_rynkowa_nowego`).
-	 * @return int Zaokrąglony procent rabatu; 0, gdy cena rynkowa nie jest dodatnia.
+	 * @param float $sale_price      Cena niższa (Woo `_price`).
+	 * @param float $reference_price Cena wyższa, punkt odniesienia procentu
+	 *                               (`cena_rynkowa_nowego` LUB `cena_allegro`).
+	 * @return int Zaokrąglony procent; 0, gdy `$reference_price` nie jest dodatnia.
 	 */
-	public static function save_percent( float $sale_price, float $market_price ): int {
-		if ( $market_price <= 0.0 ) {
+	public static function save_percent( float $sale_price, float $reference_price ): int {
+		if ( $reference_price <= 0.0 ) {
 			return 0;
 		}
 
-		return (int) round( ( 1 - $sale_price / $market_price ) * 100 );
+		return (int) round( ( 1 - $sale_price / $reference_price ) * 100 );
 	}
 
 	/**

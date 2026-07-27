@@ -391,6 +391,19 @@ body[data-page="newsletter"] .nlband { display: none; }
 a.btn-buy-allegro { background: #ff5a00; box-sizing: border-box; text-decoration: none; }
 a.btn-buy-allegro:hover { background: #e65100; }
 
+/* Stepper ilości (natywny WooCommerce `global/quantity-input.php`) —
+   defensywne minimum tego PR-a, NIE port z design/vanilla (prototyp nie
+   przewiduje selektora ilości — jednosztukowy outlet). Renderuje się
+   wyłącznie, gdy produkt ma `sold_individually=false`
+   (woocommerce/single-product/add-to-cart/simple.php); trzyma format tak,
+   żeby nie wyglądał jak niedokończony natywny formularz obok `.btn-buy`. */
+.cart { display: flex; flex-direction: column; gap: 12px; }
+.quantity { display: flex; }
+.quantity .qty {
+	width: 100%; height: 54px; border: 1.5px solid var(--line); border-radius: 14px;
+	font-family: inherit; font-size: 16px; text-align: center; background: #fff; color: var(--ink);
+}
+
 /* ---------- Sticky buy bar ---------- */
 .buybar {
 	position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; background: rgba(255,255,255,.95);

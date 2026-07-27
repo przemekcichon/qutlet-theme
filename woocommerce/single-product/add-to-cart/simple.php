@@ -2,16 +2,27 @@
 /**
  * Qutlet — przycisk „Dodaj do koszyka" (port stylu design/vanilla/produkt.html
  * `.btn-buy`), nadpisanie natywnego szablonu WooCommerce
- * (woocommerce/templates/single-product/add-to-cart/simple.php).
+ * (woocommerce/templates/single-product/add-to-cart/simple.php, wersja 10.2.0
+ * zainstalowanej wtyczki — zweryfikowane źródło, nie pamięć).
  *
  * Formularz i logika (nonce, walidacja, przekierowanie, komunikaty) to
  * WYŁĄCZNIE natywny mechanizm WooCommerce
  * (`WC_Form_Handler::add_to_cart_action()`, `woocommerce_template_single_add_to_cart()`)
  * — theme go nie duplikuje (D-8.G1: theme tylko renderuje). Zmienione
- * względem oryginału: markup przycisku (ikona + `.btn-buy`) i `id` na
- * `<form>`, żeby sticky buybar (`woocommerce/content-single-product.php`)
- * mógł submitować TEN formularz przyciskiem POZA nim (atrybut HTML5
- * `form="qutlet-add-to-cart-form"`, bez JS).
+ * względem oryginału:
+ * 1) markup przycisku (ikona + `.btn-buy`) i `id` na `<form>`, żeby sticky
+ *    buybar (`woocommerce/content-single-product.php`) mógł submitować TEN
+ *    formularz przyciskiem POZA nim (atrybut HTML5
+ *    `form="qutlet-add-to-cart-form"`, bez JS);
+ * 2) `woocommerce_quantity_input()` owinięte w `! $product->is_sold_individually()`
+ *    — TO JEST DODATEK tego PR-a, NIE natywne zachowanie oryginalnego
+ *    szablonu (który woła stepper bezwarunkowo). Dodane, bo
+ *    `design/vanilla/produkt.html` nie przewiduje żadnego selektora ilości
+ *    na stronie produktu (jednosztukowy outlet). Gdy produkt ma
+ *    `sold_individually=false` (ustawienie per-produkt w adminie Woo, poza
+ *    kontrolą motywu), stepper i tak się wyrenderuje — `.quantity`/`.qty` w
+ *    `style.css` ma minimalne stylowanie na tę okoliczność (patrz sekcja
+ *    P-8.2b), żeby nie wyglądał jak niedokończony natywny formularz.
  *
  * @package Qutlet\Theme
  * @see     https://woocommerce.com/document/template-structure/

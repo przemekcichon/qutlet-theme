@@ -58,7 +58,7 @@ if ( buybar ) {
 		'scroll',
 		function () {
 			var pane = document.querySelector( '[data-buy-pane]:not([hidden])' ) || document.querySelector( 'main' );
-			var anchor = pane ? ( pane.querySelector( '[data-buy-anchor]' ) || pane ) : null;
+			var anchor = pane ? ( pane.querySelector( '[data-buy-anchor], .btn-buy' ) || pane ) : null;
 			var past = anchor ? anchor.getBoundingClientRect().bottom < 0 : false;
 
 			buybar.classList.toggle( 'visible', past );
