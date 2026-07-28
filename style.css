@@ -33,12 +33,13 @@ Text Domain:       qutlet-theme
    „Co w przesyłce" + included-card, desc-grid/spec-table „Opis i
    specyfikacja".
    ZAKRES P-8.3a (karta produktu + archiwum kategorii): karta (.pcard*),
-   siatka (.grid-3, dzielona z realnym `ul.products` WooCommerce — patrz nota
-   przy tej regule), ceny karty (.price-now/.price-old-line/.price-save),
-   nagłówek listy (realne klasy Woo: .woocommerce-products-header/
-   .woocommerce-products-header__title/.term-description — WooCommerce Blocks
-   hardkoduje ten wrapper, theme go nie renderuje). Reszta prototypu (filtry,
-   strefa okazji, strony pomocy…) dochodzi w kolejnych punktach fazy.
+   siatka (.grid-3 — nadpisuje domyślny `<ul class="products">` Woo przez
+   woocommerce/loop/loop-start.php i loop-end.php), ceny karty
+   (.price-now/.price-old-line/.price-save), nagłówek listy (realne klasy
+   Woo: .woocommerce-products-header/.woocommerce-products-header__title/
+   .term-description — WooCommerce Blocks hardkoduje ten wrapper, theme go
+   nie renderuje). Reszta prototypu (filtry, strefa okazji, strony pomocy…)
+   dochodzi w kolejnych punktach fazy.
    ============================================================ */
 
 :root {
@@ -580,27 +581,24 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 /* ---------- Archiwum kategorii: nagłówek listy (P-8.3a) ----------
    Ground-truth runtime: dla archiwów renderowanych przez
    `wp:woocommerce/legacy-template {"template":"archive-product"}`
-   (templates/taxonomy-product_cat.html), WooCommerce Blocks buduje nagłówek
-   I wrapper `<ul class="products">` WPROST w PHP wtyczki
-   (ClassicTemplate::render_archive_product()) — theme nie ma tu własnego
-   pliku do nadpisania (`woocommerce/archive-product.php` byłby martwym
-   kodem, nigdy nie wywoływanym). Stylujemy więc realne klasy Woo zamiast
-   wymyślać własny wrapper. */
+   (templates/taxonomy-product_cat.html), WooCommerce Blocks hardkoduje
+   nagłówek WPROST w PHP wtyczki (ClassicTemplate::render_archive_product())
+   — theme nie ma tu punktu nadpisania (`woocommerce/archive-product.php`
+   byłby martwym kodem, nigdy niewywoływanym). Stylujemy więc realne klasy
+   Woo zamiast wymyślać własny wrapper. Sama PĘTLA (patrz niżej) jest jednak
+   nadpisywalna — to inny mechanizm (`wc_get_template()`, nie hardkod). */
 .woocommerce-products-header { padding-top: 24px; padding-bottom: 18px; }
 .woocommerce-products-header__title.page-title { font-family: var(--font-display); font-size: clamp(28px, 3.2vw, 40px); font-weight: 800; margin: 0; }
 .term-description { color: var(--muted); font-size: 15px; margin-top: 8px; }
 
 /* ---------- Karta produktu + siatka archiwum (P-8.3a) ----------
-   `.grid-3` = uniwersalna siatka 3 kolumn (do własnych stron spoza pętli Woo,
-   np. przyszła strefa okazji, P-8.3c). `ul.products` to REALNY wrapper pętli
-   Woo (patrz wyżej) — dostaje tę samą siatkę + reset listy, bo theme nie może
-   dopisać mu klasy `grid-3` w tej ścieżce renderu. */
-.grid-3,
-ul.products {
-	display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
-	list-style: none; margin: 0; padding: 0;
-}
-ul.products > li { margin: 0; padding: 0; }
+   `.grid-3` = siatka 3 kolumn: uniwersalna (przyszłe własne strony spoza
+   pętli Woo, np. strefa okazji P-8.3c) ORAZ realny wrapper pętli produktów —
+   `woocommerce/loop/loop-start.php`/`loop-end.php` nadpisują domyślny
+   `<ul class="products">` na `<div class="grid-3">`, więc karta
+   (woocommerce/content-product.php) zostaje czystym `<a class="pcard">`
+   bez opakowania w `<li>`, jak w prototypie. */
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 
 .pcard {
 	background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
@@ -635,7 +633,7 @@ ul.products > li { margin: 0; padding: 0; }
    padding-left/right — patrz nota na górze pliku)
    ============================================================ */
 @media (max-width: 1020px) {
-	.grid-3, ul.products { grid-template-columns: repeat(2, 1fr); }
+	.grid-3 { grid-template-columns: repeat(2, 1fr); }
 	.nlband-inner { grid-template-columns: 1fr; padding-left: 32px; padding-right: 32px; }
 	.footer-grid { grid-template-columns: 1fr 1fr; }
 	.mega-grid { grid-template-columns: repeat(2, 1fr); }
@@ -652,14 +650,14 @@ ul.products > li { margin: 0; padding: 0; }
 	.header-row { height: 64px; gap: 12px; }
 	.subnav { overflow-x: auto; }
 	.more-btn { display: none; }
-	.grid-3, ul.products { grid-template-columns: 1fr 1fr; gap: 12px; }
+	.grid-3 { grid-template-columns: 1fr 1fr; gap: 12px; }
 	.cart-menu { width: min(360px, calc(100vw - 32px)); }
 	.buybar .btn-primary span { display: none; }
 	.allegro-card { grid-template-columns: 1fr; padding-top: 26px; padding-bottom: 26px; }
 }
 
 @media (max-width: 560px) {
-	.grid-3, ul.products { grid-template-columns: 1fr; }
+	.grid-3 { grid-template-columns: 1fr; }
 	.nlband-inner { padding-left: 24px; padding-right: 24px; }
 	.know { padding-left: 20px; padding-right: 20px; }
 }

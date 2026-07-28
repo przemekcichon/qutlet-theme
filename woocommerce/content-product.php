@@ -15,12 +15,14 @@
  * Ground-truth runtime (P-8.3a): dla archiwów renderowanych przez blok
  * `wp:woocommerce/legacy-template {"template":"archive-product"}`
  * (`templates/taxonomy-product_cat.html`), WooCommerce Blocks
- * (`ClassicTemplate::render_archive_product()`) buduje nagłówek i wrapper
- * `<ul class="products">` WPROST W PHP wtyczki — theme NIE MOŻE nadpisać
- * `woocommerce/archive-product.php` w tej ścieżce (plik jest pomijany, tylko
- * ten wewnętrzny partial trafia przez `wc_get_template_part('content','product')`,
- * które JEST respektowane). Stąd `<li>` jako korzeń (rodzic zawsze jest `<ul>`),
- * a wizualna karta (`.pcard`) mieszka na zagnieżdżonym `<a>`.
+ * (`ClassicTemplate::render_archive_product()`) hardkoduje nagłówek archiwum
+ * WPROST w PHP wtyczki — theme nie ma tam punktu nadpisania (stąd
+ * `woocommerce/archive-product.php` NIE istnieje, byłby martwym kodem).
+ * Sama pętla (wrapper `<ul>`/`<div>` + ten partial) JEST jednak respektowana:
+ * `woocommerce_product_loop_start()`/`_end()` wołają `wc_get_template()`, więc
+ * `woocommerce/loop/loop-start.php`/`loop-end.php` zastępują `<ul class="products">`
+ * siatką `.grid-3` — karta może więc zostać czystym `<a class="pcard">`, bez
+ * opakowania w `<li>`, dokładnie jak w prototypie.
  *
  * @package Qutlet\Theme
  */
@@ -48,8 +50,7 @@ $sale_price       = (float) $product->get_price();
 $market_price     = (float) ProductPage::acf_field( 'cena_rynkowa_nowego', $product_id );
 $has_market_price = $market_price > 0.0;
 ?>
-<li id="product-<?php echo esc_attr( (string) $product_id ); ?>" <?php wc_product_class( '', $product ); ?>>
-<a class="pcard" href="<?php echo esc_url( get_permalink( $product_id ) ); ?>">
+<a id="product-<?php echo esc_attr( (string) $product_id ); ?>" <?php wc_product_class( 'pcard', $product ); ?> href="<?php echo esc_url( get_permalink( $product_id ) ); ?>">
 	<div class="pcard-media">
 		<?php if ( $image_id ) : ?>
 			<?php echo wp_get_attachment_image( $image_id, 'woocommerce_thumbnail' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -90,4 +91,3 @@ $has_market_price = $market_price > 0.0;
 		<?php esc_html_e( 'Zwrot 14-dniowy', 'qutlet-theme' ); ?>
 	</div>
 </a>
-</li>

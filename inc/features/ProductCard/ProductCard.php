@@ -45,34 +45,26 @@ final class ProductCard {
 			return __( 'Pojedyncza sztuka', 'qutlet-theme' );
 		}
 
-		return sprintf(
-			/* translators: 1: quantity, 2: Polish word for "piece(s)" matching the quantity (sztuka/sztuki/sztuk). */
-			__( '%1$d %2$s', 'qutlet-theme' ),
+		// Konkatenacja liczby + już przetłumaczonej formy odmiany — bez owijania
+		// w __() dodatkowo, bo sam wzorzec placeholderów nie niesie treści do
+		// przetłumaczenia (kolejność liczba→słowo jest tu stała, nie językowa).
+		return $qty . ' ' . self::plural_word(
 			$qty,
-			self::plural_word(
-				$qty,
-				__( 'sztuka', 'qutlet-theme' ),
-				__( 'sztuki', 'qutlet-theme' ),
-				__( 'sztuk', 'qutlet-theme' )
-			)
+			__( 'sztuki', 'qutlet-theme' ),
+			__( 'sztuk', 'qutlet-theme' )
 		);
 	}
 
 	/**
-	 * Polska odmiana liczebnikowa (port `data.js` QT.plural).
+	 * Polska odmiana liczebnikowa dla 2+ (port `data.js` QT.plural — forma dla
+	 * 1 obsłużona wcześniej w qty_label(), więc tu niepotrzebna).
 	 *
-	 * @param int    $n    Liczba.
-	 * @param string $one  Forma dla 1 (nieużywana tu — qty_label() obsługuje 1 osobno,
-	 *                     zostawiona dla kompletności portu).
+	 * @param int    $n    Liczba (zawsze > 1 — wołane tylko z qty_label()).
 	 * @param string $few  Forma dla 2-4 (poza 12-14).
 	 * @param string $many Forma dla pozostałych.
 	 * @return string
 	 */
-	private static function plural_word( int $n, string $one, string $few, string $many ): string {
-		if ( 1 === $n ) {
-			return $one;
-		}
-
+	private static function plural_word( int $n, string $few, string $many ): string {
 		$mod10  = $n % 10;
 		$mod100 = $n % 100;
 
