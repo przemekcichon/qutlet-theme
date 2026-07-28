@@ -4,8 +4,9 @@
  *
  * P-8.2a: szkielet + galeria + nagłówek. P-8.2b: przełącznik kanału zakupu
  * (taby Qutlet/Allegro + buybar + sekcja „jak-to-dziala"), pełna semantyka
- * D-8.G1. Sekcja treści/specyfikacji (P-8.2c) rozbuduje ten slice w kolejnym
- * punkcie FAZY 8. Markup mieszka w woocommerce/content-single-product.php
+ * D-8.G1. P-8.2c: sekcja treści/specyfikacji — `ship_items()` (repeater
+ * `zawartosc_zestawu_pozycje`, P-9.2) i `specification_rows()` (atrybuty WC
+ * + wiersz „Klasa stanu", kontrakt §9.2). Markup mieszka w woocommerce/content-single-product.php
  * (nadpisanie szablonu WooCommerce); ta klasa trzyma enqueue JS + pomocnicze
  * funkcje odczytu/prezentacji współdzielone przez ten szablon.
  *
@@ -60,6 +61,14 @@ final class ProductPage {
 			\Qutlet\Theme\VERSION,
 			true
 		);
+
+		wp_enqueue_script(
+			'qutlet-theme-product-content-tabs',
+			get_theme_file_uri( 'assets/js/product-content-tabs.js' ),
+			array(),
+			\Qutlet\Theme\VERSION,
+			true
+		);
 	}
 
 	/**
@@ -102,6 +111,49 @@ final class ProductPage {
 		}
 
 		return get_post_meta( $post_id, $key, true );
+	}
+
+	/**
+	 * Pozycje zestawu z repeatera ACF `zawartosc_zestawu_pozycje` (kontrakt §2,
+	 * D-9.2.1 — P-9.2). Wiersze bez `etykieta` są pomijane (repeater bez ACF Pro
+	 * aktywnego zwróciłby surową liczbę wierszy z `get_post_meta()`, nie tablicę —
+	 * stąd twardy wymóg `get_field()`, bez fallbacku jak w `acf_field()`).
+	 *
+	 * @param int $post_id Id produktu.
+	 * @return array<int, array{image_id: int, label: string, included: bool}>
+	 */
+	public static function ship_items( int $post_id ): array {
+		if ( ! function_exists( 'get_field' ) ) {
+			return array();
+		}
+
+		$rows = get_field( 'zawartosc_zestawu_pozycje', $post_id );
+
+		if ( ! is_array( $rows ) ) {
+			return array();
+		}
+
+		$items = array();
+
+		foreach ( $rows as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+
+			$label = trim( (string) ( $row['etykieta'] ?? '' ) );
+
+			if ( '' === $label ) {
+				continue;
+			}
+
+			$items[] = array(
+				'image_id' => (int) ( $row['zdjecie'] ?? 0 ),
+				'label'    => $label,
+				'included' => (bool) ( $row['w_zestawie'] ?? false ),
+			);
+		}
+
+		return $items;
 	}
 
 	/**
@@ -192,5 +244,56 @@ final class ProductPage {
 	 */
 	public static function bold_text( string $template, string $bold ): string {
 		return wp_kses_post( sprintf( $template, '<b>' . esc_html( $bold ) . '</b>' ) );
+	}
+
+	/**
+	 * Wiersze specyfikacji (etykieta→wartość) z NATYWNYCH atrybutów WooCommerce
+	 * (kontrakt §9.2 — `$product->get_attributes()`; D-5.1.1: core NIE rejestruje
+	 * dla specyfikacji własnego pola, to natywny mechanizm Woo). Dokłada na
+	 * końcu jeden wiersz „Klasa stanu" (kontrakt §9.2 / `produkt.html:190` —
+	 * NIE osobna tabela, jeden `spec-row` tutaj; pełna tabela klasyfikacji A/B/C/D
+	 * żyje w akordeonie „Klasyfikacja produktów", zaimplementowanym w P-8.2b).
+	 *
+	 * @param \WC_Product $product         Produkt.
+	 * @param string      $condition_code  Literał klasy stanu (`A`-`D`) lub pusty string.
+	 * @param string      $condition_label Etykieta klasy stanu (`condition_label()`) lub pusty string.
+	 * @return array<int, array{label: string, value: string}>
+	 */
+	public static function specification_rows( \WC_Product $product, string $condition_code, string $condition_label ): array {
+		$rows = array();
+
+		foreach ( $product->get_attributes() as $attribute ) {
+			if ( ! $attribute instanceof \WC_Product_Attribute ) {
+				continue;
+			}
+
+			if ( $attribute->is_taxonomy() ) {
+				$terms = wc_get_product_terms( $product->get_id(), $attribute->get_name(), array( 'fields' => 'names' ) );
+				$value = implode( ', ', $terms );
+			} else {
+				$value = implode( ', ', $attribute->get_options() );
+			}
+
+			$value = trim( $value );
+
+			if ( '' === $value ) {
+				continue;
+			}
+
+			$rows[] = array(
+				'label' => wc_attribute_label( $attribute->get_name(), $product ),
+				'value' => $value,
+			);
+		}
+
+		if ( '' !== $condition_code && '' !== $condition_label ) {
+			$rows[] = array(
+				'label' => __( 'Klasa stanu', 'qutlet-theme' ),
+				/* translators: 1: condition code (A-D), 2: condition label. */
+				'value' => sprintf( __( '%1$s — %2$s', 'qutlet-theme' ), $condition_code, $condition_label ),
+			);
+		}
+
+		return $rows;
 	}
 }
