@@ -129,6 +129,15 @@ function add_woocommerce_theme_support(): void {
 	remove_action( 'woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10 );
 	remove_action( 'woocommerce_before_main_content', 'woocommerce_breadcrumb', 20 );
 	remove_action( 'woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10 );
+
+	// P-8.3a (woocommerce/archive-product.php): toolbar domyślny Woo (licznik
+	// wyników + sortowanie) zdjęty świadomie — to nieostylowany markup spoza
+	// zakresu tego punktu (sort/filtry = P-8.3b). Tytuł archiwum motyw buduje
+	// sam (`woocommerce_page_title()` wprost w szablonie), więc nagłówek
+	// taksonomii też zdjęty, żeby się nie zdublował.
+	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
+	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
+	remove_action( 'woocommerce_shop_loop_header', 'woocommerce_product_taxonomy_archive_header', 10 );
 }
 
 /**
