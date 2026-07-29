@@ -16,8 +16,9 @@
  *
  * @var string                                                                  $form_action      Adres formularza (archiwum bez `/page/N/`).
  * @var string                                                                  $current_sort     Bieżąca wartość `orderby` ('' / 'price' / 'price-desc' / 'save').
- * @var array<int, array{slug: string, name: string, count: int, checked: bool}> $brand_facets     Facety marki.
- * @var array<int, array{code: string, label: string, count: int, checked: bool}> $condition_facets Facety klasy stanu.
+ * @var array<int, array{slug: string, name: string, count: int, checked: bool}> $brand_facets     Facety marki (z `qutlet-core`, `ProductFilterQuery::brand_facets()`).
+ * @var array<int, array{code: string, count: int, checked: bool}>              $condition_facets Facety klasy stanu (z `qutlet-core`, `ProductFilterQuery::condition_facets()` — BEZ etykiety, ta żyje w theme).
+ * @var array<string, string>                                                   $condition_labels Etykiety klasy stanu wg kodu (`ProductPage::condition_label()`), klucz = kod A-D.
  * @var array{floor: float, ceil: float}                                        $price_bounds     Granice ceny w bieżącym kontekście.
  * @var array{min: float, max: float}                                           $price_range      Zaznaczony zakres ceny.
  * @var array<int, array{label: string, url: string}>                           $active_chips     Aktywne chipy (z linkiem „usuń").
@@ -104,7 +105,7 @@ $price_max   = (int) round( $price_range['max'] );
 								<span class="facet-label">
 									<?php
 										/* translators: 1: kod klasy stanu (A-D), 2: etykieta klasy stanu. */
-										echo esc_html( sprintf( __( 'Klasa %1$s — %2$s', 'qutlet-theme' ), $facet['code'], $facet['label'] ) );
+										echo esc_html( sprintf( __( 'Klasa %1$s — %2$s', 'qutlet-theme' ), $facet['code'], $condition_labels[ $facet['code'] ] ?? '' ) );
 									?>
 								</span>
 								<span class="facet-count"><?php echo esc_html( (string) $facet['count'] ); ?></span>
@@ -129,7 +130,7 @@ $price_max   = (int) round( $price_range['max'] );
 			<?php endif; ?>
 		</div>
 		<div class="drawer-foot">
-			<a type="button" class="text-btn drawer-clear" href="<?php echo esc_url( $form_action ); ?>"><?php esc_html_e( 'Wyczyść', 'qutlet-theme' ); ?></a>
+			<a class="text-btn drawer-clear" href="<?php echo esc_url( $form_action ); ?>"><?php esc_html_e( 'Wyczyść', 'qutlet-theme' ); ?></a>
 			<button type="submit" class="btn btn-primary btn-lg"><?php esc_html_e( 'Pokaż wyniki', 'qutlet-theme' ); ?></button>
 		</div>
 	</aside>
