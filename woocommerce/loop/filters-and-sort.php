@@ -16,6 +16,8 @@
  *
  * @var string                                                                  $form_action      Adres formularza (archiwum bez `/page/N/`).
  * @var string                                                                  $current_sort     Bieżąca wartość `orderby` ('' / 'price' / 'price-desc' / 'save').
+ * @var string                                                                  $brand_param      Nazwa GET param filtra marki (`ProductFilterQuery::BRAND_PARAM` — CELOWO nie `product_brand`, patrz D-8.3b.3).
+ * @var string                                                                  $condition_param  Nazwa GET param filtra klasy stanu (`ProductFilterQuery::CONDITION_PARAM`).
  * @var array<int, array{slug: string, name: string, count: int, checked: bool}> $brand_facets     Facety marki (z `qutlet-core`, `ProductFilterQuery::brand_facets()`).
  * @var array<int, array{code: string, count: int, checked: bool}>              $condition_facets Facety klasy stanu (z `qutlet-core`, `ProductFilterQuery::condition_facets()` — BEZ etykiety, ta żyje w theme).
  * @var array<string, string>                                                   $condition_labels Etykiety klasy stanu wg kodu (`ProductPage::condition_label()`), klucz = kod A-D.
@@ -85,7 +87,7 @@ $price_max   = (int) round( $price_range['max'] );
 					<div class="facet-list">
 						<?php foreach ( $brand_facets as $facet ) : ?>
 							<label class="facet-row">
-								<input type="checkbox" name="product_brand[]" value="<?php echo esc_attr( $facet['slug'] ); ?>" <?php checked( $facet['checked'] ); ?>>
+								<input type="checkbox" name="<?php echo esc_attr( $brand_param ); ?>[]" value="<?php echo esc_attr( $facet['slug'] ); ?>" <?php checked( $facet['checked'] ); ?>>
 								<span class="facet-label"><?php echo esc_html( $facet['name'] ); ?></span>
 								<span class="facet-count"><?php echo esc_html( (string) $facet['count'] ); ?></span>
 							</label>
@@ -100,7 +102,7 @@ $price_max   = (int) round( $price_range['max'] );
 					<div class="facet-list">
 						<?php foreach ( $condition_facets as $facet ) : ?>
 							<label class="facet-row">
-								<input type="checkbox" name="klasa_stanu[]" value="<?php echo esc_attr( $facet['code'] ); ?>" <?php checked( $facet['checked'] ); ?>>
+								<input type="checkbox" name="<?php echo esc_attr( $condition_param ); ?>[]" value="<?php echo esc_attr( $facet['code'] ); ?>" <?php checked( $facet['checked'] ); ?>>
 								<span class="dot dot-<?php echo esc_attr( strtolower( $facet['code'] ) ); ?>"></span>
 								<span class="facet-label">
 									<?php

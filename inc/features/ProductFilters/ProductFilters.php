@@ -276,6 +276,8 @@ final class ProductFilters {
 			array(
 				'form_action'      => self::archive_base_url(),
 				'current_sort'     => ProductFilterQuery::current_sort(),
+				'brand_param'      => ProductFilterQuery::BRAND_PARAM,
+				'condition_param'  => ProductFilterQuery::CONDITION_PARAM,
 				'brand_facets'     => $brands,
 				'condition_facets' => $conditions,
 				'condition_labels' => array_combine(
