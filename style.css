@@ -86,7 +86,17 @@ img { max-width: 100%; }
 button { font-family: inherit; }
 a { color: inherit; }
 
-.wrap {
+/* `.woocommerce-products-header` dołączony tu (P-8.3b, poprawka runtime):
+   nagłówek archiwum jest hardkodowany przez WooCommerce Blocks
+   (ClassicTemplate::render_archive_product(), P-8.3a) — theme nie ma punktu
+   nadpisania markupu, więc nie może dostać realnej klasy `wrap`; dostaje
+   IDENTYCZNĄ kontenację przez współdzieloną regułę CSS. `theme.json` nie
+   definiuje `settings.layout.contentSize`, więc blokowy layout
+   „constrained" (`<main class="wp-block-group is-layout-constrained">`)
+   sam z siebie nic nie ogranicza — stąd ten nagłówek (i bez tej poprawki
+   też `.grid-3`/toolbar filtrów, patrz loop-start.php/filters-and-sort.php)
+   rozlewał się na całą szerokość ekranu. */
+.wrap, .woocommerce-products-header {
 	max-width: 1240px;
 	margin-left: auto;
 	margin-right: auto;

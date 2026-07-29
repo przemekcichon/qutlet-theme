@@ -37,7 +37,7 @@ $price_ceil  = (int) round( $price_bounds['ceil'] );
 $price_min   = (int) round( $price_range['min'] );
 $price_max   = (int) round( $price_range['max'] );
 ?>
-<form class="qutlet-filters-form" method="get" action="<?php echo esc_url( $form_action ); ?>">
+<form class="qutlet-filters-form wrap" method="get" action="<?php echo esc_url( $form_action ); ?>">
 	<div class="toolbar">
 		<button type="button" class="filter-btn" data-open-drawer>
 			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
