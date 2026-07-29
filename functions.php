@@ -41,6 +41,7 @@ if ( is_readable( $qutlet_theme_autoload ) ) {
 
 	\Qutlet\Theme\features\HeaderNav\HeaderNav::boot();
 	\Qutlet\Theme\features\ProductPage\ProductPage::boot();
+	\Qutlet\Theme\features\ProductFilters\ProductFilters::boot();
 } else {
 	add_action( 'admin_notices', __NAMESPACE__ . '\\render_missing_autoloader_notice' );
 }
@@ -131,11 +132,14 @@ function add_woocommerce_theme_support(): void {
 	remove_action( 'woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10 );
 
 	// P-8.3a: toolbar domyślny Woo na archiwum (licznik wyników + sortowanie)
-	// zdjęty świadomie — to nieostylowany markup spoza zakresu tego punktu
-	// (sort/filtry = P-8.3b). Nagłówek/tytuł archiwum jest hardkodowany przez
-	// WooCommerce Blocks (ClassicTemplate::render_archive_product() — theme
-	// nie ma tam punktu nadpisania, patrz woocommerce/content-product.php),
-	// więc świadomie NIE zdejmujemy tu żadnego hooka nagłówkowego.
+	// zdjęty świadomie — to nieostylowany markup spoza zakresu tego punktu.
+	// Nagłówek/tytuł archiwum jest hardkodowany przez WooCommerce Blocks
+	// (ClassicTemplate::render_archive_product() — theme nie ma tam punktu
+	// nadpisania, patrz woocommerce/content-product.php), więc świadomie NIE
+	// zdejmujemy tu żadnego hooka nagłówkowego.
+	// P-8.3b: WŁASNY toolbar (filtry marka/klasa stanu/cena + sortowanie,
+	// ProductFilters::render()) zastępuje oba zdjęte hooki, spięty z powrotem
+	// na tym samym `woocommerce_before_shop_loop` (patrz boot() wyżej).
 	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
 	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
 }

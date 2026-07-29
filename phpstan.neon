@@ -19,3 +19,14 @@ parameters:
     # (P-8.2c, ProductPage::specification_rows()).
     scanFiles:
         - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+    # qutlet-core NIE jest paczką Composera (brak wpisu Packagist) — to realny
+    # kod siostrzanego pluginu, obecny w tym samym Local (multi-root, patrz
+    # CLAUDE.md → „Struktura multi-root"), więc typujemy go przez ścieżkę
+    # względną zamiast stuba. Pierwsze bezpośrednie odwołanie theme → klasa
+    # core (P-8.3b, D-8.3b.2 — `ProductFilters` woła
+    # `Qutlet\Core\ProductFilters\ProductFilterQuery`). ZAŁOŻENIE: repo
+    # qutlet-core wyewidencjowane obok qutlet-theme w tym samym wp-content —
+    # jeśli kiedyś dojdzie CI budujące samo qutlet-theme bez sąsiadów, ta
+    # ścieżka przestanie istnieć i PHPStan wróci do błędu `class.notFound`.
+    scanDirectories:
+        - ../../plugins/qutlet-core/src
