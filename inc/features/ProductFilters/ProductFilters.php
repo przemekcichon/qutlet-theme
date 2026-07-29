@@ -1,8 +1,12 @@
 <?php
 /**
  * Slice ProductFilters — render toolbara + szuflady `.drawer` (filtry marka /
- * klasa stanu / cena + sortowanie) na archiwum produktów, port z
- * design/vanilla/strefa-okazji.html (P-8.3b).
+ * kategoria / klasa stanu / cena + sortowanie) na archiwum produktów, port z
+ * design/vanilla/strefa-okazji.html (P-8.3b + P-8.3c). Facet „Kategoria"
+ * (P-8.3c) renderuje się WYŁĄCZNIE na Shopie (`templates/archive-product.html`
+ * — Strefa okazji, „wszystkie kategorie naraz") — na archiwum jednej kategorii
+ * (`templates/taxonomy-product_cat.html`, P-8.3a/b) jest już ustalona przez
+ * URL (D-8.3c.2).
  *
  * Granica core↔theme (D-8.3b.2, decyzja użytkownika po niezależnej recenzji
  * P-8.3b): modyfikacja GŁÓWNEGO zapytania (meta_query klasy stanu, własny
@@ -70,17 +74,18 @@ final class ProductFilters {
 
 	/**
 	 * Czy bieżące żądanie to archiwum, na którym renderujemy filtry. P-8.3a
-	 * zbudowało realny szablon WYŁĄCZNIE dla `product_cat`
-	 * (`templates/taxonomy-product_cat.html`) — w motywie NIE MA jeszcze
-	 * `archive-product.html`, więc `is_shop()` świadomie pominięte (dodać
-	 * dopiero, gdy powstanie realny szablon strony `/sklep/` — recenzja
-	 * P-8.3b oznaczyła wcześniejsze objęcie `is_shop()` jako niezweryfikowane
-	 * w ground-truth tego punktu).
+	 * zbudowało realny szablon dla `product_cat`
+	 * (`templates/taxonomy-product_cat.html`); P-8.3c dokłada `is_shop()` —
+	 * Strefa okazji (`templates/archive-product.html`, „wszystkie kategorie
+	 * naraz") to naturalne `is_post_type_archive('product')` (CPT `product` ma
+	 * `has_archive` = slug strony Shop, `show_on_front = posts` na tej
+	 * instalacji, więc edge case „shop jako front page" — `WC_Query::parse_request()`
+	 * — nie dotyczy).
 	 *
 	 * @return bool
 	 */
 	private static function is_supported_archive(): bool {
-		return function_exists( 'is_product_category' ) && is_product_category();
+		return function_exists( 'is_product_category' ) && ( is_product_category() || is_shop() );
 	}
 
 	/**
@@ -137,7 +142,7 @@ final class ProductFilters {
 	private static function build_url( string $base, array $overrides ): string {
 		$args = array();
 
-		foreach ( array( ProductFilterQuery::BRAND_PARAM, ProductFilterQuery::CONDITION_PARAM, 'min_price', 'max_price', 'orderby' ) as $key ) {
+		foreach ( array( ProductFilterQuery::BRAND_PARAM, ProductFilterQuery::CATEGORY_PARAM, ProductFilterQuery::CONDITION_PARAM, 'min_price', 'max_price', 'orderby' ) as $key ) {
 			if ( isset( $_GET[ $key ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- odczyt stanu filtrów do wyświetlenia, nie mutuje stanu.
 				$args[ $key ] = wp_unslash( $_GET[ $key ] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			}
@@ -160,12 +165,13 @@ final class ProductFilters {
 	 * z linkiem „usuń" (usuwa WYŁĄCZNIE tę jedną wartość, zachowuje resztę).
 	 *
 	 * @param array<int, array{slug: string, name: string, count: int, checked: bool}> $brand_facets     Z `ProductFilterQuery::brand_facets()`.
+	 * @param array<int, array{slug: string, name: string, count: int, checked: bool}> $category_facets  Z `ProductFilterQuery::category_facets()` (puste poza Shopem — D-8.3c.2).
 	 * @param array<int, array{code: string, count: int, checked: bool}>               $condition_facets Z `ProductFilterQuery::condition_facets()`.
 	 * @param array{floor: float, ceil: float}                                         $price_bounds     Z `ProductFilterQuery::price_bounds()`.
 	 * @param array{min: float, max: float}                                            $price_range      Z `ProductFilterQuery::selected_price_range()`.
 	 * @return array<int, array{label: string, url: string}>
 	 */
-	public static function active_chips( array $brand_facets, array $condition_facets, array $price_bounds, array $price_range ): array {
+	public static function active_chips( array $brand_facets, array $category_facets, array $condition_facets, array $price_bounds, array $price_range ): array {
 		$chips = array();
 		$base  = self::archive_base_url();
 
@@ -178,6 +184,18 @@ final class ProductFilters {
 			$chips[]   = array(
 				'label' => $facet['name'],
 				'url'   => self::build_url( $base, array( ProductFilterQuery::BRAND_PARAM => $remaining ) ),
+			);
+		}
+
+		foreach ( $category_facets as $facet ) {
+			if ( ! $facet['checked'] ) {
+				continue;
+			}
+
+			$remaining = array_values( array_diff( ProductFilterQuery::selected_category_slugs(), array( $facet['slug'] ) ) );
+			$chips[]   = array(
+				'label' => $facet['name'],
+				'url'   => self::build_url( $base, array( ProductFilterQuery::CATEGORY_PARAM => $remaining ) ),
 			);
 		}
 
@@ -217,15 +235,22 @@ final class ProductFilters {
 	 * Liczba aktywnych filtrów (kontrakt UI — `.filter-btn-count`).
 	 *
 	 * @param array<int, array{checked: bool}> $brand_facets     Z `ProductFilterQuery::brand_facets()`.
+	 * @param array<int, array{checked: bool}> $category_facets  Z `ProductFilterQuery::category_facets()` (puste poza Shopem — D-8.3c.2).
 	 * @param array<int, array{checked: bool}> $condition_facets Z `ProductFilterQuery::condition_facets()`.
 	 * @param array{floor: float, ceil: float} $price_bounds     Z `ProductFilterQuery::price_bounds()`.
 	 * @param array{min: float, max: float}    $price_range      Z `ProductFilterQuery::selected_price_range()`.
 	 * @return int
 	 */
-	public static function active_filter_count( array $brand_facets, array $condition_facets, array $price_bounds, array $price_range ): int {
+	public static function active_filter_count( array $brand_facets, array $category_facets, array $condition_facets, array $price_bounds, array $price_range ): int {
 		$count = 0;
 
 		foreach ( $brand_facets as $facet ) {
+			if ( $facet['checked'] ) {
+				++$count;
+			}
+		}
+
+		foreach ( $category_facets as $facet ) {
 			if ( $facet['checked'] ) {
 				++$count;
 			}
@@ -270,6 +295,9 @@ final class ProductFilters {
 		$range      = ProductFilterQuery::selected_price_range( $bounds );
 		$brands     = ProductFilterQuery::brand_facets();
 		$conditions = ProductFilterQuery::condition_facets();
+		// Facet „Kategoria" WYŁĄCZNIE na Shopie (D-8.3c.2) — na archiwum jednej
+		// kategorii jest już ustalona przez URL, dodatkowy facet byłby zbędny.
+		$categories = is_product_category() ? array() : ProductFilterQuery::category_facets();
 
 		wc_get_template(
 			'loop/filters-and-sort.php',
@@ -277,8 +305,10 @@ final class ProductFilters {
 				'form_action'      => self::archive_base_url(),
 				'current_sort'     => ProductFilterQuery::current_sort(),
 				'brand_param'      => ProductFilterQuery::BRAND_PARAM,
+				'category_param'   => ProductFilterQuery::CATEGORY_PARAM,
 				'condition_param'  => ProductFilterQuery::CONDITION_PARAM,
 				'brand_facets'     => $brands,
+				'category_facets'  => $categories,
 				'condition_facets' => $conditions,
 				'condition_labels' => array_combine(
 					ProductFilterQuery::CONDITION_CODES,
@@ -286,8 +316,8 @@ final class ProductFilters {
 				),
 				'price_bounds'     => $bounds,
 				'price_range'      => $range,
-				'active_chips'     => self::active_chips( $brands, $conditions, $bounds, $range ),
-				'filter_count'     => self::active_filter_count( $brands, $conditions, $bounds, $range ),
+				'active_chips'     => self::active_chips( $brands, $categories, $conditions, $bounds, $range ),
+				'filter_count'     => self::active_filter_count( $brands, $categories, $conditions, $bounds, $range ),
 				'result_count'     => isset( $GLOBALS['wp_query'] ) ? (int) $GLOBALS['wp_query']->found_posts : 0,
 			)
 		);

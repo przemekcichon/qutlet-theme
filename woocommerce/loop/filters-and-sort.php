@@ -17,8 +17,10 @@
  * @var string                                                                  $form_action      Adres formularza (archiwum bez `/page/N/`).
  * @var string                                                                  $current_sort     Bieżąca wartość `orderby` ('' / 'price' / 'price-desc' / 'save').
  * @var string                                                                  $brand_param      Nazwa GET param filtra marki (`ProductFilterQuery::BRAND_PARAM` — CELOWO nie `product_brand`, patrz D-8.3b.3).
+ * @var string                                                                  $category_param   Nazwa GET param filtra kategorii (`ProductFilterQuery::CATEGORY_PARAM` — CELOWO nie `product_cat`, patrz D-8.3c.1).
  * @var string                                                                  $condition_param  Nazwa GET param filtra klasy stanu (`ProductFilterQuery::CONDITION_PARAM`).
  * @var array<int, array{slug: string, name: string, count: int, checked: bool}> $brand_facets     Facety marki (z `qutlet-core`, `ProductFilterQuery::brand_facets()`).
+ * @var array<int, array{slug: string, name: string, count: int, checked: bool}> $category_facets  Facety kategorii (z `qutlet-core`, `ProductFilterQuery::category_facets()` — puste poza Shopem, D-8.3c.2).
  * @var array<int, array{code: string, count: int, checked: bool}>              $condition_facets Facety klasy stanu (z `qutlet-core`, `ProductFilterQuery::condition_facets()` — BEZ etykiety, ta żyje w theme).
  * @var array<string, string>                                                   $condition_labels Etykiety klasy stanu wg kodu (`ProductPage::condition_label()`), klucz = kod A-D.
  * @var array{floor: float, ceil: float}                                        $price_bounds     Granice ceny w bieżącym kontekście.
@@ -81,6 +83,21 @@ $price_max   = (int) round( $price_range['max'] );
 			</button>
 		</div>
 		<div class="drawer-body">
+			<?php if ( $category_facets ) : ?>
+				<div class="facet-group">
+					<div class="facet-title"><?php esc_html_e( 'Kategoria', 'qutlet-theme' ); ?></div>
+					<div class="facet-list">
+						<?php foreach ( $category_facets as $facet ) : ?>
+							<label class="facet-row">
+								<input type="checkbox" name="<?php echo esc_attr( $category_param ); ?>[]" value="<?php echo esc_attr( $facet['slug'] ); ?>" <?php checked( $facet['checked'] ); ?>>
+								<span class="facet-label"><?php echo esc_html( $facet['name'] ); ?></span>
+								<span class="facet-count"><?php echo esc_html( (string) $facet['count'] ); ?></span>
+							</label>
+						<?php endforeach; ?>
+					</div>
+				</div>
+			<?php endif; ?>
+
 			<?php if ( $brand_facets ) : ?>
 				<div class="facet-group">
 					<div class="facet-title"><?php esc_html_e( 'Marka', 'qutlet-theme' ); ?></div>
