@@ -129,6 +129,15 @@ function add_woocommerce_theme_support(): void {
 	remove_action( 'woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10 );
 	remove_action( 'woocommerce_before_main_content', 'woocommerce_breadcrumb', 20 );
 	remove_action( 'woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10 );
+
+	// P-8.3a: toolbar domyślny Woo na archiwum (licznik wyników + sortowanie)
+	// zdjęty świadomie — to nieostylowany markup spoza zakresu tego punktu
+	// (sort/filtry = P-8.3b). Nagłówek/tytuł archiwum jest hardkodowany przez
+	// WooCommerce Blocks (ClassicTemplate::render_archive_product() — theme
+	// nie ma tam punktu nadpisania, patrz woocommerce/content-product.php),
+	// więc świadomie NIE zdejmujemy tu żadnego hooka nagłówkowego.
+	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
+	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
 }
 
 /**
