@@ -1025,6 +1025,28 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .ck-badge-opt { background: var(--panel); color: var(--muted); border: 1px solid var(--line); }
 
 /* ---------- Kontakt (page-kontakt.php, port <style> kontakt.html) ---------- */
+/* .form-card/.step-title/.step-num/.form-grid/.field to bazowe klasy karty
+   formularza z globalnego arkusza prototypu (design/vanilla/css/style.css,
+   sekcja „Kasa" — współdzielone z P-8.6b koszyk/kasa, jeszcze
+   niezaimplementowanym). Kontakt jest PIERWSZYM punktem, który ich
+   potrzebuje, więc port wchodzi tu; kasa je odziedziczy bez zmian. */
+.form-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding-top: 24px; padding-bottom: 24px; padding-left: 26px; padding-right: 26px; }
+.step-title { font-size: 17px; font-weight: 800; margin: 0 0 18px; display: flex; align-items: center; gap: 12px; }
+.step-num {
+	width: 27px; height: 27px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 13px; font-weight: 800;
+	display: grid; place-items: center; font-family: var(--font-display); flex-shrink: 0;
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-full { grid-column: 1 / -1; }
+.field label { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+.field input {
+	height: 46px; border-radius: 10px; font-family: inherit; font-size: 14.5px;
+	border: 1.5px solid var(--line); background: #fff; color: var(--ink);
+	padding-left: 14px; padding-right: 14px;
+}
+.field input.invalid { border-color: var(--error); }
+
 .contact-layout { display: grid; grid-template-columns: 300px 1fr; gap: 40px; align-items: start; }
 .contact-head h1 { font-size: clamp(30px, 4vw, 46px); font-weight: 800; margin: 0; }
 .contact-head p { color: var(--muted); font-size: 15px; line-height: 1.7; margin-top: 12px; max-width: 300px; }
@@ -1104,7 +1126,7 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 
 /* Newsletter — banner globalny (parts/footer.html) ukryty NA stronie newslettera:
    body[data-page="newsletter"] w prototypie → tu klasa dogrywana filtrem
-   `body_class` (Help::add_newsletter_body_class(), D-8.G1: bez atrybutu
+   `body_class` (Help::filter_body_class(), D-8.G1: bez atrybutu
    data-page, którego block template canvas nie ma jak przyjąć). */
 body.qt-hide-nlband .nlband { display: none; }
 
@@ -1186,7 +1208,6 @@ body.qt-hide-nlband .nlband { display: none; }
 	.grid-3 { grid-template-columns: 1fr; }
 	.nlband-inner { padding-left: 24px; padding-right: 24px; }
 	.know { padding-left: 20px; padding-right: 20px; }
-	.how-steps { grid-template-columns: 1fr; }
 }
 
 /* Blog (P-8.4) — breakpoint własny prototypu (640px, nie 560px) */
@@ -1226,4 +1247,13 @@ body.qt-hide-nlband .nlband { display: none; }
 @media (max-width: 640px) {
 	.help-cards { grid-template-columns: 1fr; }
 	.ck-table th:nth-child(2), .ck-table td:nth-child(2) { display: none; }
+}
+
+/* Musi zostać PO bloku 1023px powyżej (`.how-steps: 1fr 1fr`) — przy równej
+   specyficzności o wyniku ≤560px decyduje kolejność w źródle, nie
+   „ciaśniejszy" zakres liczbowy media query. Osobny blok (nie dopisanie do
+   1023px), bo prototyp też ma dwa niezależne breakpointy tu
+   (jak-to-dziala.html:43-44). */
+@media (max-width: 560px) {
+	.how-steps { grid-template-columns: 1fr; }
 }

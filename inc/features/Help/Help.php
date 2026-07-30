@@ -80,16 +80,33 @@ final class Help {
 	}
 
 	/**
-	 * Renderuje sidebar `.help-nav` z menu WP `pomoc` — podświetla aktywną
-	 * pozycję porównując `object_id` pozycji menu z bieżącą Stroną (WP-owy
-	 * odpowiednik `body[data-page] .help-nav a[data-help]` z prototypu).
-	 * Brak menu (niezmapowana lokalizacja / usunięte menu) → nic nie
-	 * renderuje, strona nie wywraca się bez sidebaru.
+	 * Renderuje sidebar `.help-nav` z menu przypisanego do lokalizacji
+	 * `pomoc` — podświetla aktywną pozycję porównując `object_id` pozycji
+	 * menu z bieżącą Stroną (WP-owy odpowiednik `body[data-page]
+	 * .help-nav a[data-help]` z prototypu). Brak menu (niezmapowana
+	 * lokalizacja / usunięte menu) → nic nie renderuje, strona nie wywraca
+	 * się bez sidebaru.
+	 *
+	 * Rozwiązanie PRZEZ LOKALIZACJĘ (`get_nav_menu_locations()`), nie po
+	 * nazwie/slugu menu — `wp_get_nav_menu_items( 'pomoc' )` rozwiązywałby
+	 * TERM menu o tej nazwie (`wp_get_nav_menu_object()`,
+	 * `wp-includes/nav-menu.php`), z pominięciem `register_nav_menu()`
+	 * wyżej: admin, który przypisałby w Wyglądzie → Menu INNE menu do
+	 * lokalizacji „Pomoc", nie zobaczyłby żadnej zmiany, a zmiana
+	 * nazwy/sluga menu `pomoc` wygasiłaby sidebar mimo poprawnej
+	 * lokalizacji. WordPress NIE dopasowuje menu do lokalizacji po nazwie
+	 * automatycznie — trzeba jawnie przejść przez tabelę przypisań.
 	 *
 	 * @return void
 	 */
 	public static function render_help_nav(): void {
-		$items = wp_get_nav_menu_items( self::MENU_LOCATION );
+		$locations = get_nav_menu_locations();
+
+		if ( ! isset( $locations[ self::MENU_LOCATION ] ) ) {
+			return;
+		}
+
+		$items = wp_get_nav_menu_items( $locations[ self::MENU_LOCATION ] );
 
 		if ( ! is_array( $items ) || empty( $items ) ) {
 			return;
