@@ -1,8 +1,12 @@
 # PHPStan dla qutlet-theme (D-G2). Poziom startowy 5 — podnosimy osobnym punktem,
 # gdy będzie realny kod do analizy. Stuby WordPressa dostarcza rozszerzenie
-# szepeviktor/phpstan-wordpress (ładowane poniżej). Analizujemy tylko kod
-# imperatywny motywu (functions.php + inc/) — powierzchnia deklaratywna
-# (theme.json, templates/) nie jest PHP.
+# szepeviktor/phpstan-wordpress (ładowane poniżej). Analizujemy kod imperatywny
+# motywu (functions.php + inc/) ORAZ klasyczne szablony PHP bloga (P-8.4:
+# home.php/single.php/category.php/tag.php/header.php/footer.php +
+# template-parts/ — patrz nagłówek inc/features/Blog/Blog.php po uzasadnienie,
+# czemu blog NIE stoi na blokowych `templates/*.html`) — to REALNY kod z
+# logiką, nie deklaratywna powierzchnia jak theme.json/templates/*.html
+# (te faktycznie nie są PHP i zostają poza analizą).
 includes:
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
 
@@ -11,6 +15,13 @@ parameters:
     paths:
         - functions.php
         - inc/
+        - home.php
+        - single.php
+        - category.php
+        - tag.php
+        - header.php
+        - footer.php
+        - template-parts/
     excludePaths:
         - vendor/
     # Stuby WooCommerce — twarda zależność motywu (D-G5: theme → Woo + core).

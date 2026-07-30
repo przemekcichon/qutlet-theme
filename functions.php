@@ -42,6 +42,7 @@ if ( is_readable( $qutlet_theme_autoload ) ) {
 	\Qutlet\Theme\features\HeaderNav\HeaderNav::boot();
 	\Qutlet\Theme\features\ProductPage\ProductPage::boot();
 	\Qutlet\Theme\features\ProductFilters\ProductFilters::boot();
+	\Qutlet\Theme\features\Blog\Blog::boot();
 } else {
 	add_action( 'admin_notices', __NAMESPACE__ . '\\render_missing_autoloader_notice' );
 }
@@ -54,6 +55,15 @@ add_action( 'after_setup_theme', __NAMESPACE__ . '\\check_dependencies' );
 // galerii Woo (zoom/slider/lightbox) — strona produktu ma własną, portowaną
 // z prototypu (assets/js/product-gallery.js).
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\add_woocommerce_theme_support' );
+
+// P-8.4: blog (home.php/single.php/category.php/tag.php) renderuje się przez
+// klasyczną hierarchię szablonów, nie `templates/*.html` (patrz nagłówek
+// inc/features/Blog/Blog.php). Klasyczne szablony omijają `template-canvas.php`,
+// który w motywach blokowych dodaje BEZWARUNKOWY <title> niezależnie od
+// wsparcia motywu (`locate_block_template()` podmienia hook na
+// `_block_template_render_title_tag`) — bez jawnego `title-tag` support
+// klasyczne strony bloga zostałyby bez <title> w <head>.
+add_action( 'after_setup_theme', __NAMESPACE__ . '\\add_classic_template_support' );
 
 // Placeholder enqueue: rejestrujemy arkusz motywu (na razie pusty — FAZA 8).
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_assets' );
@@ -142,6 +152,16 @@ function add_woocommerce_theme_support(): void {
 	// na tym samym `woocommerce_before_shop_loop` (patrz boot() wyżej).
 	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
 	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
+}
+
+/**
+ * Wsparcie potrzebne WYŁĄCZNIE przez klasyczne szablony bloga (P-8.4) — patrz
+ * komentarz przy rejestracji hooka wyżej.
+ *
+ * @return void
+ */
+function add_classic_template_support(): void {
+	add_theme_support( 'title-tag' );
 }
 
 /**
