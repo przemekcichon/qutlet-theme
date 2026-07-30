@@ -40,6 +40,14 @@ Text Domain:       qutlet-theme
    .term-description — WooCommerce Blocks hardkoduje ten wrapper, theme go
    nie renderuje). Reszta prototypu (filtry, strefa okazji, strony pomocy…)
    dochodzi w kolejnych punktach fazy.
+   ZAKRES P-8.5 (strony pomocy + formularze): sekcja pomocy (.help-layout/
+   .help-nav/.help-head/.help-quick/.help-cards — port <style> z
+   pomoc.html), regulamin/polityka-* (.terms-*/.toc* — port <style> z
+   polityka-cookies.html: .ck-*), kontakt (.contact-* — port <style> z
+   kontakt.html), newsletter (.nl-*/.eko-*/.perks3*/.quote-band — już w
+   globalnym arkuszu prototypu), „Jak to działa" (.how-* — port <style> z
+   jak-to-dziala.html) + .hero-cta (globalny prototyp, dotąd nieużywany
+   w motywie).
    ============================================================ */
 
 :root {
@@ -931,6 +939,212 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .term-related > span { font-size: 12.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
 
 /* ============================================================
+   Strony pomocy (P-8.5) — port design/vanilla/css/style.css
+   (.help-*/.terms-*/.toc*/.nl-*/.eko-*/.perks3*/.quote-band/.hero-cta)
+   + <style> per-strona z pomoc.html/jak-to-dziala.html/kontakt.html/
+   polityka-cookies.html.
+   → w WP: page-pomoc.php, page-jak-to-dziala.php, page-kontakt.php,
+   page-newsletter.php, page-regulamin.php, page-polityka-prywatnosci.php,
+   page-polityka-cookies.php (inc/features/Help/Help.php).
+   ============================================================ */
+
+/* ---------- Wspólny layout sekcji Pomoc (help-nav sidebar + TOC) ---------- */
+.help-layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 54px; align-items: start; padding-top: 34px; padding-bottom: 60px; }
+.help-layout.has-toc { grid-template-columns: 200px minmax(0, 1fr) 220px; }
+.help-nav { position: sticky; top: 96px; display: flex; flex-direction: column; gap: 3px; }
+.help-nav h4 { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; padding-left: 10px; }
+.help-nav a { font-size: 13.5px; font-weight: 600; color: var(--ink-soft); text-decoration: none; border-radius: 8px; padding-top: 7px; padding-bottom: 7px; padding-left: 10px; padding-right: 10px; }
+.help-nav a:hover { background: var(--panel); color: var(--ink); }
+.help-nav a.is-active { background: var(--ink); color: #fff; }
+
+/* ---------- Centrum pomocy (page-pomoc.php, port <style> pomoc.html) ---------- */
+.help-head h1 { font-size: clamp(30px, 4vw, 46px); font-weight: 800; margin: 0; }
+.help-head p { color: var(--muted); font-size: 15px; line-height: 1.7; margin-top: 12px; max-width: 560px; }
+.help-sec-label {
+	font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+	color: var(--muted); margin-top: 40px; margin-bottom: 14px;
+}
+.help-quick { display: flex; flex-wrap: wrap; gap: 10px; }
+.help-quick a {
+	font-size: 13.5px; font-weight: 700; color: var(--ink-soft); text-decoration: none;
+	border: 1.5px solid var(--line); border-radius: 999px; background: #fff; white-space: nowrap;
+	padding-top: 9px; padding-bottom: 9px; padding-left: 16px; padding-right: 16px;
+}
+.help-quick a:hover { border-color: var(--ink); color: var(--ink); }
+.help-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.help-card {
+	background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+	text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 6px;
+	padding-top: 22px; padding-bottom: 22px; padding-left: 22px; padding-right: 22px;
+}
+.help-card:hover { border-color: var(--ink); }
+.help-card b { font-size: 15.5px; font-weight: 800; color: var(--ink); }
+.help-card span { font-size: 13.5px; line-height: 1.6; color: var(--muted); }
+.help-card .go { margin-top: 6px; font-size: 13px; font-weight: 800; color: var(--accent); display: inline-flex; align-items: center; gap: 6px; }
+
+/* ---------- Regulamin / Polityka prywatności / Polityka cookies ---------- */
+.toc { position: sticky; top: 96px; }
+.toc h4 { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+.toc-list { display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); }
+.toc-list a { color: inherit; text-decoration: none; border-radius: 6px; }
+.toc-list a:hover { color: var(--accent); }
+.terms-article { max-width: 680px; }
+.terms-head { margin-bottom: 34px; }
+.terms-head h1 { font-size: clamp(30px, 4vw, 46px); font-weight: 800; margin: 0; }
+.terms-head p { color: var(--muted); font-size: 14px; margin-top: 12px; }
+.terms-article section { margin-bottom: 38px; }
+.terms-article h2 { font-size: 23px; font-weight: 700; margin: 0 0 14px; display: flex; gap: 12px; align-items: baseline; }
+.terms-article h2 .num { color: var(--accent); }
+.terms-article p, .terms-article ul { font-size: 15.5px; color: var(--ink-soft); line-height: 1.75; margin-top: 0; margin-bottom: 14px; }
+.terms-article ul { padding-left: 22px; }
+.terms-article li { margin-bottom: 7px; }
+.terms-article b { color: var(--ink); }
+
+/* Polityka cookies — tabele trackerów (port <style> polityka-cookies.html) */
+.ck-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 14px; margin-bottom: 6px; }
+.ck-table th {
+	text-align: left; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+	color: var(--muted); border-bottom: 2px solid var(--line);
+	padding-top: 8px; padding-bottom: 8px; padding-left: 10px; padding-right: 10px;
+}
+.ck-table td {
+	vertical-align: top; color: var(--ink-soft); line-height: 1.55; border-bottom: 1px solid var(--line);
+	padding-top: 10px; padding-bottom: 10px; padding-left: 10px; padding-right: 10px;
+}
+.ck-name {
+	font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; color: var(--ink);
+	background: var(--panel); border-radius: 6px; white-space: nowrap;
+	padding-top: 2px; padding-bottom: 2px; padding-left: 7px; padding-right: 7px;
+}
+.ck-badge {
+	display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+	border-radius: 999px; margin-left: 10px; vertical-align: middle; white-space: nowrap;
+	padding-top: 3px; padding-bottom: 3px; padding-left: 10px; padding-right: 10px;
+}
+.ck-badge-req { background: var(--ink); color: #fff; }
+.ck-badge-opt { background: var(--panel); color: var(--muted); border: 1px solid var(--line); }
+
+/* ---------- Kontakt (page-kontakt.php, port <style> kontakt.html) ---------- */
+.contact-layout { display: grid; grid-template-columns: 300px 1fr; gap: 40px; align-items: start; }
+.contact-head h1 { font-size: clamp(30px, 4vw, 46px); font-weight: 800; margin: 0; }
+.contact-head p { color: var(--muted); font-size: 15px; line-height: 1.7; margin-top: 12px; max-width: 300px; }
+.contact-list { display: flex; flex-direction: column; gap: 18px; margin-top: 30px; }
+.contact-item { display: flex; gap: 14px; align-items: flex-start; }
+.contact-item svg { flex: none; margin-top: 2px; }
+.contact-item b { display: block; font-size: 13px; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+.contact-item span, .contact-item a { font-size: 14.5px; color: var(--ink-soft); text-decoration: none; }
+.contact-item a:hover { color: var(--accent); }
+.contact-form-card { max-width: 620px; }
+.field textarea {
+	border-radius: 10px; font-family: inherit; font-size: 14.5px;
+	border: 1.5px solid var(--line); background: #fff; color: var(--ink);
+	padding-top: 12px; padding-bottom: 12px; padding-left: 14px; padding-right: 14px;
+	min-height: 150px; resize: vertical;
+}
+
+/* ---------- Newsletter (page-newsletter.php) ---------- */
+.nl-page { padding-bottom: 72px; }
+.nl-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: start; margin-top: 6px; }
+.nl-grid h1 { font-size: clamp(32px, 4vw, 52px); font-weight: 800; letter-spacing: -.035em; line-height: 1.04; margin: 0; }
+.nl-grid .accent { color: var(--accent); }
+.nl-lead { margin-top: 20px; font-size: 18px; line-height: 1.55; color: var(--ink-soft); max-width: 480px; }
+.nl-lead strong { color: var(--ink); font-weight: 800; }
+.nl-form-card { background: #fff; border: 1px solid var(--line); border-radius: 26px; padding: 32px; }
+.nl-form-card h3 { font-size: 22px; font-weight: 800; margin: 0 0 6px; }
+.nl-form-card .sub { font-size: 14px; color: var(--muted); margin: 0 0 22px; }
+.nl-field { display: block; font-size: 13px; font-weight: 700; color: var(--ink-soft); margin-bottom: 16px; }
+.nl-field .opt { color: var(--muted); font-weight: 600; }
+.nl-field input {
+	display: block; width: 100%; height: 48px; margin-top: 7px; border: 1.5px solid var(--line); border-radius: 12px;
+	font-family: inherit; font-size: 15px; background: var(--panel); color: var(--ink);
+	padding-left: 16px; padding-right: 16px;
+}
+.nl-chips-label { font-size: 13px; font-weight: 700; color: var(--ink-soft); margin-top: 2px; margin-bottom: 12px; }
+.nl-chips { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 24px; }
+.nl-chip {
+	font-size: 13.5px; font-weight: 700; border-radius: 999px; border: 1.5px solid var(--line);
+	background: #fff; color: var(--ink-soft); cursor: pointer;
+	padding-top: 9px; padding-bottom: 9px; padding-left: 15px; padding-right: 15px;
+}
+.nl-chip.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+.nl-submit { width: 100%; height: 52px; background: var(--accent); color: #fff; font-weight: 800; font-size: 15.5px; border-radius: 12px; border: 0; cursor: pointer; }
+.nl-fine { font-size: 12px; color: var(--muted); margin-top: 14px; text-align: center; line-height: 1.5; }
+.nl-success { background: #fff; border: 1px solid var(--line); border-radius: 26px; text-align: center; padding-top: 42px; padding-bottom: 42px; padding-left: 30px; padding-right: 30px; }
+.nl-success-icon { width: 76px; height: 76px; border-radius: 50%; background: var(--green-bg); color: var(--green-ink); display: grid; place-items: center; margin: 0 auto 22px; }
+.nl-success h3 { font-size: 24px; font-weight: 800; margin: 0 0 10px; }
+.nl-success p { font-size: 15px; color: var(--ink-soft); line-height: 1.6; }
+.nl-success .accent { color: var(--accent); font-weight: 800; }
+
+/* Newsletter/„Jak to działa" — karty eko + 3 perki + cytat (współdzielone) */
+.eko-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 60px; }
+.eko-card { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 32px; }
+.eko-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--panel); color: var(--accent); margin-bottom: 18px; }
+.eko-kicker { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+.eko-card h3 { font-size: 21px; font-weight: 800; margin: 0 0 10px; }
+.eko-card p { font-size: 15px; line-height: 1.65; color: var(--ink-soft); margin: 0; }
+
+.perks3-section { margin-top: 60px; }
+.perks3-section h2 { font-size: clamp(23px, 2.5vw, 31px); font-weight: 800; margin: 0 0 26px; letter-spacing: -.02em; }
+.perks3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.perk3 { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 26px; }
+.perk3-icon { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--plum); color: var(--lime); margin-bottom: 16px; }
+.perk3 h4 { font-size: 16.5px; font-weight: 800; margin: 0 0 8px; }
+.perk3 p { font-size: 14px; line-height: 1.6; color: var(--ink-soft); margin: 0; }
+
+.quote-band {
+	position: relative; overflow: hidden; margin-top: 60px; border-radius: 26px; text-align: center; color: #fff;
+	background: radial-gradient(700px 420px at 88% 0%, rgba(168,232,50,.06), transparent 55%), linear-gradient(135deg, #1e0a36, #150726);
+	padding-top: 54px; padding-bottom: 54px; padding-left: 52px; padding-right: 52px;
+}
+.quote-band blockquote {
+	margin: 0 auto; max-width: 780px; font-family: var(--font-display); font-size: clamp(22px, 2.7vw, 32px);
+	font-weight: 800; line-height: 1.28; letter-spacing: -.02em;
+}
+.quote-band .attribution { margin-top: 18px; font-size: 12.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.55); }
+
+/* Newsletter — banner globalny (parts/footer.html) ukryty NA stronie newslettera:
+   body[data-page="newsletter"] w prototypie → tu klasa dogrywana filtrem
+   `body_class` (Help::add_newsletter_body_class(), D-8.G1: bez atrybutu
+   data-page, którego block template canvas nie ma jak przyjąć). */
+body.qt-hide-nlband .nlband { display: none; }
+
+/* ---------- „Jak to działa" (page-jak-to-dziala.php, port <style>) ---------- */
+.hero-cta {
+	margin-top: 30px; display: inline-flex; align-items: center; gap: 10px; background: var(--lime); color: var(--lime-ink);
+	font-weight: 800; font-size: 15.5px; border-radius: 999px; text-decoration: none;
+	padding-top: 15px; padding-bottom: 15px; padding-left: 28px; padding-right: 28px;
+	box-shadow: 0 12px 26px -12px rgba(36,61,0,.35);
+}
+.how-hero { background: var(--plum); color: #fff; border-radius: 26px; margin-top: 24px; padding-top: clamp(44px, 6vw, 72px); padding-bottom: clamp(44px, 6vw, 72px); padding-left: clamp(24px, 5vw, 64px); padding-right: clamp(24px, 5vw, 64px); }
+.how-hero h1 { font-family: var(--font-display); font-size: clamp(32px, 4.2vw, 54px); font-weight: 800; letter-spacing: -.035em; line-height: 1.1; margin: 0; max-width: 720px; }
+.how-hero .lead { margin-top: 20px; font-size: 17px; line-height: 1.65; color: rgba(255,255,255,.78); max-width: 620px; }
+.how-hero .lead b { color: #fff; }
+.how-hero .lime { color: var(--lime); }
+
+.how-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 40px; }
+.how-step { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding-top: 26px; padding-bottom: 26px; padding-left: 24px; padding-right: 24px; position: relative; }
+.how-step-num { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--lime-ink); background: var(--lime); width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 16px; }
+.how-step h3 { font-size: 17px; font-weight: 800; margin: 0 0 8px; }
+.how-step p { font-size: 14px; line-height: 1.6; color: var(--ink-soft); margin: 0; }
+
+.how-section { margin-top: 64px; }
+.how-section > h2 { font-family: var(--font-display); font-size: clamp(24px, 3vw, 34px); font-weight: 800; letter-spacing: -.02em; margin: 0 0 10px; }
+.how-section > .sub { font-size: 15.5px; color: var(--muted); line-height: 1.6; margin: 0 0 28px; max-width: 640px; }
+
+.how-why { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; margin-top: 64px; background: var(--panel); border-radius: 26px; padding-top: clamp(36px, 5vw, 56px); padding-bottom: clamp(36px, 5vw, 56px); padding-left: clamp(24px, 4vw, 56px); padding-right: clamp(24px, 4vw, 56px); }
+.how-why h2 { font-family: var(--font-display); font-size: clamp(24px, 3vw, 34px); font-weight: 800; letter-spacing: -.02em; margin: 0 0 16px; }
+.how-why p { font-size: 15.5px; line-height: 1.75; color: var(--ink-soft); margin: 0 0 14px; }
+.how-why p b { color: var(--ink); }
+.how-why-facts { display: flex; flex-direction: column; gap: 14px; }
+.how-fact { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); display: flex; gap: 16px; align-items: flex-start; padding-top: 18px; padding-bottom: 18px; padding-left: 20px; padding-right: 20px; }
+.how-fact-icon { flex: none; width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--plum); color: var(--lime); }
+.how-fact h4 { font-size: 15px; font-weight: 800; margin: 0 0 4px; }
+.how-fact p { font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); margin: 0; }
+
+.how-cta { text-align: center; margin-top: 64px; margin-bottom: 72px; }
+.how-cta p { font-size: 15.5px; color: var(--muted); margin: 0 0 20px; }
+
+/* ============================================================
    RESPONSYWNOŚĆ
    (paddingi poziome .wrap zmieniają się TYLKO przez
    padding-left/right — patrz nota na górze pliku)
@@ -940,8 +1154,9 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 	.nlband-inner { grid-template-columns: 1fr; padding-left: 32px; padding-right: 32px; }
 	.footer-grid { grid-template-columns: 1fr 1fr; }
 	.mega-grid { grid-template-columns: repeat(2, 1fr); }
-	.pd-grid, .ship-grid, .desc-grid { grid-template-columns: 1fr; }
+	.pd-grid, .ship-grid, .desc-grid, .nl-grid { grid-template-columns: 1fr; }
 	.info-2col, .info-3col { grid-template-columns: 1fr; }
+	.eko-grid, .perks3 { grid-template-columns: 1fr; }
 	body.allegro-off .info-3col { grid-template-columns: 1fr; }
 
 	/* Blog (P-8.4) */
@@ -961,6 +1176,7 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 	.subnav { overflow-x: auto; }
 	.more-btn { display: none; }
 	.grid-3 { grid-template-columns: 1fr 1fr; gap: 12px; }
+	.form-grid { grid-template-columns: 1fr; }
 	.cart-menu { width: min(360px, calc(100vw - 32px)); }
 	.buybar .btn-primary span { display: none; }
 	.allegro-card { grid-template-columns: 1fr; padding-top: 26px; padding-bottom: 26px; }
@@ -970,6 +1186,7 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 	.grid-3 { grid-template-columns: 1fr; }
 	.nlband-inner { padding-left: 24px; padding-right: 24px; }
 	.know { padding-left: 20px; padding-right: 20px; }
+	.how-steps { grid-template-columns: 1fr; }
 }
 
 /* Blog (P-8.4) — breakpoint własny prototypu (640px, nie 560px) */
@@ -983,4 +1200,30 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 	.art-product { flex-wrap: wrap; }
 	.term-hero { flex-direction: column; align-items: flex-start; }
 	.term-hero-stat { text-align: left; }
+}
+
+/* Strony pomocy (P-8.5) — breakpointy własne prototypu (1100/900/640px,
+   pomoc.html/jak-to-dziala.html/kontakt.html/polityka-cookies.html) */
+@media (max-width: 1100px) {
+	.help-layout.has-toc { grid-template-columns: 200px minmax(0, 1fr); }
+	.help-layout .toc { display: none; }
+}
+
+@media (max-width: 1023px) {
+	.how-steps { grid-template-columns: 1fr 1fr; }
+	.how-why { grid-template-columns: 1fr; gap: 28px; }
+}
+
+@media (max-width: 900px) {
+	.help-layout { grid-template-columns: 1fr; gap: 28px; }
+	.help-nav { position: static; flex-direction: row; flex-wrap: wrap; gap: 8px; }
+	.help-nav h4 { display: none; }
+	.help-nav a { border: 1px solid var(--line); border-radius: 999px; padding-left: 14px; padding-right: 14px; }
+	.contact-layout { grid-template-columns: 1fr; gap: 30px; }
+	.contact-head p { max-width: none; }
+}
+
+@media (max-width: 640px) {
+	.help-cards { grid-template-columns: 1fr; }
+	.ck-table th:nth-child(2), .ck-table td:nth-child(2) { display: none; }
 }
