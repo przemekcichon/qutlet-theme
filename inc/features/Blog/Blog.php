@@ -67,11 +67,54 @@ final class Blog {
 	 * @return void
 	 */
 	public static function boot(): void {
-		// Celowo puste: Blog nie ma własnych hooków globalnych (inaczej niż
-		// ProductFilters/HeaderNav) — szablony klasyczne (home.php i pozostałe)
-		// wołają statyczne helpery tej klasy bezpośrednio. Metoda istnieje dla
-		// spójności z resztą slice'ów (ten sam wzorzec `Feature::boot()` wołany
-		// z functions.php).
+		// Jedyny hook globalny slice'a — reszta to statyczne helpery wołane wprost
+		// z szablonów klasycznych (home.php i pozostałe).
+		add_filter( 'document_title_parts', array( self::class, 'filter_document_title_parts' ) );
+	}
+
+	/**
+	 * Dopasowuje `<title>` widoków bloga do prototypu (`blog.html:6`,
+	 * `blog-artykul.html:6`, `blog-kategoria.html:6`, `blog-tag.html:6` — każdy
+	 * bez nazwy strony na końcu, tylko „… — Drugi obieg[, blog Qutlet]").
+	 * Usuwa WYŁĄCZNIE fragment `site` (nazwa strony) na widokach bloga — separator
+	 * i reszta zachowania `wp_get_document_title()` zostają domyślne (globalny
+	 * `document_title_separator` poza zakresem tego punktu, dotyczyłby też
+	 * produktu/stron innych niż blog).
+	 *
+	 * @param array<string, string> $title Części tytułu (WP core).
+	 * @return array<string, string>
+	 */
+	public static function filter_document_title_parts( array $title ): array {
+		if ( is_singular( 'post' ) ) {
+			$title['title']   = single_post_title( '', false );
+			$title['tagline'] = __( 'Drugi obieg', 'qutlet-theme' );
+			unset( $title['site'] );
+		} elseif ( is_category() ) {
+			$term = get_queried_object();
+
+			if ( $term instanceof WP_Term ) {
+				$title['title'] = $term->name;
+			}
+
+			$title['tagline'] = __( 'Drugi obieg, blog Qutlet', 'qutlet-theme' );
+			unset( $title['site'] );
+		} elseif ( is_tag() ) {
+			$term = get_queried_object();
+
+			if ( $term instanceof WP_Term ) {
+				/* translators: %s: slug tagu. */
+				$title['title'] = sprintf( __( 'Tag: #%s', 'qutlet-theme' ), $term->slug );
+			}
+
+			$title['tagline'] = __( 'Drugi obieg, blog Qutlet', 'qutlet-theme' );
+			unset( $title['site'] );
+		} elseif ( is_home() ) {
+			$title['title']   = __( 'Drugi obieg', 'qutlet-theme' );
+			$title['tagline'] = __( 'blog Qutlet', 'qutlet-theme' );
+			unset( $title['site'] );
+		}
+
+		return $title;
 	}
 
 	/**

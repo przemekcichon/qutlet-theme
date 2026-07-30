@@ -77,7 +77,12 @@ final class ArticleHeadings {
 		}
 
 		if ( preg_match( '/\bid=(["\'])(.*?)\1/i', $attrs, $id_match ) ) {
-			$id = $id_match[2];
+			// Kotwica ustawiona ręcznie w edytorze (blok Nagłówek, „HTML anchor") —
+			// zachowujemy ją, ale MUSI wejść do puli zajętych slugów, inaczej kolejny
+			// auto-generowany nagłówek o tej samej treści (ten sam `sanitize_title()`)
+			// mógłby dostać identyczne `id` — dwie kotwice, jeden cel linku.
+			$id                  = $id_match[2];
+			self::$used_slugs[] = $id;
 		} else {
 			$id     = self::unique_slug( sanitize_title( $text ) );
 			$attrs .= ' id="' . esc_attr( $id ) . '"';
