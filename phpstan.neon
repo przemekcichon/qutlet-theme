@@ -4,9 +4,12 @@
 # motywu (functions.php + inc/) ORAZ klasyczne szablony PHP bloga (P-8.4:
 # home.php/single.php/category.php/tag.php/header.php/footer.php +
 # template-parts/ — patrz nagłówek inc/features/Blog/Blog.php po uzasadnienie,
-# czemu blog NIE stoi na blokowych `templates/*.html`) — to REALNY kod z
-# logiką, nie deklaratywna powierzchnia jak theme.json/templates/*.html
-# (te faktycznie nie są PHP i zostają poza analizą).
+# czemu blog NIE stoi na blokowych `templates/*.html`) ORAZ klasyczne
+# szablony stron pomocy (P-8.5: page-pomoc.php i pozostałe page-*.php —
+# ta sama konwencja hierarchii plików WP, patrz inc/features/Help/Help.php)
+# — to REALNY kod z logiką, nie deklaratywna powierzchnia jak
+# theme.json/templates/*.html (te faktycznie nie są PHP i zostają poza
+# analizą).
 includes:
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
 
@@ -22,6 +25,13 @@ parameters:
         - header.php
         - footer.php
         - template-parts/
+        - page-pomoc.php
+        - page-jak-to-dziala.php
+        - page-kontakt.php
+        - page-newsletter.php
+        - page-regulamin.php
+        - page-polityka-prywatnosci.php
+        - page-polityka-cookies.php
     excludePaths:
         - vendor/
     # Stuby WooCommerce — twarda zależność motywu (D-G5: theme → Woo + core).

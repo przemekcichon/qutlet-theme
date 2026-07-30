@@ -6,8 +6,8 @@
  * (`page-regulamin.php`). Inaczej niż pomoc/jak-to-dziala/newsletter, treść
  * PRAWNA (numerowane sekcje) jest `the_content()` — realna prozy Strony, nie
  * chrome szablonu — bo to dokument regulaminowy, który się aktualizuje.
- * Spis treści po prawej (`.toc`) czyta gotowe kotwice `<h2 id="…">` z tej
- * treści (`Help::extract_legal_headings()`), NIE dogenerowuje ich jak
+ * Spis treści po prawej (`.toc`) czyta gotowe kotwice `<section id="…">` z
+ * tej treści (`Help::extract_legal_headings()`), NIE dogenerowuje ich jak
  * `Blog\ArticleHeadings` — treść wypełniona z prototypu ma ID już ustawione.
  *
  * @package Qutlet\Theme

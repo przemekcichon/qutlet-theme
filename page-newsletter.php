@@ -9,7 +9,7 @@
  * treść Strony (placeholder, patrz handoff) ma być podmieniona na
  * shortcode/blok wtyczki ESP (MailPoet/Mailchimp) po jej wyborze i
  * konfiguracji. Baner `.nlband` w stopce jest ukrywany NA tej stronie
- * (`Help::filter_body_class()`, żeby nie duplikować tej samej oferty.
+ * (`Help::filter_body_class()`), żeby nie duplikować tej samej oferty.
  *
  * @package Qutlet\Theme
  */
