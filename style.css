@@ -84,6 +84,31 @@ Text Domain:       qutlet-theme
 }
 
 * { box-sizing: border-box; }
+/* P-11.2 (znalezione podczas weryfikacji wizualnej Playwright, sesja
+   2026-08-02): WP global-styles-inline-css drukuje
+   `:root :where(.is-layout-flow) > *{margin-block-start: 24px}` dla
+   KAŻDEGO wp:group bez jawnie ustawionego `layout` (domyślny typ „flow"),
+   niezależnie od tego, że nasze patterny/CSS same kontrolują odstępy przez
+   `gap` (flex/grid) albo osobne, świadome reguły `margin-top` (1:1 port z
+   design/vanilla, gdzie ten mechanizm w ogóle nie istnieje). Bez resetu ten
+   sztywny 24px dolicza się DO naszych odstępów (np. psuje wyrównanie
+   siatek jak .how-steps/.eko-grid — margines na elemencie 2+ w wierszu
+   grid przesuwa go w dół względem elementu 1) albo dublował się z gapem
+   flex (np. .how-why-facts, .contact-list). Selektor `body .is-layout-flow`
+   (klasa + poprzedzający typ) strukturalnie bije specyficzność
+   `:root :where(...)` (samo `:where()` ZERUJE specyficzność środka),
+   Selektor celowo SKOPIOWANY 1:1 z reguły WP (`:root :where(...) > *`),
+   nie np. `body .is-layout-flow > *` — dodanie `body` podniosłoby
+   specyficzność PONAD reguły jednoklasowe typu `.how-steps{margin-top:
+   40px}` (te same 0,0,1,0 co reguła WP) i po cichu je ZGNIOTŁOBY do zera
+   (realna regresja złapana przy weryfikacji tej właśnie poprawki). Przy
+   identycznej specyficzności obu reguł WP-owej i tej niżej, wygrywa późniejsza
+   w źródle — arkusz motywu ładuje się PO `global-styles-inline-css`
+   (zweryfikowane runtime), więc ten reset wygrywa z WP; świadome reguły
+   typu `.how-steps` (też 0,0,1,0, ale NIŻEJ w tym samym pliku) wygrywają
+   z kolei z tym resetem — poprawny łańcuch nadpisań bez przypadkowego
+   ubicia wartości, które już mieliśmy dobrze. */
+:root :where(.is-layout-flow) > * { margin-block-start: 0; }
 [hidden] { display: none !important; }
 body {
 	margin: 0;
