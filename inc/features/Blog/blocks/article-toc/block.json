@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/article-toc",
+	"title": "Qutlet: spis treści artykułu",
+	"category": "qutlet-blog",
+	"icon": "list-view",
+	"description": "Spis treści artykułu bloga (kotwice do nagłówków H2 treści) — MUSI renderować się PO `core/post-content` w tym samym szablonie (kolejność źródłowa), inaczej lista będzie pusta.",
+	"textdomain": "qutlet-theme",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false
+	},
+	"render": "file:./render.php"
+}

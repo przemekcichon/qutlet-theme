@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/author-box",
+	"title": "Qutlet: notka o autorze",
+	"category": "qutlet-blog",
+	"icon": "admin-users",
+	"description": "Notka o autorze artykułu (awatar-inicjały, nazwa, bio) pod treścią wpisu.",
+	"textdomain": "qutlet-theme",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false
+	},
+	"render": "file:./render.php"
+}

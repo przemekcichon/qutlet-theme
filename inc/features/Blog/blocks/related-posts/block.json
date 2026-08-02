@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/related-posts",
+	"title": "Qutlet: powiązane wpisy",
+	"category": "qutlet-blog",
+	"icon": "screenoptions",
+	"description": "Sekcja „Podobne wpisy” pod artykułem — do 3 innych wpisów z tej samej głównej kategorii.",
+	"textdomain": "qutlet-theme",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false
+	},
+	"render": "file:./render.php"
+}

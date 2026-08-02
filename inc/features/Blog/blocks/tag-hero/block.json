@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/tag-hero",
+	"title": "Qutlet: nagłówek archiwum tagu bloga",
+	"category": "qutlet-blog",
+	"icon": "tag",
+	"description": "Nagłówek archiwum tagu bloga (pill z licznikiem, #slug, opis) — dane bieżącego tagu, nie statyczna treść.",
+	"textdomain": "qutlet-theme",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false
+	},
+	"render": "file:./render.php"
+}

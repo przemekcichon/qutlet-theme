@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/tag-related",
+	"title": "Qutlet: powiązane tagi/kategoria",
+	"category": "qutlet-blog",
+	"icon": "networking",
+	"description": "Tagi współwystępujące z bieżącym tagiem + najczęstsza kategoria wśród jego wpisów.",
+	"textdomain": "qutlet-theme",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false
+	},
+	"render": "file:./render.php"
+}

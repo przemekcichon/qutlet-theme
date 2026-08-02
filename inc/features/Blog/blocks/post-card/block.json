@@ -1,0 +1,23 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/post-card",
+	"title": "Qutlet: karta wpisu bloga",
+	"category": "qutlet-blog",
+	"icon": "id-alt",
+	"description": "Karta wpisu w siatce/liście archiwum bloga (post-card/post-hcard) — czyta bieżący wpis z kontekstu pętli (Post Template).",
+	"textdomain": "qutlet-theme",
+	"usesContext": [ "postId" ],
+	"attributes": {
+		"variant": {
+			"type": "string",
+			"default": "grid",
+			"enum": [ "grid", "horizontal" ]
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": false
+	},
+	"render": "file:./render.php"
+}

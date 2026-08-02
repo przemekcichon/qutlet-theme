@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/term-hero",
+	"title": "Qutlet: nagłówek archiwum kategorii bloga",
+	"category": "qutlet-blog",
+	"icon": "category",
+	"description": "Nagłówek archiwum kategorii bloga (kicker, nazwa, opis, licznik wpisów) — dane bieżącej kategorii, nie statyczna treść.",
+	"textdomain": "qutlet-theme",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false
+	},
+	"render": "file:./render.php"
+}

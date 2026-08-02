@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/featured-post",
+	"title": "Qutlet: wyróżniony wpis bloga",
+	"category": "qutlet-blog",
+	"icon": "star-filled",
+	"description": "Karuzela wyróżnionego (sticky) wpisu na pierwszej stronie archiwum bloga — puste, gdy brak wpisu sticky albo poza pierwszą stroną.",
+	"textdomain": "qutlet-theme",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false
+	},
+	"render": "file:./render.php"
+}

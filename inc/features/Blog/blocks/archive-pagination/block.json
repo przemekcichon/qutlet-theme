@@ -1,0 +1,16 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/archive-pagination",
+	"title": "Qutlet: paginacja archiwum bloga",
+	"category": "qutlet-blog",
+	"icon": "controls-repeat",
+	"description": "Paginacja archiwów bloga (home/kategoria/tag) na GŁÓWNYM zapytaniu — te same klasy .pager/.page-btn co reszta motywu.",
+	"textdomain": "qutlet-theme",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false
+	},
+	"render": "file:./render.php"
+}
