@@ -147,15 +147,19 @@ final class Help {
 	}
 
 	/**
-	 * Spis treści stron prawnych (regulamin/polityka-*) — wyciąga gotowe
-	 * kotwice z treści Strony. Inaczej niż blog (`Blog\ArticleHeadings`,
-	 * który DOGENEROWUJE `id` przy renderze), treść tych trzech Stron jest
-	 * wypełniana verbatim z prototypu — kotwica `id="…"` siedzi na
-	 * `<section>` OPASUJĄCEJ `<h2>` (port `regulamin.html:34` i analogiczne:
-	 * `<section id="s1"><h2>…</h2>`, NIE `<h2 id="s1">`), funkcja tylko
-	 * CZYTA, nie modyfikuje. Nagłówek bez opasującego `<section id="…">`
-	 * jest pomijany (spis treści ma być kompletny i klikalny, niekompletny
-	 * wpis byłby mylący).
+	 * Spis treści stron prawnych (regulamin/polityka-*) — wyciąga kotwice z
+	 * treści Strony. Od P-11.2 (migracja na treść blokową) kotwica siedzi
+	 * BEZPOŚREDNIO na nagłówku core (`<h2 class="wp-block-heading" id="s1">`,
+	 * pole „HTML anchor" bloku Heading), NIE na opasującym `<section>` jak w
+	 * wersji surowego HTML sprzed migracji — treści prawnej nie generujemy z
+	 * kodu (D-11.2, decyzja użytkownika, sesja 2026-08-02): redaktor ustawia
+	 * kotwicę RĘCZNIE per nagłówek (inaczej niż blog, `Blog\ArticleHeadings`,
+	 * który DOGENEROWUJE `id`, gdy redaktor go nie ustawi) — świadomy wybór,
+	 * bo `page-pomoc.php` hardkoduje linki do konkretnych kotwic (`#s4`–`#s7`,
+	 * `#klasy`), które NIE mogą się przesunąć przy samej edycji treści
+	 * nagłówka. Funkcja tylko CZYTA, nie modyfikuje. Nagłówek BEZ ręcznie
+	 * ustawionej kotwicy jest pomijany (spis treści ma być kompletny i
+	 * klikalny — wpis bez działającego linku byłby mylący).
 	 *
 	 * @param string $content Surowa treść Strony (`get_the_content()`).
 	 * @return array<int, array{id: string, text: string}>
@@ -163,11 +167,15 @@ final class Help {
 	public static function extract_legal_headings( string $content ): array {
 		$headings = array();
 
-		if ( ! preg_match_all( '/<section\s+id="([^"]+)"[^>]*>\s*<h2[^>]*>(.*?)<\/h2>/is', $content, $matches, PREG_SET_ORDER ) ) {
+		if ( ! preg_match_all( '/<h2\b([^>]*)>(.*?)<\/h2>/is', $content, $matches, PREG_SET_ORDER ) ) {
 			return $headings;
 		}
 
 		foreach ( $matches as $match ) {
+			if ( ! preg_match( '/\bid=(["\'])(.*?)\1/i', $match[1], $id_match ) ) {
+				continue;
+			}
+
 			$inner = preg_replace( '/<span class="num">.*?<\/span>/is', '', $match[2] );
 			$text  = trim( wp_strip_all_tags( is_string( $inner ) ? $inner : $match[2] ) );
 
@@ -176,7 +184,7 @@ final class Help {
 			}
 
 			$headings[] = array(
-				'id'   => $match[1],
+				'id'   => $id_match[2],
 				'text' => $text,
 			);
 		}

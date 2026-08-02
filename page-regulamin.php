@@ -1,14 +1,17 @@
 <?php
 /**
- * Qutlet — Regulamin sklepu (P-8.5, port design/vanilla/regulamin.html).
+ * Qutlet — Regulamin sklepu (P-8.5 → P-11.2, port design/vanilla/regulamin.html).
  *
  * Klasyczny szablon dobrany przez hierarchię plików WP wg slugu Strony
- * (`page-regulamin.php`). Inaczej niż pomoc/jak-to-dziala/newsletter, treść
- * PRAWNA (numerowane sekcje) jest `the_content()` — realna prozy Strony, nie
- * chrome szablonu — bo to dokument regulaminowy, który się aktualizuje.
- * Spis treści po prawej (`.toc`) czyta gotowe kotwice `<section id="…">` z
- * tej treści (`Help::extract_legal_headings()`), NIE dogenerowuje ich jak
- * `Blog\ArticleHeadings` — treść wypełniona z prototypu ma ID już ustawione.
+ * (`page-regulamin.php`). Inaczej niż pomoc/jak-to-dziala/kontakt/newsletter,
+ * treść PRAWNA (numerowane sekcje) jest `the_content()` — realna proza
+ * Strony, nie chrome szablonu — bo to dokument regulaminowy, który się
+ * aktualizuje. Spis treści po prawej (`.toc`) czyta kotwice `<h2 id="…">` z
+ * tej treści (`Help::extract_legal_headings()`) — pole „HTML anchor" bloku
+ * Heading, ustawiane RĘCZNIE przez redaktora (decyzja użytkownika, P-11.2),
+ * NIE dogenerowywane jak `Blog\ArticleHeadings`: `page-pomoc.php` hardkoduje
+ * linki do konkretnych kotwic (`#s4`–`#s7`), więc nie mogą dryfować przy
+ * samej edycji treści nagłówka.
  *
  * @package Qutlet\Theme
  */

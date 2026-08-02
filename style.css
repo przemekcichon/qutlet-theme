@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.0
+Version:           0.1.1
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -84,6 +84,31 @@ Text Domain:       qutlet-theme
 }
 
 * { box-sizing: border-box; }
+/* P-11.2 (znalezione podczas weryfikacji wizualnej Playwright, sesja
+   2026-08-02): WP global-styles-inline-css drukuje
+   `:root :where(.is-layout-flow) > *{margin-block-start: 24px}` dla
+   KAŻDEGO wp:group bez jawnie ustawionego `layout` (domyślny typ „flow"),
+   niezależnie od tego, że nasze patterny/CSS same kontrolują odstępy przez
+   `gap` (flex/grid) albo osobne, świadome reguły `margin-top` (1:1 port z
+   design/vanilla, gdzie ten mechanizm w ogóle nie istnieje). Bez resetu ten
+   sztywny 24px dolicza się DO naszych odstępów (np. psuje wyrównanie
+   siatek jak .how-steps/.eko-grid — margines na elemencie 2+ w wierszu
+   grid przesuwa go w dół względem elementu 1) albo dublował się z gapem
+   flex (np. .how-why-facts, .contact-list). Selektor `body .is-layout-flow`
+   (klasa + poprzedzający typ) strukturalnie bije specyficzność
+   `:root :where(...)` (samo `:where()` ZERUJE specyficzność środka),
+   Selektor celowo SKOPIOWANY 1:1 z reguły WP (`:root :where(...) > *`),
+   nie np. `body .is-layout-flow > *` — dodanie `body` podniosłoby
+   specyficzność PONAD reguły jednoklasowe typu `.how-steps{margin-top:
+   40px}` (te same 0,0,1,0 co reguła WP) i po cichu je ZGNIOTŁOBY do zera
+   (realna regresja złapana przy weryfikacji tej właśnie poprawki). Przy
+   identycznej specyficzności obu reguł WP-owej i tej niżej, wygrywa późniejsza
+   w źródle — arkusz motywu ładuje się PO `global-styles-inline-css`
+   (zweryfikowane runtime), więc ten reset wygrywa z WP; świadome reguły
+   typu `.how-steps` (też 0,0,1,0, ale NIŻEJ w tym samym pliku) wygrywają
+   z kolei z tym resetem — poprawny łańcuch nadpisań bez przypadkowego
+   ubicia wartości, które już mieliśmy dobrze. */
+:root :where(.is-layout-flow) > * { margin-block-start: 0; }
 [hidden] { display: none !important; }
 body {
 	margin: 0;
@@ -545,14 +570,26 @@ a.btn-buy-allegro:hover { background: #e65100; }
 .acc-btn .sign { color: var(--accent); }
 .acc-body { padding-top: 4px; padding-bottom: 30px; padding-left: 4px; padding-right: 4px; }
 .acc-body[hidden] { display: none; }
-.class-table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-.class-table th {
+/* P-11.2: pattern qutlet-theme/class-table koduje tabelę realnym blokiem
+   core/table — className trafia na opakowujący <figure>, nie na <table>,
+   stąd selektor złożony (figure > table) zamiast bezpośrednio na klasie.
+   Selektory td/th/table/thead dodatkowo skomponowane z `.wp-block-table`
+   (klasa, którą core i tak dokłada na tym samym <figure>) — core/table
+   drukuje WŁASNE domyślne `border`/`padding`/`border-collapse` jako inline
+   <style id="wp-block-table-inline-css"> W <body>, PO <link> motywu w
+   <head> (zweryfikowane runtime, Playwright), więc przy równej specyficzności
+   (".wp-block-table td" vs ".class-table td") wygrywałby kod źródłowy core
+   — złożony selektor podnosi specyficzność, żeby wygrywał zawsze,
+   niezależnie od kolejności wczytywania arkuszy. */
+.wp-block-table.class-table table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.wp-block-table.class-table thead { border-bottom: 0; }
+.wp-block-table.class-table th {
 	text-align: left; font-size: 13px; background: var(--panel); font-family: var(--font-display); font-weight: 700;
-	border-bottom: 1px solid var(--line);
+	border: 0; border-bottom: 1px solid var(--line);
 	padding-top: 15px; padding-bottom: 15px; padding-left: 18px; padding-right: 18px;
 }
-.class-table td { font-size: 14px; padding-top: 15px; padding-bottom: 15px; padding-left: 18px; padding-right: 18px; }
-.class-table tr + tr td { border-top: 1px solid var(--line-soft); }
+.wp-block-table.class-table td { font-size: 14px; border: 0; padding-top: 15px; padding-bottom: 15px; padding-left: 18px; padding-right: 18px; }
+.wp-block-table.class-table tr + tr td { border-top: 1px solid var(--line-soft); }
 .class-table td:first-child { font-weight: 800; white-space: nowrap; }
 .class-table td:nth-child(2) { font-weight: 600; }
 .class-table td:nth-child(3) { color: var(--ink-soft); }
@@ -972,6 +1009,10 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 	color: var(--muted); margin-top: 40px; margin-bottom: 14px;
 }
 .help-quick { display: flex; flex-wrap: wrap; gap: 10px; }
+/* P-11.2: pattern qutlet-theme/help-quick-links owija każdy link w
+   wp:paragraph (core, edytowalny) zamiast luźnego <a> — zeruje domyślny
+   margines <p>, żeby flex-row .help-quick nie rozjechał się w pionie. */
+.help-quick p { margin: 0; }
 .help-quick a {
 	font-size: 13.5px; font-weight: 700; color: var(--ink-soft); text-decoration: none;
 	border: 1.5px solid var(--line); border-radius: 999px; background: #fff; white-space: nowrap;
@@ -1014,16 +1055,25 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .terms-article ul { padding-left: 22px; }
 .terms-article li { margin-bottom: 7px; }
 .terms-article b { color: var(--ink); }
+/* P-11.2: treść prawna migrowana na bloki core (heading/paragraph/list/
+   table) używa <strong> dla wyróżnień (RichText Bold, wzorzec hero-idea
+   P-11.1), stąd selektor obok literalnego <b> zachowanego w nagłówkach. */
+.terms-article strong { color: var(--ink); }
 
 /* Polityka cookies — tabele trackerów (port <style> polityka-cookies.html) */
-.ck-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 14px; margin-bottom: 6px; }
-.ck-table th {
+/* P-11.2: tabele trackerów kodowane blokiem core/table (patrz .class-table
+   table/thead/th/td wyżej — className na <figure>, nie na <table>, i
+   dlaczego selektory łączą `.wp-block-table` — ten sam powód dotyczy tu
+   identycznie). */
+.wp-block-table.ck-table table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 14px; margin-bottom: 6px; }
+.wp-block-table.ck-table thead { border-bottom: 0; }
+.wp-block-table.ck-table th {
 	text-align: left; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
-	color: var(--muted); border-bottom: 2px solid var(--line);
+	color: var(--muted); border: 0; border-bottom: 2px solid var(--line);
 	padding-top: 8px; padding-bottom: 8px; padding-left: 10px; padding-right: 10px;
 }
-.ck-table td {
-	vertical-align: top; color: var(--ink-soft); line-height: 1.55; border-bottom: 1px solid var(--line);
+.wp-block-table.ck-table td {
+	vertical-align: top; color: var(--ink-soft); line-height: 1.55; border: 0; border-bottom: 1px solid var(--line);
 	padding-top: 10px; padding-bottom: 10px; padding-left: 10px; padding-right: 10px;
 }
 .ck-name {
@@ -1069,7 +1119,13 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .contact-item { display: flex; gap: 14px; align-items: flex-start; }
 .contact-item svg { flex: none; margin-top: 2px; }
 .contact-item b { display: block; font-size: 13px; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
-.contact-item span, .contact-item a { font-size: 14.5px; color: var(--ink-soft); text-decoration: none; }
+/* P-11.2: pattern qutlet-theme/contact-intro koduje etykietę+wartość jednym
+   wp:paragraph (RichText Bold → <strong>, nie <b> — wzorzec z hero-idea,
+   P-11.1) i bez owijającego <div>, więc wartość bez linku (np. „Godziny
+   odpowiedzi") ląduje w gołym <p>, nie <span>. */
+.contact-item strong { display: block; font-size: 13px; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+.contact-item span, .contact-item a, .contact-item p { font-size: 14.5px; color: var(--ink-soft); text-decoration: none; }
+.contact-item p { margin: 0; }
 .contact-item a:hover { color: var(--accent); }
 .contact-form-card { max-width: 620px; }
 .field textarea {
@@ -1116,7 +1172,14 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .eko-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 60px; align-items: self-end; }
 .eko-card { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 32px; }
 .eko-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--panel); color: var(--accent); margin-bottom: 18px; }
-.eko-kicker { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+/* P-11.2 (ten sam wzorzec problemu co .how-step .how-step-num): prototyp
+   renderuje kicker jako <span>, więc `.eko-card p` (myślana wyłącznie dla
+   akapitu opisu) go nie dotykała. Pattern koduje kicker realnym
+   wp:paragraph (`<p class="eko-kicker">`) — bez podniesienia
+   specyficzności `.eko-card p` (0,0,1,1) przebijała font-size/margin
+   kickera (0,0,1,0). Latentny błąd od P-11.1 (patterny bez treści na
+   realnej stronie) — ujawniony i naprawiony dopiero w P-11.2. */
+.eko-card .eko-kicker { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
 .eko-card h3 { font-size: 21px; font-weight: 800; margin: 0 0 10px; }
 .eko-card p { font-size: 15px; line-height: 1.65; color: var(--ink-soft); margin: 0; }
 
@@ -1169,7 +1232,14 @@ body.qt-hide-nlband .nlband { display: none; }
 
 .how-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 40px; }
 .how-step { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding-top: 26px; padding-bottom: 26px; padding-left: 24px; padding-right: 24px; position: relative; }
-.how-step-num { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--lime-ink); background: var(--lime); width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 16px; }
+/* P-11.2: prototyp renderuje odznakę numeru jako <span>, więc `.how-step p`
+   niżej (myślana WYŁĄCZNIE dla akapitu opisu) nigdy jej nie dotykała. Nasz
+   pattern koduje odznakę realnym blokiem core/paragraph (`<p
+   class="how-step-num">`, edytowalny, wzorzec z reszty biblioteki
+   patternów) — `.how-step p` (klasa+tag, 0,0,1,1) zaczęła więc też trafiać
+   w odznakę i przebijać jej font-size/margin-bottom (0,0,1,0). Selektor
+   złożony (`.how-step .how-step-num`, 0,0,2,0) wygrywa strukturalnie. */
+.how-step .how-step-num { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--lime-ink); background: var(--lime); width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 16px; }
 .how-step h3 { font-size: 17px; font-weight: 800; margin: 0 0 8px; }
 .how-step p { font-size: 14px; line-height: 1.6; color: var(--ink-soft); margin: 0; }
 
@@ -1180,7 +1250,7 @@ body.qt-hide-nlband .nlband { display: none; }
 .how-why { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; margin-top: 64px; background: var(--panel); border-radius: 26px; padding-top: clamp(36px, 5vw, 56px); padding-bottom: clamp(36px, 5vw, 56px); padding-left: clamp(24px, 4vw, 56px); padding-right: clamp(24px, 4vw, 56px); }
 .how-why h2 { font-family: var(--font-display); font-size: clamp(24px, 3vw, 34px); font-weight: 800; letter-spacing: -.02em; margin: 0 0 16px; }
 .how-why p { font-size: 15.5px; line-height: 1.75; color: var(--ink-soft); margin: 0 0 14px; }
-.how-why p b { color: var(--ink); }
+.how-why p b, .how-why p strong { color: var(--ink); }
 .how-why-facts { display: flex; flex-direction: column; gap: 14px; }
 .how-fact { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); display: flex; gap: 16px; align-items: flex-start; padding-top: 18px; padding-bottom: 18px; padding-left: 20px; padding-right: 20px; }
 .how-fact-icon { flex: none; width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--plum); color: var(--lime); }
