@@ -43,6 +43,7 @@ if ( is_readable( $qutlet_theme_autoload ) ) {
 	\Qutlet\Theme\features\ProductPage\ProductPage::boot();
 	\Qutlet\Theme\features\ProductFilters\ProductFilters::boot();
 	\Qutlet\Theme\features\Blog\Blog::boot();
+	\Qutlet\Theme\features\Help\Help::boot();
 } else {
 	add_action( 'admin_notices', __NAMESPACE__ . '\\render_missing_autoloader_notice' );
 }

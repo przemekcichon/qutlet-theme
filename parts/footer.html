@@ -1,11 +1,17 @@
 <!-- wp:html -->
 <!--
 	Qutlet — footer + banner newslettera (port design/vanilla/partials/footer.html).
-	Formularz newslettera osadza wtyczkę 3rd-party (D-8.G3, FAZA 8) — nie
-	budujemy własnego backendu; action="#" jest placeholderem do podmiany
-	przy P-8.5. Linki do stron pomocy/kategorii — patrz nota w parts/header.html.
-	Banner ukrywany na stronie newslettera przez
-	body[data-page="newsletter"] .nlband { display:none } (style.css).
+	Ten baner (`.nlband`) to osobny, uproszczony formularz zapisu (adres
+	e-mail + przycisk) — NIE ten sam formularz co page-newsletter.php, więc
+	`action="#"`/`data-nlband-form` zostają jako placeholder do domknięcia
+	razem z resztą JS interakcji (poza zakresem P-8.5, patrz D-8.G3: theme
+	tylko osadza formularz, backend to wtyczka 3rd-party — handoff dotyczy
+	obu miejsc naraz). Linki „Sklep"/kategorie — patrz nota w parts/header.html
+	(FAZA 8/P-8.3, poza zakresem P-8.5); „Informacje"/„Pomoc" (P-8.5) już
+	realne. Banner ukrywany NA stronie newslettera przez klasę
+	`body.qt-hide-nlband` (`Help::filter_body_class()`, style.css) — zastępuje
+	`body[data-page="newsletter"]` z prototypu, którego block template canvas
+	nie ma jak przyjąć (D-8.G1).
 -->
 <section class="nlband">
   <div class="wrap">
@@ -43,18 +49,18 @@
     </div>
     <div class="footer-col">
       <h5>Informacje</h5>
-      <a href="#">Jak to działa?</a>
-      <a href="#">Klasy produktów</a>
+      <a href="/jak-to-dziala/">Jak to działa?</a>
+      <a href="/jak-to-dziala/#klasy">Klasy produktów</a>
       <a href="/blog/">Blog „Drugi obieg”</a>
-      <a href="#">Newsletter Ekołowców</a>
+      <a href="/newsletter/">Newsletter Ekołowców</a>
     </div>
     <div class="footer-col">
       <h5>Pomoc</h5>
-      <a href="#">Centrum pomocy</a>
-      <a href="#">Regulamin</a>
-      <a href="#">Polityka prywatności</a>
-      <a href="#">Polityka cookies</a>
-      <a href="#">Kontakt</a>
+      <a href="/pomoc/">Centrum pomocy</a>
+      <a href="/regulamin/">Regulamin</a>
+      <a href="/polityka-prywatnosci/">Polityka prywatności</a>
+      <a href="/polityka-cookies/">Polityka cookies</a>
+      <a href="/kontakt/">Kontakt</a>
     </div>
   </div>
   <div class="wrap footer-bottom">
