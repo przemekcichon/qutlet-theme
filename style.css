@@ -547,15 +547,24 @@ a.btn-buy-allegro:hover { background: #e65100; }
 .acc-body[hidden] { display: none; }
 /* P-11.2: pattern qutlet-theme/class-table koduje tabelę realnym blokiem
    core/table — className trafia na opakowujący <figure>, nie na <table>,
-   stąd selektor złożony (figure > table) zamiast bezpośrednio na klasie. */
-.class-table table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-.class-table th {
+   stąd selektor złożony (figure > table) zamiast bezpośrednio na klasie.
+   Selektory td/th/table/thead dodatkowo skomponowane z `.wp-block-table`
+   (klasa, którą core i tak dokłada na tym samym <figure>) — core/table
+   drukuje WŁASNE domyślne `border`/`padding`/`border-collapse` jako inline
+   <style id="wp-block-table-inline-css"> W <body>, PO <link> motywu w
+   <head> (zweryfikowane runtime, Playwright), więc przy równej specyficzności
+   (".wp-block-table td" vs ".class-table td") wygrywałby kod źródłowy core
+   — złożony selektor podnosi specyficzność, żeby wygrywał zawsze,
+   niezależnie od kolejności wczytywania arkuszy. */
+.wp-block-table.class-table table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.wp-block-table.class-table thead { border-bottom: 0; }
+.wp-block-table.class-table th {
 	text-align: left; font-size: 13px; background: var(--panel); font-family: var(--font-display); font-weight: 700;
-	border-bottom: 1px solid var(--line);
+	border: 0; border-bottom: 1px solid var(--line);
 	padding-top: 15px; padding-bottom: 15px; padding-left: 18px; padding-right: 18px;
 }
-.class-table td { font-size: 14px; padding-top: 15px; padding-bottom: 15px; padding-left: 18px; padding-right: 18px; }
-.class-table tr + tr td { border-top: 1px solid var(--line-soft); }
+.wp-block-table.class-table td { font-size: 14px; border: 0; padding-top: 15px; padding-bottom: 15px; padding-left: 18px; padding-right: 18px; }
+.wp-block-table.class-table tr + tr td { border-top: 1px solid var(--line-soft); }
 .class-table td:first-child { font-weight: 800; white-space: nowrap; }
 .class-table td:nth-child(2) { font-weight: 600; }
 .class-table td:nth-child(3) { color: var(--ink-soft); }
@@ -1028,15 +1037,18 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 
 /* Polityka cookies — tabele trackerów (port <style> polityka-cookies.html) */
 /* P-11.2: tabele trackerów kodowane blokiem core/table (patrz .class-table
-   table wyżej — className na <figure>, nie na <table>). */
-.ck-table table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 14px; margin-bottom: 6px; }
-.ck-table th {
+   table/thead/th/td wyżej — className na <figure>, nie na <table>, i
+   dlaczego selektory łączą `.wp-block-table` — ten sam powód dotyczy tu
+   identycznie). */
+.wp-block-table.ck-table table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 14px; margin-bottom: 6px; }
+.wp-block-table.ck-table thead { border-bottom: 0; }
+.wp-block-table.ck-table th {
 	text-align: left; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
-	color: var(--muted); border-bottom: 2px solid var(--line);
+	color: var(--muted); border: 0; border-bottom: 2px solid var(--line);
 	padding-top: 8px; padding-bottom: 8px; padding-left: 10px; padding-right: 10px;
 }
-.ck-table td {
-	vertical-align: top; color: var(--ink-soft); line-height: 1.55; border-bottom: 1px solid var(--line);
+.wp-block-table.ck-table td {
+	vertical-align: top; color: var(--ink-soft); line-height: 1.55; border: 0; border-bottom: 1px solid var(--line);
 	padding-top: 10px; padding-bottom: 10px; padding-left: 10px; padding-right: 10px;
 }
 .ck-name {
