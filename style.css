@@ -989,8 +989,12 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .help-card span { font-size: 13.5px; line-height: 1.6; color: var(--muted); }
 .help-card .go { margin-top: 6px; font-size: 13px; font-weight: 800; color: var(--accent); display: inline-flex; align-items: center; gap: 6px; }
 /* P-11.1: pattern qutlet-theme/card-grid-links koduje kartę blokami core
-   (Heading zamiast <b>, Paragraph.go z <a> zamiast całej karty jako <a>). */
-.help-card h3, .help-card h4 { font-size: 15.5px; font-weight: 800; color: var(--ink); margin: 0; }
+   (Heading zamiast <b>, Paragraph.desc zamiast <span>, Paragraph.go z <a>
+   zamiast całej karty jako <a> — Group nie umie renderować się jako link,
+   więc klikalny jest tylko link „go”, nie cała karta jak w prototypie/
+   page-pomoc.php; świadomy koszt D-11.G1, recenzja P-11.1). */
+.help-card h3 { font-size: 15.5px; font-weight: 800; color: var(--ink); margin: 0; }
+.help-card p { font-size: 13.5px; line-height: 1.6; color: var(--muted); margin: 0; }
 .help-card .go a { text-decoration: none; }
 
 /* ---------- Regulamin / Polityka prywatności / Polityka cookies ---------- */

@@ -7,6 +7,12 @@
  * Keywords: hero, newsletter, baner
  * Viewport Width: 1240
  *
+ * UWAGA: BEZ wewnętrznego `.wrap` (inaczej niż w parts/footer.html, gdzie
+ * `.nlband` żyje POZA `<main class="wrap">`) — ten pattern trafia do
+ * `the_content()`, który każdy page-*.php/single.php już renderuje WEWNĄTRZ
+ * `<main class="wrap">`; dublowanie `.wrap` podwoiłoby padding poziomy
+ * (recenzja P-11.1, zweryfikowane runtime).
+ *
  * @package Qutlet\Theme
  */
 
@@ -17,8 +23,6 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <!-- wp:group {"className":"nlband"} -->
 <div class="wp-block-group nlband">
-<!-- wp:group {"className":"wrap"} -->
-<div class="wp-block-group wrap">
 <!-- wp:group {"className":"nlband-inner"} -->
 <div class="wp-block-group nlband-inner">
 
@@ -50,8 +54,6 @@ defined( 'ABSPATH' ) || exit;
 </form>
 <!-- /wp:html -->
 
-</div>
-<!-- /wp:group -->
 </div>
 <!-- /wp:group -->
 </div>
