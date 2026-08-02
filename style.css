@@ -1113,7 +1113,7 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .nl-success .accent { color: var(--accent); font-weight: 800; }
 
 /* Newsletter/„Jak to działa" — karty eko + 3 perki + cytat (współdzielone) */
-.eko-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 60px; }
+.eko-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 60px; align-items: self-end; }
 .eko-card { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 32px; }
 .eko-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--panel); color: var(--accent); margin-bottom: 18px; }
 .eko-kicker { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
