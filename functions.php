@@ -67,6 +67,12 @@ add_action( 'after_setup_theme', __NAMESPACE__ . '\\add_woocommerce_theme_suppor
 // klasyczne strony bloga zostałyby bez <title> w <head>.
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\add_classic_template_support' );
 
+// P-11.1b: canvas edytora blokowego (Site Editor + edytor Strony/wpisu) ma
+// ładować TEN SAM arkusz co produkcja — bez tego patterny z P-11.1
+// (.how-hero, .eko-card, .quote-band itd.) widać w edytorze tylko z paletą
+// theme.json, bez custom CSS z P-8.5.
+add_action( 'after_setup_theme', __NAMESPACE__ . '\\add_editor_style_support' );
+
 // Placeholder enqueue: rejestrujemy arkusz motywu (na razie pusty — FAZA 8).
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_assets' );
 
@@ -164,6 +170,30 @@ function add_woocommerce_theme_support(): void {
  */
 function add_classic_template_support(): void {
 	add_theme_support( 'title-tag' );
+}
+
+/**
+ * P-11.1b: canvas edytora blokowego (post/page editor + Site Editor,
+ * renderowany w iframe od WP 5.9+) ma ładować `style.css` — TEN SAM plik co
+ * front (`enqueue_assets()` wyżej), bez duplikowania CSS w drugim arkuszu.
+ * Bez tego klasy patternów z P-11.1 (`.how-hero`, `.eko-card`, `.quote-band`
+ * itd.) w edytorze mają tylko wartości z `theme.json` (paleta/typografia),
+ * nie custom CSS z P-8.5.
+ *
+ * `:root` w `style.css` jest samowystarczalny — niezależny od zmiennych
+ * `--wp--preset--*` generowanych z `theme.json` (patrz nagłówek pliku) —
+ * arkusz działa w edytorze bez modyfikacji, ground-truth przy starcie
+ * punktu: reguły kluczowane klasami `<body>` dogrywanymi tylko na froncie
+ * (`body.allegro-off` — ProductPage::body_class(), `body.qt-hide-nlband` —
+ * Help::filter_body_class()) dotyczą kontekstu strony/produktu, nie stylu
+ * samych patternów, więc ich brak w edytorze jest neutralny dla parytetu
+ * wizualnego z P-11.1.
+ *
+ * @return void
+ */
+function add_editor_style_support(): void {
+	add_theme_support( 'editor-styles' );
+	add_editor_style( 'style.css' );
 }
 
 /**
