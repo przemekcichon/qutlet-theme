@@ -7,6 +7,7 @@
 	"icon": "tag",
 	"description": "Lista tagów bieżącego wpisu jako pigułki #slug (art-tags).",
 	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-blog-blocks-editor",
 	"supports": {
 		"html": false,
 		"align": false,

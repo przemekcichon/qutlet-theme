@@ -7,6 +7,7 @@
 	"icon": "networking",
 	"description": "Tagi współwystępujące z bieżącym tagiem + najczęstsza kategoria wśród jego wpisów.",
 	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-blog-blocks-editor",
 	"supports": {
 		"html": false,
 		"align": false,

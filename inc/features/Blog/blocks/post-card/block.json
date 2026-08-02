@@ -7,6 +7,7 @@
 	"icon": "id-alt",
 	"description": "Karta wpisu w siatce/liście archiwum bloga (post-card/post-hcard) — czyta bieżący wpis z kontekstu pętli (Post Template).",
 	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-blog-blocks-editor",
 	"usesContext": [ "postId" ],
 	"attributes": {
 		"variant": {

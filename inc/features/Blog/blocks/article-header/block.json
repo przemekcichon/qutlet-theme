@@ -7,6 +7,7 @@
 	"icon": "align-left",
 	"description": "Nagłówek artykułu bloga: kicker (kategoria), tytuł, lead, byline (autor/data/czas czytania) oraz zdjęcie wyróżniające z podpisem.",
 	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-blog-blocks-editor",
 	"supports": {
 		"html": false,
 		"align": false,

@@ -7,6 +7,7 @@
 	"icon": "star-filled",
 	"description": "Karuzela wyróżnionego (sticky) wpisu na pierwszej stronie archiwum bloga — puste, gdy brak wpisu sticky albo poza pierwszą stroną.",
 	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-blog-blocks-editor",
 	"supports": {
 		"html": false,
 		"align": false,

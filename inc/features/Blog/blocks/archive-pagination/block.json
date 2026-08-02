@@ -7,6 +7,7 @@
 	"icon": "controls-repeat",
 	"description": "Paginacja archiwów bloga (home/kategoria/tag) na GŁÓWNYM zapytaniu — te same klasy .pager/.page-btn co reszta motywu.",
 	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-blog-blocks-editor",
 	"supports": {
 		"html": false,
 		"align": false,
