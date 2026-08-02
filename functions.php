@@ -184,9 +184,10 @@ function add_classic_template_support(): void {
  * `--wp--preset--*` generowanych z `theme.json` (patrz nagłówek pliku) —
  * arkusz działa w edytorze bez modyfikacji, ground-truth przy starcie
  * punktu: reguły kluczowane klasami `<body>` dogrywanymi tylko na froncie
- * (`body.allegro-off`, `body.qt-hide-nlband` — Help::filter_body_class())
- * dotyczą kontekstu strony/produktu, nie stylu samych patternów, więc ich
- * brak w edytorze jest neutralny dla parytetu wizualnego z P-11.1.
+ * (`body.allegro-off` — ProductPage::body_class(), `body.qt-hide-nlband` —
+ * Help::filter_body_class()) dotyczą kontekstu strony/produktu, nie stylu
+ * samych patternów, więc ich brak w edytorze jest neutralny dla parytetu
+ * wizualnego z P-11.1.
  *
  * @return void
  */
