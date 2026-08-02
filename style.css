@@ -41,14 +41,20 @@ Text Domain:       qutlet-theme
    .term-description — WooCommerce Blocks hardkoduje ten wrapper, theme go
    nie renderuje). Reszta prototypu (filtry, strefa okazji, strony pomocy…)
    dochodzi w kolejnych punktach fazy.
-   ZAKRES P-8.5 (strony pomocy + formularze): sekcja pomocy (.help-layout/
-   .help-nav/.help-head/.help-quick/.help-cards — port <style> z
-   pomoc.html), regulamin/polityka-* (.terms-*/.toc* — port <style> z
+   ZAKRES P-8.5 (strony pomocy + formularze): sekcja pomocy (.help-layout,
+   .help-nav, .help-head, .help-quick, .help-cards — port <style> z
+   pomoc.html), regulamin/polityka-* (.terms-*, .toc* — port <style> z
    polityka-cookies.html: .ck-*), kontakt (.contact-* — port <style> z
-   kontakt.html), newsletter (.nl-*/.eko-*/.perks3*/.quote-band — już w
+   kontakt.html), newsletter (.nl-*, .eko-*, .perks3*, .quote-band — już w
    globalnym arkuszu prototypu), „Jak to działa" (.how-* — port <style> z
    jak-to-dziala.html) + .hero-cta (globalny prototyp, dotąd nieużywany
    w motywie).
+   UWAGA (ta sekcja): w komentarzach CSS nigdy nie stawiaj gwiazdki
+   bezpośrednio przed ukośnikiem (jak wcześniej w tym akapicie, przy
+   wyliczaniu klas rozdzielonych ukośnikiem) — ta para razem zamyka blok
+   komentarza przedwcześnie i psuje parsowanie reszty pliku (znaleziono i
+   naprawiono w tym miejscu — patrz historia commitów, zepsuty korzeń
+   zmiennych CSS). Rozdzielaj wyliczenia przecinkami, nie ukośnikiem.
    ============================================================ */
 
 :root {
@@ -941,7 +947,7 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 
 /* ============================================================
    Strony pomocy (P-8.5) — port design/vanilla/css/style.css
-   (.help-*/.terms-*/.toc*/.nl-*/.eko-*/.perks3*/.quote-band/.hero-cta)
+   (.help-*, .terms-*, .toc*, .nl-*, .eko-*, .perks3*, .quote-band, .hero-cta)
    + <style> per-strona z pomoc.html/jak-to-dziala.html/kontakt.html/
    polityka-cookies.html.
    → w WP: page-pomoc.php, page-jak-to-dziala.php, page-kontakt.php,
