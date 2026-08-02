@@ -7,6 +7,8 @@
 # czemu blog NIE stoi na blokowych `templates/*.html`) ORAZ klasyczne
 # szablony stron pomocy (P-8.5: page-pomoc.php i pozostałe page-*.php —
 # ta sama konwencja hierarchii plików WP, patrz inc/features/Help/Help.php)
+# ORAZ block patterns (P-11.1: patterns/*.php — te same wywołania i18n/escaping
+# co page-*.php, tylko odkrywane auto-discovery WP zamiast hierarchii szablonów)
 # — to REALNY kod z logiką, nie deklaratywna powierzchnia jak
 # theme.json/templates/*.html (te faktycznie nie są PHP i zostają poza
 # analizą).
@@ -32,6 +34,7 @@ parameters:
         - page-regulamin.php
         - page-polityka-prywatnosci.php
         - page-polityka-cookies.php
+        - patterns/
     excludePaths:
         - vendor/
     # Stuby WooCommerce — twarda zależność motywu (D-G5: theme → Woo + core).
