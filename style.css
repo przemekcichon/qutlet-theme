@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.0
+Version:           0.1.1
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -545,7 +545,10 @@ a.btn-buy-allegro:hover { background: #e65100; }
 .acc-btn .sign { color: var(--accent); }
 .acc-body { padding-top: 4px; padding-bottom: 30px; padding-left: 4px; padding-right: 4px; }
 .acc-body[hidden] { display: none; }
-.class-table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+/* P-11.2: pattern qutlet-theme/class-table koduje tabelę realnym blokiem
+   core/table — className trafia na opakowujący <figure>, nie na <table>,
+   stąd selektor złożony (figure > table) zamiast bezpośrednio na klasie. */
+.class-table table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .class-table th {
 	text-align: left; font-size: 13px; background: var(--panel); font-family: var(--font-display); font-weight: 700;
 	border-bottom: 1px solid var(--line);
@@ -972,6 +975,10 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 	color: var(--muted); margin-top: 40px; margin-bottom: 14px;
 }
 .help-quick { display: flex; flex-wrap: wrap; gap: 10px; }
+/* P-11.2: pattern qutlet-theme/help-quick-links owija każdy link w
+   wp:paragraph (core, edytowalny) zamiast luźnego <a> — zeruje domyślny
+   margines <p>, żeby flex-row .help-quick nie rozjechał się w pionie. */
+.help-quick p { margin: 0; }
 .help-quick a {
 	font-size: 13.5px; font-weight: 700; color: var(--ink-soft); text-decoration: none;
 	border: 1.5px solid var(--line); border-radius: 999px; background: #fff; white-space: nowrap;
@@ -1014,9 +1021,15 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .terms-article ul { padding-left: 22px; }
 .terms-article li { margin-bottom: 7px; }
 .terms-article b { color: var(--ink); }
+/* P-11.2: treść prawna migrowana na bloki core (heading/paragraph/list/
+   table) używa <strong> dla wyróżnień (RichText Bold, wzorzec hero-idea
+   P-11.1), stąd selektor obok literalnego <b> zachowanego w nagłówkach. */
+.terms-article strong { color: var(--ink); }
 
 /* Polityka cookies — tabele trackerów (port <style> polityka-cookies.html) */
-.ck-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 14px; margin-bottom: 6px; }
+/* P-11.2: tabele trackerów kodowane blokiem core/table (patrz .class-table
+   table wyżej — className na <figure>, nie na <table>). */
+.ck-table table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 14px; margin-bottom: 6px; }
 .ck-table th {
 	text-align: left; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
 	color: var(--muted); border-bottom: 2px solid var(--line);
@@ -1069,7 +1082,13 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .contact-item { display: flex; gap: 14px; align-items: flex-start; }
 .contact-item svg { flex: none; margin-top: 2px; }
 .contact-item b { display: block; font-size: 13px; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
-.contact-item span, .contact-item a { font-size: 14.5px; color: var(--ink-soft); text-decoration: none; }
+/* P-11.2: pattern qutlet-theme/contact-intro koduje etykietę+wartość jednym
+   wp:paragraph (RichText Bold → <strong>, nie <b> — wzorzec z hero-idea,
+   P-11.1) i bez owijającego <div>, więc wartość bez linku (np. „Godziny
+   odpowiedzi") ląduje w gołym <p>, nie <span>. */
+.contact-item strong { display: block; font-size: 13px; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+.contact-item span, .contact-item a, .contact-item p { font-size: 14.5px; color: var(--ink-soft); text-decoration: none; }
+.contact-item p { margin: 0; }
 .contact-item a:hover { color: var(--accent); }
 .contact-form-card { max-width: 620px; }
 .field textarea {
@@ -1180,7 +1199,7 @@ body.qt-hide-nlband .nlband { display: none; }
 .how-why { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; margin-top: 64px; background: var(--panel); border-radius: 26px; padding-top: clamp(36px, 5vw, 56px); padding-bottom: clamp(36px, 5vw, 56px); padding-left: clamp(24px, 4vw, 56px); padding-right: clamp(24px, 4vw, 56px); }
 .how-why h2 { font-family: var(--font-display); font-size: clamp(24px, 3vw, 34px); font-weight: 800; letter-spacing: -.02em; margin: 0 0 16px; }
 .how-why p { font-size: 15.5px; line-height: 1.75; color: var(--ink-soft); margin: 0 0 14px; }
-.how-why p b { color: var(--ink); }
+.how-why p b, .how-why p strong { color: var(--ink); }
 .how-why-facts { display: flex; flex-direction: column; gap: 14px; }
 .how-fact { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); display: flex; gap: 16px; align-items: flex-start; padding-top: 18px; padding-bottom: 18px; padding-left: 20px; padding-right: 20px; }
 .how-fact-icon { flex: none; width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--plum); color: var(--lime); }
