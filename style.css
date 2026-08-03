@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.3
+Version:           0.1.4
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -406,10 +406,23 @@ section.wrap > .usp-grid { margin-top: 18px; }
 	transition: background .15s;
 }
 .cat-tile:hover { background: #d4ef82; }
-.cat-tile span {
+.cat-tile-label {
 	position: absolute; left: 16px; bottom: 14px; z-index: 2; font-family: var(--font-display); font-weight: 800;
 	font-size: 17px; color: var(--lime-ink);
 }
+/* Zdjęcie kafla (opcjonalne, poza prototypem — miniaturka Woo kategorii,
+   patrz nota w patterns/home-categories.php). Podpięte pod .cat-tile-has-image,
+   żeby kafle BEZ zdjęcia (dziś większość) zostały dokładnie takie jak w
+   prototypie — bez żadnej z reguł niżej. */
+.cat-tile-has-image { background: #16101f; border-color: transparent; }
+.cat-tile-img {
+	position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; object-fit: cover;
+}
+.cat-tile-scrim {
+	position: absolute; inset: 0; z-index: 1;
+	background: linear-gradient(180deg, rgba(22,16,31,0) 40%, rgba(22,16,31,.78) 100%);
+}
+.cat-tile-has-image .cat-tile-label { color: #fff; }
 
 /* ---------- Strona produktu (P-8.2a: szkielet + galeria + nagłówek) ---------- */
 .breadcrumbs {
