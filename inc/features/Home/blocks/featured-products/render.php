@@ -56,12 +56,14 @@ if ( empty( $featured_products ) ) {
 		global $product;
 		$qutlet_product_backup = $product;
 
-		foreach ( $featured_products as $featured_product ) {
-			$product = $featured_product;
-			wc_get_template_part( 'content', 'product' );
+		try {
+			foreach ( $featured_products as $featured_product ) {
+				$product = $featured_product;
+				wc_get_template_part( 'content', 'product' );
+			}
+		} finally {
+			$product = $qutlet_product_backup;
 		}
-
-		$product = $qutlet_product_backup;
 		?>
 	</div>
 </section>
