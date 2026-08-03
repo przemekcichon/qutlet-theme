@@ -361,7 +361,15 @@ body[data-page="newsletter"] .nlband { display: none; }
 .hero .kicker-lime { color: var(--accent-ink); }
 .hero .lime { color: var(--accent-deep); }
 
-.usp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 18px; }
+/* `.usp-grid` jest pierwszym (i jedynym) dzieckiem swojej sekcji, więc oprócz
+   uniwersalnego resetu `:root :where(.is-layout-flow) > *` (który ten motyw
+   świadomie zeruje globalnie — patrz nota na górze pliku) łapie też core'owy
+   `:root :where(.is-layout-flow) > :first-child { margin-block-start: 0 }`
+   — DWIE pseudoklasy (`:root` + `:first-child`) dają specyficzność (0,2,0),
+   która bije samo `.usp-grid` (0,1,0) niezależnie od kolejności w pliku.
+   `section.wrap > .usp-grid` podbija specyficzność do (0,2,1). */
+section.wrap > .usp-grid { margin-top: 18px; }
+.usp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 .usp-card {
 	background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
 	display: flex; gap: 13px; align-items: flex-start;
@@ -372,6 +380,18 @@ body[data-page="newsletter"] .nlband { display: none; }
 .usp-card p { font-size: 12.5px; color: var(--muted); line-height: 1.45; margin: 0; }
 
 .home-section { padding-top: 46px; padding-bottom: 46px; }
+/* `.home-section-tight` jest bez top-paddingu W ZAŁOŻENIU, że sekcja przed nią
+   (`.home-section` — „Świeżo na wyprzedaży") zawsze dostarcza własny
+   padding-bottom:46px. W prototypie ta sekcja jest statyczna, więc założenie
+   trzyma zawsze; w WP to DYNAMICZNY blok (`qutlet/featured-products`), który
+   przy braku wyróżnionych produktów NIE renderuje się wcale (pusty wynik →
+   `return;`, wzorem `qutlet/related-posts`) — dokładnie dzisiejszy stan tej
+   instalacji (0 produktów „featured"). Bez tej reguły kafle kategorii
+   dotykałyby bezpośrednio siatki USP. `:has()` dodaje padding-top TYLKO gdy
+   sekcja kategorii faktycznie sąsiaduje z sekcją USP (czyli middle-blok się
+   nie wyrenderował) — gdy blok jest obecny, zachowuje oryginalny brak
+   top-paddingu (jeden wspólny odstęp, bez dublowania). */
+.wrap:has(> .usp-grid) + .home-section-tight { padding-top: 46px; }
 .home-section-tight { padding-top: 0; padding-bottom: 46px; }
 
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
