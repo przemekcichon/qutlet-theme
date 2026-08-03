@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.4
+Version:           0.1.5
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -109,6 +109,18 @@ Text Domain:       qutlet-theme
    z kolei z tym resetem — poprawny łańcuch nadpisań bez przypadkowego
    ubicia wartości, które już mieliśmy dobrze. */
 :root :where(.is-layout-flow) > * { margin-block-start: 0; }
+/* Ten sam mechanizm co reset wyżej, ale INNY selektor WP: `.wp-site-blocks`
+   (korzeń każdego szablonu blokowego — header/main/footer jako jego
+   bezpośrednie dzieci) nie nosi klasy `.is-layout-flow`, więc reset wyżej go
+   nie łapie. WP drukuje dla niego OSOBNĄ regułę
+   `:where(.wp-site-blocks) > *{margin-block: 24px 0}` (core, nie ten motyw)
+   — stąd 24px odstępu między headerem a `<main>` na KAŻDEJ stronie (zgłoszenie
+   użytkownika po realnym screenshocie strony głównej; potwierdzone też na
+   /blog/ — nie tylko front-page). `:where()` zeruje specyficzność, więc
+   dowolny selektor niżej wygrywa niezależnie od kolejności. Zakres świadomie
+   wąski (`> main`, nie `> *`) — header/footer template parts nie zgłaszały
+   problemu, nie ruszamy ich bez powodu. */
+.wp-site-blocks > main { margin-block-start: 0; }
 [hidden] { display: none !important; }
 body {
 	margin: 0;
