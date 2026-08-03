@@ -24,9 +24,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Wersja motywu (jedno źródło prawdy — używać zamiast literału).
+ * Wersja motywu (jedno źródło prawdy — używać zamiast literału). Steruje
+ * cache-bustingiem `?ver=` na WSZYSTKICH enqueue'owanych assetach (style.css,
+ * JS edytorów bloków) — realny błąd tej sesji: bumpowanie WYŁĄCZNIE nagłówka
+ * `Version:` w style.css (który steruje TYLKO cache'em patternów, patrz
+ * Patterns.php) zostawiało tę stałą bez zmian, więc przeglądarki nadal
+ * dostawały `style.css?ver=0.1.0` i serwowały stary, scache'owany plik mimo
+ * realnych zmian w CSS na dysku. Bumpować OBIE wartości razem.
  */
-const VERSION = '0.1.0';
+const VERSION = '0.1.6';
 
 /*
  * Autoloader Composera (D-G1): ładowany z guardem. Brak `vendor/autoload.php`
