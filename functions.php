@@ -45,6 +45,7 @@ if ( is_readable( $qutlet_theme_autoload ) ) {
 	\Qutlet\Theme\features\Blog\Blog::boot();
 	\Qutlet\Theme\features\Blog\Blocks::boot();
 	\Qutlet\Theme\features\Help\Help::boot();
+	\Qutlet\Theme\features\Home\Blocks::boot();
 	\Qutlet\Theme\features\Patterns\Patterns::boot();
 } else {
 	add_action( 'admin_notices', __NAMESPACE__ . '\\render_missing_autoloader_notice' );
