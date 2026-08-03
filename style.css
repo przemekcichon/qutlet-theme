@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.6
+Version:           0.1.7
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -689,6 +689,16 @@ a.btn-buy-allegro:hover { background: #e65100; }
    (".wp-block-table td" vs ".class-table td") wygrywałby kod źródłowy core
    — złożony selektor podnosi specyficzność, żeby wygrywał zawsze,
    niezależnie od kolejności wczytywania arkuszy. */
+/* `.class-table th` bez `.wp-block-table` (produkt, P-8.2b — surowy PHP
+   `<table class="class-table">`, NIE core/table): reguła niżej
+   (`.wp-block-table.class-table th`) go nie łapie, bo wymaga OBU klas — ten
+   wariant tabeli nigdy nie przechodzi przez blok core/table, więc nie ma
+   drugiej klasy. Zostawał więc na przeglądarkowym domyślnym `text-align:
+   center` dla `<th>` (`<td>` domyślnie ma `start`/left) — niewidoczne przy
+   wąskiej (720px) kolumnie, wyraźne po naprawie `layout:constrained`
+   (P-11.4), która poszerzyła kontener do pełnej szerokości (zgłoszenie
+   użytkownika, realny screenshot strony produktu). */
+.class-table th { text-align: left; }
 .wp-block-table.class-table table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .wp-block-table.class-table thead { border-bottom: 0; }
 .wp-block-table.class-table th {
