@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.7
+Version:           0.1.8
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -689,16 +689,37 @@ a.btn-buy-allegro:hover { background: #e65100; }
    (".wp-block-table td" vs ".class-table td") wygrywałby kod źródłowy core
    — złożony selektor podnosi specyficzność, żeby wygrywał zawsze,
    niezależnie od kolejności wczytywania arkuszy. */
-/* `.class-table th` bez `.wp-block-table` (produkt, P-8.2b — surowy PHP
-   `<table class="class-table">`, NIE core/table): reguła niżej
-   (`.wp-block-table.class-table th`) go nie łapie, bo wymaga OBU klas — ten
-   wariant tabeli nigdy nie przechodzi przez blok core/table, więc nie ma
-   drugiej klasy. Zostawał więc na przeglądarkowym domyślnym `text-align:
-   center` dla `<th>` (`<td>` domyślnie ma `start`/left) — niewidoczne przy
-   wąskiej (720px) kolumnie, wyraźne po naprawie `layout:constrained`
-   (P-11.4), która poszerzyła kontener do pełnej szerokości (zgłoszenie
-   użytkownika, realny screenshot strony produktu). */
-.class-table th { text-align: left; }
+/* Wariant SUROWY (produkt, P-8.2b — `<table class="class-table">` wprost w
+   PHP, NIE przez blok core/table): reguły `.wp-block-table.class-table`
+   niżej go nie łapią, bo wymagają OBU klas naraz, a ten markup nigdy nie
+   przechodzi przez core/table, więc drugiej klasy nie ma. Efekt: cała
+   stylizacja (tło, obramowanie, zaokrąglenie, padding, wyrównanie nagłówka)
+   spadała do gołych domyślnych stylów przeglądarki — niewidoczne przy
+   wąskiej (720px) kolumnie sprzed naprawy `layout:constrained` (P-11.4),
+   rażące po jej poszerzeniu do pełnej szerokości (zgłoszenie użytkownika,
+   dwa realne screenshoty: WP vs prototyp). Poprzednia poprawka tej sesji
+   naprawiła TYLKO `text-align`, pomijając resztę — uzupełnione teraz o
+   pełny komplet, 1:1 powtórzony z wariantu blokowego niżej (nie da się
+   tego zrobić jednym wspólnym selektorem — wariant blokowy MUSI zachować
+   wyższą specyficzność, żeby bić inline style core/table, ten tutaj nie ma
+   z czym konkurować, więc nie musi). Selektor celowo `table.class-table`
+   (element+klasa), NIE bare `.class-table` — w wariancie blokowym klasa
+   `class-table` ląduje na opakowującym `<figure>` (patrz nota wyżej), nie
+   na `<table>`; bare `.class-table` złapałby więc (jako selektor potomków)
+   OBA warianty i dodał drugie, zagnieżdżone tło/obramowanie na `<figure>`
+   help-stron OBOK tego, które `.wp-block-table.class-table table` już
+   stawia na samym `<table>` — realna regresja złapana przed commitem,
+   nie tylko teoretyczna. `table.class-table` pasuje WYŁĄCZNIE tam, gdzie
+   klasa siedzi bezpośrednio na `<table>`, czyli tylko w wariancie surowym. */
+table.class-table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+table.class-table thead { border-bottom: 0; }
+table.class-table th {
+	text-align: left; font-size: 13px; background: var(--panel); font-family: var(--font-display); font-weight: 700;
+	border: 0; border-bottom: 1px solid var(--line);
+	padding-top: 15px; padding-bottom: 15px; padding-left: 18px; padding-right: 18px;
+}
+table.class-table td { font-size: 14px; border: 0; padding-top: 15px; padding-bottom: 15px; padding-left: 18px; padding-right: 18px; }
+table.class-table tr + tr td { border-top: 1px solid var(--line-soft); }
 .wp-block-table.class-table table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .wp-block-table.class-table thead { border-bottom: 0; }
 .wp-block-table.class-table th {
