@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/post-tags",
+	"title": "Qutlet: hashtagi wpisu",
+	"category": "qutlet-blog",
+	"icon": "tag",
+	"description": "Lista tagów bieżącego wpisu jako pigułki #slug (art-tags).",
+	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-blog-blocks-editor",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false,
+		"inserter": false
+	},
+	"render": "file:./render.php"
+}

@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/post-nav",
+	"title": "Qutlet: nawigacja poprzedni/następny wpis",
+	"category": "qutlet-blog",
+	"icon": "controls-forward",
+	"description": "Nawigacja do poprzedniego/następnego wpisu w TEJ SAMEJ kategorii.",
+	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-blog-blocks-editor",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false,
+		"inserter": false
+	},
+	"render": "file:./render.php"
+}

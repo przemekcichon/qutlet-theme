@@ -1,17 +1,21 @@
 # PHPStan dla qutlet-theme (D-G2). Poziom startowy 5 — podnosimy osobnym punktem,
 # gdy będzie realny kod do analizy. Stuby WordPressa dostarcza rozszerzenie
 # szepeviktor/phpstan-wordpress (ładowane poniżej). Analizujemy kod imperatywny
-# motywu (functions.php + inc/) ORAZ klasyczne szablony PHP bloga (P-8.4:
-# home.php/single.php/category.php/tag.php/header.php/footer.php +
-# template-parts/ — patrz nagłówek inc/features/Blog/Blog.php po uzasadnienie,
-# czemu blog NIE stoi na blokowych `templates/*.html`) ORAZ klasyczne
-# szablony stron pomocy (P-8.5: page-pomoc.php i pozostałe page-*.php —
-# ta sama konwencja hierarchii plików WP, patrz inc/features/Help/Help.php)
+# motywu (functions.php + inc/ — w tym inc/features/Blog/blocks/*/render.php,
+# P-11.3: bloki dynamiczne bloga, patrz nagłówek inc/features/Blog/Blocks.php)
+# ORAZ header.php/footer.php (klasyczny chrome renderujący parts/header.html/
+# footer.html przez block_header_area()/block_footer_area() — współdzielony
+# przez WSZYSTKIE klasyczne szablony, w tym page-*.php niżej) ORAZ
+# template-parts/ (m.in. template-parts/blog/post-card.php, reużywany zarówno
+# przez klasyczny kod jak i blok `qutlet/post-card`) ORAZ klasyczne szablony
+# stron pomocy (P-8.5: page-pomoc.php i pozostałe page-*.php — hierarchia
+# plików WP, patrz inc/features/Help/Help.php; blog — P-8.4 — od P-11.3
+# przeszedł na blokowe templates/*.html, patrz nagłówek inc/features/Blog/Blog.php)
 # ORAZ block patterns (P-11.1: patterns/*.php — te same wywołania i18n/escaping
 # co page-*.php, tylko odkrywane auto-discovery WP zamiast hierarchii szablonów)
 # — to REALNY kod z logiką, nie deklaratywna powierzchnia jak
-# theme.json/templates/*.html (te faktycznie nie są PHP i zostają poza
-# analizą).
+# theme.json/templates/*.html/block.json (te faktycznie nie są PHP i zostają
+# poza analizą).
 includes:
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
 
@@ -20,10 +24,6 @@ parameters:
     paths:
         - functions.php
         - inc/
-        - home.php
-        - single.php
-        - category.php
-        - tag.php
         - header.php
         - footer.php
         - template-parts/

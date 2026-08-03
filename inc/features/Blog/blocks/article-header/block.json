@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/article-header",
+	"title": "Qutlet: nagłówek artykułu bloga",
+	"category": "qutlet-blog",
+	"icon": "align-left",
+	"description": "Nagłówek artykułu bloga: kicker (kategoria), tytuł, lead, byline (autor/data/czas czytania) oraz zdjęcie wyróżniające z podpisem.",
+	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-blog-blocks-editor",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false,
+		"inserter": false
+	},
+	"render": "file:./render.php"
+}

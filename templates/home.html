@@ -1,0 +1,35 @@
+<!-- wp:template-part {"slug":"header"} /-->
+
+<!-- wp:group {"tagName":"main","className":"wrap page-main"} -->
+<main class="wp-block-group wrap page-main">
+
+<!-- wp:qutlet/breadcrumbs /-->
+
+<!-- wp:pattern {"slug":"qutlet-theme/blog-hero"} /-->
+
+<!-- wp:qutlet/blog-categories /-->
+
+<!-- wp:qutlet/featured-post /-->
+
+<!-- wp:query {"queryId":0,"query":{"inherit":true}} -->
+<div class="wp-block-query">
+
+<!-- wp:post-template {"className":"post-grid"} -->
+<!-- wp:qutlet/post-card {"variant":"grid"} /-->
+<!-- /wp:post-template -->
+
+<!-- wp:query-no-results -->
+<!-- wp:paragraph -->
+<p>Brak wpisów do wyświetlenia.</p>
+<!-- /wp:paragraph -->
+<!-- /wp:query-no-results -->
+
+</div>
+<!-- /wp:query -->
+
+<!-- wp:qutlet/archive-pagination /-->
+
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer"} /-->

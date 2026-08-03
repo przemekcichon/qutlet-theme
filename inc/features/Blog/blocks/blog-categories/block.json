@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/blog-categories",
+	"title": "Qutlet: chipy kategorii bloga",
+	"category": "qutlet-blog",
+	"icon": "category",
+	"description": "Pasek chipów kategorii bloga („Wszystkie” + realne, niepuste kategorie WP) z podświetloną aktywną pozycją.",
+	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-blog-blocks-editor",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false,
+		"inserter": false
+	},
+	"render": "file:./render.php"
+}

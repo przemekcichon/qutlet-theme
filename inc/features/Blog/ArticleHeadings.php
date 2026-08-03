@@ -41,14 +41,23 @@ final class ArticleHeadings {
 
 	/**
 	 * Filtr `the_content`: dogenerowuje `id` dla `<h2>` bez kotwicy i zapisuje
-	 * listę nagłówków do `get_captured()`. Podpinany PUNKTOWO wokół
-	 * `the_content()` w `single.php` (nie globalnie, żeby nie ruszać treści
-	 * poza artykułem bloga) — patrz tam.
+	 * listę nagłówków do `get_captured()`. Podpinany GLOBALNIE (P-11.3,
+	 * `Blog::boot()`), bo blokowy `templates/single.html` renderuje treść
+	 * przez rdzeniowy `<!-- wp:post-content /-->`, a nie przez wywołanie
+	 * `the_content()` który dałoby się owinąć punktowo jak w usuniętym
+	 * `single.php` — dlatego strażnik `is_singular( 'post' )` PONIŻEJ jest
+	 * konieczny: `the_content` odpala się też np. dla opisu produktu Woo
+	 * (`woocommerce_template_single_content()`), którego ten filtr NIE może
+	 * dotknąć.
 	 *
 	 * @param string $content Przefiltrowana treść (HTML, po `do_blocks`/`wpautop`).
 	 * @return string Treść z dogenerowanymi `id` (reszta markupu bez zmian).
 	 */
 	public static function capture_and_anchor( string $content ): string {
+		if ( ! is_singular( 'post' ) ) {
+			return $content;
+		}
+
 		self::$captured   = array();
 		self::$used_slugs = array();
 

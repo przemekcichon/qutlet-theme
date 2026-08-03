@@ -1,29 +1,28 @@
 <?php
 /**
- * Slice Blog — render archiwum/artykułu/kategorii/tagu bloga (P-8.4), port
- * design/vanilla/blog.html, blog-artykul.html, blog-kategoria.html,
- * blog-tag.html. Blog stoi na natywnych wpisach WP + natywnych
- * `category`/`post_tag` (D-1.4.1, qutlet-core NIE rejestruje CPT/taksonomii
- * własnej) — ta klasa jest CZYSTYM renderem (D-8.G1): woła gotowe dane
- * (główne zapytanie WP, get_post_meta) i buduje z nich markup; nie
- * rejestruje pól ani glue do Woo/WP.
+ * Slice Blog — render archiwum/artykułu/kategorii/tagu bloga (P-8.4, zrewidowane
+ * P-11.3), port design/vanilla/blog.html, blog-artykul.html,
+ * blog-kategoria.html, blog-tag.html. Blog stoi na natywnych wpisach WP +
+ * natywnych `category`/`post_tag` (D-1.4.1, qutlet-core NIE rejestruje
+ * CPT/taksonomii własnej) — ta klasa jest CZYSTYM renderem (D-8.G1): woła
+ * gotowe dane (główne zapytanie WP, get_post_meta) i buduje z nich markup;
+ * nie rejestruje pól ani glue do Woo/WP.
  *
- * Szablony klasyczne (home.php/single.php/category.php/tag.php) zamiast
- * blokowych `templates/*.html` — świadomy wybór (doprecyzowanie otwartego
- * D-8.G2 na tym punkcie): layout bloga (karty, TOC, powiązane wpisy,
- * nawigacja prev/next, karuzela wyróżnionego wpisu) wymaga precyzyjnego
- * markupu 1:1 z prototypem, którego natywne bloki (Query Loop/Post Template)
- * nie odwzorują bez dużej liczby własnych bloków dynamicznych. WP core
- * wspiera klasyczne pliki jako fallback w motywach blokowych, gdy dla danego
- * typu NIE istnieje żaden plik w `templates/`
- * (`wp-includes/block-template.php` `locate_block_template()`, zweryfikowane
- * w tej instalacji WP 7.0.2) — ten sam mechanizm, z którego już korzysta
- * `woocommerce/content-product.php` (WooCommerce ma własny odpowiednik przez
- * `wp:woocommerce/legacy-template`). Nagłówek/stopka bloga renderują part
- * `parts/header.html`/`parts/footer.html` przez `block_header_area()`/
- * `block_footer_area()` (WP core, `wp-includes/block-template-utils.php`) z
- * klasycznych `header.php`/`footer.php` w korzeniu motywu — patrz komentarze
- * w tych plikach.
+ * Renderer: blokowe `templates/home.html`/`single.html`/`category.html`/
+ * `tag.html` (P-11.3, ODWRACA pierwotną decyzję D-8.4.1 „klasyczna hierarchia
+ * szablonów" — świadoma rewizja, potwierdzona przy otwieraniu FAZY 11, patrz
+ * `docs/plan.md`). Loop-driven fragmenty (karta wpisu, wyróżniony wpis, TOC,
+ * powiązane wpisy, nawigacja prev/next, chipy/nagłówki kategorii i tagu,
+ * paginacja) żyją jako własne bloki dynamiczne w `Blocks.php`/`blocks/*` —
+ * TA klasa zostaje jedynym miejscem z logiką prezentacyjną (metody statyczne
+ * wołane z `render.php` poszczególnych bloków), żeby nie duplikować kodu
+ * między starym (usuniętym) rendererem klasycznym a nowym blokowym. Statyczny
+ * marketing copy (hero „Drugi obieg", karta „Ze strefy okazji") przeniesiony
+ * do patternów (`patterns/blog-hero.php`, `patterns/blog-deal-card.php`,
+ * D-11.G1/D-11.G3 bez zmian — patterny nie stają się „modelem danych").
+ * Nagłówek/stopka bloga renderują part `parts/header.html`/`parts/footer.html`
+ * przez `<!-- wp:template-part -->` — ten sam part co pozostałe blokowe
+ * `templates/*.html` w motywie (`page.html`, `single-product.html`).
  *
  * @package Qutlet\Theme
  */
@@ -32,6 +31,7 @@ declare( strict_types=1 );
 
 namespace Qutlet\Theme\features\Blog;
 
+use WP_Query;
 use WP_Term;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -67,9 +67,55 @@ final class Blog {
 	 * @return void
 	 */
 	public static function boot(): void {
-		// Jedyny hook globalny slice'a — reszta to statyczne helpery wołane wprost
-		// z szablonów klasycznych (home.php i pozostałe).
 		add_filter( 'document_title_parts', array( self::class, 'filter_document_title_parts' ) );
+
+		// P-11.3: `<!-- wp:post-content /-->` w templates/single.html odpala
+		// `the_content` sam (rdzeń), więc filtr zbierający nagłówki artykułu
+		// (`qutlet/article-toc`) musi być podpięty GLOBALNIE, nie punktowo jak
+		// w usuniętym single.php — guard `is_singular( 'post' )' żyje WEWNĄTRZ
+		// ArticleHeadings::capture_and_anchor(), patrz jej docblock.
+		add_filter( 'the_content', array( ArticleHeadings::class, 'capture_and_anchor' ), 20 );
+
+		// P-11.3: blokowy `templates/home.html` renderuje wyróżniony wpis PRZEZ
+		// osobny blok (`qutlet/featured-post`) i główną pętlę PRZEZ `wp:query
+		// {"inherit":true}` (bez ręcznego `continue` jak w usuniętym home.php) —
+		// żeby wyróżniony wpis nie duplikował się w siatce, wykluczamy go z
+		// GŁÓWNEGO zapytania na `pre_get_posts` (jedyna modyfikacja query, jaką
+		// robi ten slice — inaczej niż `ProductFilters` na archiwum produktowym,
+		// ale tu nieuniknione: blok siatki nie ma jak samodzielnie „pominąć"
+		// jednego posta z odziedziczonego zapytania głównego).
+		add_action( 'pre_get_posts', array( self::class, 'exclude_featured_from_main_query' ) );
+	}
+
+	/**
+	 * Wyklucza wyróżniony (sticky) wpis z GŁÓWNEGO zapytania archiwum bloga
+	 * (pierwsza strona) — port `if ( get_the_ID() === $featured_id ) { continue; }`
+	 * z usuniętego `home.php` (P-8.4), teraz konieczny, bo blokowa siatka
+	 * (`wp:query` + `wp:post-template`) nie ma odpowiednika pętli PHP do
+	 * pominięcia pojedynczego wpisu.
+	 *
+	 * @param WP_Query $query Zapytanie WP (hook `pre_get_posts`).
+	 * @return void
+	 */
+	public static function exclude_featured_from_main_query( WP_Query $query ): void {
+		if ( is_admin() || ! $query->is_main_query() || ! $query->is_home() ) {
+			return;
+		}
+
+		if ( (int) $query->get( 'paged' ) > 1 ) {
+			return;
+		}
+
+		$featured_id = self::featured_post_id();
+
+		if ( $featured_id <= 0 ) {
+			return;
+		}
+
+		$not_in   = (array) $query->get( 'post__not_in' );
+		$not_in[] = $featured_id;
+
+		$query->set( 'post__not_in', $not_in );
 	}
 
 	/**

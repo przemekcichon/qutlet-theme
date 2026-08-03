@@ -1,0 +1,33 @@
+<!-- wp:template-part {"slug":"header"} /-->
+
+<!-- wp:group {"tagName":"main","className":"wrap page-main"} -->
+<main class="wp-block-group wrap page-main">
+
+<!-- wp:qutlet/breadcrumbs /-->
+
+<!-- wp:qutlet/tag-hero /-->
+
+<!-- wp:qutlet/tag-related /-->
+
+<!-- wp:query {"queryId":0,"query":{"inherit":true}} -->
+<div class="wp-block-query">
+
+<!-- wp:post-template {"className":"post-list"} -->
+<!-- wp:qutlet/post-card {"variant":"horizontal"} /-->
+<!-- /wp:post-template -->
+
+<!-- wp:query-no-results -->
+<!-- wp:paragraph -->
+<p>Brak wpisów z tym tagiem.</p>
+<!-- /wp:paragraph -->
+<!-- /wp:query-no-results -->
+
+</div>
+<!-- /wp:query -->
+
+<!-- wp:qutlet/archive-pagination /-->
+
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer"} /-->

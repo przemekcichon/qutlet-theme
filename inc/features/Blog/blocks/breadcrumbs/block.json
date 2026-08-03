@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/breadcrumbs",
+	"title": "Qutlet: okruszki bloga",
+	"category": "qutlet-blog",
+	"icon": "admin-links",
+	"description": "Ścieżka okruszków bloga (Qutlet / Drugi obieg / …) — auto-detekcja widoku (archiwum/artykuł/kategoria/tag).",
+	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-blog-blocks-editor",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false,
+		"inserter": false
+	},
+	"render": "file:./render.php"
+}
