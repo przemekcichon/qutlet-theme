@@ -3,6 +3,10 @@
 	"version": 3,
 	"settings": {
 		"appearanceTools": true,
+		"layout": {
+			"contentSize": "720px",
+			"wideSize": "1240px"
+		},
 		"color": {
 			"palette": [
 				{ "slug": "ink", "color": "#17141b", "name": "Ink" },
