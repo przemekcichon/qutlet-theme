@@ -18,7 +18,8 @@
 	},
 	"supports": {
 		"html": false,
-		"align": false
+		"align": false,
+		"inserter": false
 	},
 	"render": "file:./render.php"
 }

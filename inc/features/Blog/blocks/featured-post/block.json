@@ -11,7 +11,8 @@
 	"supports": {
 		"html": false,
 		"align": false,
-		"multiple": false
+		"multiple": false,
+		"inserter": false
 	},
 	"render": "file:./render.php"
 }
