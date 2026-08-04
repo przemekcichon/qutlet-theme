@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.11
+Version:           0.1.12
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -1018,6 +1018,13 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .art-body img { max-width: 100%; height: auto; border-radius: var(--radius); }
 .art-figure { margin-top: 30px; margin-bottom: 30px; margin-left: 0; margin-right: 0; }
 .art-figure .art-img { position: relative; border-radius: var(--radius); overflow: hidden; aspect-ratio: 16 / 9; background: var(--panel); }
+/* P-11.5: `patterns/art-figure.php` ships as a bare core/image block (no
+   `.art-img` wrapper — any extra markup/attribute on it fails block
+   validation while empty, ground-truth this session). Crop to 16:9 directly
+   on the `<img>` instead, so a redaktor who picks a photo of any aspect
+   ratio and skips the toolbar's Aspect ratio/Scale controls still gets the
+   prototype's cropped photo band, not a full-height raw image. */
+.art-figure img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); background: var(--panel); }
 .art-figure figcaption { font-size: 12.5px; color: var(--muted); font-weight: 600; margin-top: 10px; padding-left: 4px; }
 
 /* wielka liczba / stat w treści */
