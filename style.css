@@ -1864,11 +1864,19 @@ body.qt-hide-nlband .nlband { display: none; }
 	position: sticky;
 	top: 96px;
 }
-.wc-block-cart__totals-title {
+/* Selektor złożony — WC-owa `.wc-block-cart__totals-title` (`cart.css`) niesie
+   własny `text-transform:uppercase`/`font-weight:500`/`font-size:13px` na tej
+   samej specyficzności (0,1,0); ten element ma też klasę bloku
+   (`wp-block-woocommerce-cart-order-summary-heading-block`), więc złożenie
+   obu wygrywa (0,2,0) — zweryfikowane runtime, sama pojedyncza klasa
+   przegrywała z WC. */
+.wp-block-woocommerce-cart-order-summary-heading-block.wc-block-cart__totals-title {
 	font-family: var(--font-display);
 	font-size: 17px;
 	font-weight: 800;
+	text-transform: none;
 	margin: 0 0 16px;
+	padding: 0;
 }
 .wc-block-components-totals-item__label { color: var(--ink-soft); font-size: 14.5px; }
 .qutlet-cart-subtotal-row .wc-block-components-totals-item,
@@ -1890,7 +1898,13 @@ body.qt-hide-nlband .nlband { display: none; }
 	margin-bottom: 2px;
 	padding: 9px 13px;
 }
-.wc-block-components-totals-footer-item {
+/* Selektor złożony — WC-owa reguła `.wc-block-components-totals-footer-item{margin:0}`
+   (`cart.css`) kasowała nasz `margin-top`, więc obramowanie „Razem" siedziało
+   tuż pod zielonym boxem oszczędności bez odstępu (wyglądało jak krzywa,
+   dodatkowa linia zamiast czytelnego separatora — zgłoszone przez
+   użytkownika). Ten element ma też klasę `.wc-block-components-totals-item`
+   (dwie klasy razem, jak wyżej). */
+.wc-block-components-totals-item.wc-block-components-totals-footer-item {
 	border-top: 1px solid var(--line);
 	margin-top: 10px;
 	padding-top: 15px;
@@ -1899,12 +1913,21 @@ body.qt-hide-nlband .nlband { display: none; }
 	font-size: 22px;
 }
 .wp-block-woocommerce-proceed-to-checkout-block { margin-top: 18px; }
-.wp-block-woocommerce-proceed-to-checkout-block .wp-block-button__link,
-.wc-block-cart__submit-container a {
-	border-radius: 999px;
+/* Prawdziwa klasa przycisku (`.wc-block-cart__submit-button`) — WCowy
+   `.wp-block-button__link`/selektor generyczny `a` w kontenerze nigdy nie
+   trafiał w kolor (zweryfikowane runtime: tło zostawało domyślnym ciemnym
+   `wp-element-button` z theme.json), tylko przypadkiem w promień/szerokość
+   przez zbyt ogólny `.wc-block-cart__submit-container a`. Port `.btn-primary`
+   + `.btn-lg` (design/vanilla/css/style.css:69-70,75 — radius 12px, NIE pill). */
+.wc-block-cart__submit-button {
+	background: var(--accent);
+	color: #fff;
+	border-radius: 12px;
 	width: 100%;
 	text-align: center;
+	font-family: var(--font-display);
 }
+.wc-block-cart__submit-button:hover { background: var(--accent-deep); }
 .wp-block-woocommerce-cart-accepted-payment-methods-block { margin-top: 12px; }
 
 /* Pusty koszyk — port `.empty-state` (design/vanilla/css/style.css:390-391,929).
