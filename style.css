@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.18
+Version:           0.1.19
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -427,7 +427,22 @@ section.wrap > .usp-grid { margin-top: 18px; }
 /* P-11.5: tak samo wewnątrz karty — grupa (nagłówek+opis) była w edytorze
    24px niżej niż ikona obok niej. */
 .usp-card > .wp-block-group { margin-top: 0; }
-.usp-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--panel); display: grid; place-items: center; color: var(--accent); flex-shrink: 0; }
+/* P-11.5, zgłoszenie użytkownika: ikona jako `wp:html` (inline SVG) renderuje
+   się w edytorze w sandboxed `<iframe>` (core/html, `sandbox="allow-scripts
+   allow-presentation"`, BEZ `allow-same-origin`) — CSS motywu fizycznie tam
+   nie dociera, więc `.usp-icon` (width/height/tło/wyśrodkowanie) nie
+   aplikowało się do zawartości iframe'a: ikona kurczyła się do ~17px i
+   traciła kolor/tło (potwierdzone realnie, `getBoundingClientRect` na
+   wrapperze `.wp-block-html`). Naprawione zamianą na PUSTY `core/spacer`
+   (blok projektowo pusty — w odróżnieniu od pustego `core/group`, sprawdzone,
+   NIE pokazuje w edytorze placeholdera „wybierz layout") + samą ikonę jako
+   CSS `background-image` (SVG data-URI, kolor zakodowany na sztywno — wewnątrz
+   data-URI `var(--accent)` by się nie rozwiązał). */
+.usp-icon { width: 38px; height: 38px; border-radius: 10px; background-color: var(--panel); background-repeat: no-repeat; background-position: center; background-size: 20px 20px; flex-shrink: 0; }
+.usp-icon-package { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237c2fe0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8v13H3V8'/%3E%3Cpath d='M1 3h22v5H1z'/%3E%3Cpath d='M10 12h4'/%3E%3C/svg%3E"); }
+.usp-icon-refresh { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237c2fe0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8'/%3E%3Cpath d='M3 3v5h5'/%3E%3C/svg%3E"); }
+.usp-icon-leaf { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237c2fe0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z'/%3E%3Cpath d='M2 21c0-3 1.85-5.36 5.08-6'/%3E%3C/svg%3E"); }
+.usp-icon-truck { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237c2fe0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2'/%3E%3Cpath d='M15 18H9'/%3E%3Cpath d='M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14'/%3E%3Ccircle cx='17' cy='18' r='2'/%3E%3Ccircle cx='7' cy='18' r='2'/%3E%3C/svg%3E"); }
 .usp-card h4 { font-size: 14.5px; font-weight: 700; margin: 0 0 2px; }
 .usp-card p { font-size: 12.5px; color: var(--muted); line-height: 1.45; margin: 0; }
 
@@ -1372,7 +1387,19 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .contact-head p { color: var(--muted); font-size: 15px; line-height: 1.7; margin-top: 12px; max-width: 300px; }
 .contact-list { display: flex; flex-direction: column; gap: 18px; margin-top: 30px; }
 .contact-item { display: flex; gap: 14px; align-items: flex-start; }
-.contact-item svg { flex: none; margin-top: 2px; }
+/* P-11.5, zgłoszenie użytkownika: jak przy .usp-icon niżej w pliku — ikona
+   jako `wp:html` traci CSS w edytorze (sandboxed iframe bez allow-same-origin).
+   Tu dodatkowo oryginalny prototyp nie miał klasy na ikonie (goły `<svg>`,
+   celowany selektorem elementowym `.contact-item svg`) — `core/spacer` nie
+   może być stylowany selektorem elementowym, więc nowa klasa
+   `.contact-item-icon` (kolor `var(--accent)` zaszyty w SVG oryginału jako
+   dosłowny atrybut `stroke` zadziałałby nawet w sandboxie, ale i tak
+   zamieniamy na spacer dla spójności z resztą audytu i bo `var(--accent)`
+   wewnątrz CSS `background-image` data-URI i tak by się nie rozwiązał). */
+.contact-item-icon { flex: none; width: 20px; height: 20px; margin-top: 2px; background-repeat: no-repeat; background-position: center; background-size: 20px 20px; }
+.contact-item-icon-mail { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237c2fe0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='4' width='20' height='16' rx='2'/%3E%3Cpath d='m22 7-10 6L2 7'/%3E%3C/svg%3E"); }
+.contact-item-icon-clock { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237c2fe0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E"); }
+.contact-item-icon-message { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237c2fe0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z'/%3E%3C/svg%3E"); }
 .contact-item b { display: block; font-size: 13px; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
 /* P-11.2: pattern qutlet-theme/contact-intro koduje etykietę+wartość jednym
    wp:paragraph (RichText Bold → <strong>, nie <b> — wzorzec z hero-idea,
@@ -1429,7 +1456,11 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 /* Newsletter/„Jak to działa" — karty eko + 3 perki + cytat (współdzielone) */
 .eko-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 60px; align-items: self-end; }
 .eko-card { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 32px; }
-.eko-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--panel); color: var(--accent); margin-bottom: 18px; }
+/* P-11.5, zgłoszenie użytkownika: jak przy .usp-icon niżej w pliku (ikona
+   jako `wp:html` traci CSS w edytorze — sandboxed iframe). */
+.eko-icon { width: 44px; height: 44px; border-radius: 12px; background-color: var(--panel); background-repeat: no-repeat; background-position: center; background-size: 22px 22px; margin-bottom: 18px; }
+.eko-icon-percent { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237c2fe0' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 5 5 19'/%3E%3Ccircle cx='6.5' cy='6.5' r='2.5'/%3E%3Ccircle cx='17.5' cy='17.5' r='2.5'/%3E%3C/svg%3E"); }
+.eko-icon-leaf { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237c2fe0' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z'/%3E%3Cpath d='M2 21c0-3 1.85-5.36 5.08-6'/%3E%3C/svg%3E"); }
 /* P-11.2 (ten sam wzorzec problemu co .how-step .how-step-num): prototyp
    renderuje kicker jako <span>, więc `.eko-card p` (myślana wyłącznie dla
    akapitu opisu) go nie dotykała. Pattern koduje kicker realnym
@@ -1447,7 +1478,12 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 /* P-11.5: editor-only phantom margin (patrz nota na górze pliku). */
 .perks3 > .perk3 { margin-top: 0; }
 .perk3 { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 26px; }
-.perk3-icon { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--plum); color: var(--lime); margin-bottom: 16px; }
+/* P-11.5, zgłoszenie użytkownika: jak przy .usp-icon niżej w pliku (ikona
+   jako `wp:html` traci CSS w edytorze — sandboxed iframe). */
+.perk3-icon { width: 40px; height: 40px; border-radius: 11px; background-color: var(--plum); background-repeat: no-repeat; background-position: center; background-size: 20px 20px; margin-bottom: 16px; }
+.perk3-icon-bell { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23a8e832' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9'/%3E%3Cpath d='M13.73 21a2 2 0 0 1-3.46 0'/%3E%3C/svg%3E"); }
+.perk3-icon-lock { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23a8e832' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E"); }
+.perk3-icon-bolt { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23a8e832' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 2 3 14h9l-1 8 10-12h-9l1-8z'/%3E%3C/svg%3E"); }
 .perk3 h4 { font-size: 16.5px; font-weight: 800; margin: 0 0 8px; }
 .perk3 p { font-size: 14px; line-height: 1.6; color: var(--ink-soft); margin: 0; }
 
@@ -1535,7 +1571,12 @@ body.qt-hide-nlband .nlband { display: none; }
 /* P-11.5: tak samo wewnątrz karty — grupa (nagłówek+opis) była w edytorze
    24px niżej niż ikona obok niej. */
 .how-fact > .wp-block-group { margin-top: 0; }
-.how-fact-icon { flex: none; width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--plum); color: var(--lime); }
+/* P-11.5, zgłoszenie użytkownika: jak przy .usp-icon niżej w pliku (ikona
+   jako `wp:html` traci CSS w edytorze — sandboxed iframe). */
+.how-fact-icon { flex: none; width: 38px; height: 38px; border-radius: 11px; background-color: var(--plum); background-repeat: no-repeat; background-position: center; background-size: 18px 18px; }
+.how-fact-icon-cart { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23a8e832' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 6h15l-1.5 9h-12z'/%3E%3Cpath d='M6 6 5 3H2'/%3E%3Ccircle cx='9' cy='20' r='1.5'/%3E%3Ccircle cx='18' cy='20' r='1.5'/%3E%3C/svg%3E"); }
+.how-fact-icon-shield { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23a8e832' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5Z'/%3E%3C/svg%3E"); }
+.how-fact-icon-leaf { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23a8e832' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z'/%3E%3Cpath d='M2 21c0-3 1.85-5.36 5.08-6'/%3E%3C/svg%3E"); }
 .how-fact h4 { font-size: 15px; font-weight: 800; margin: 0 0 4px; }
 .how-fact p { font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); margin: 0; }
 

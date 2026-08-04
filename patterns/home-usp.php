@@ -3,7 +3,7 @@
  * Title: Siatka USP — strona główna
  * Slug: qutlet-theme/home-usp
  * Categories: qutlet
- * Description: Cztery karty „dlaczego Qutlet" (jeden egzemplarz, cena bez dopłaty za nówkę, mniej e-waste, szybka wysyłka). Port .usp-grid (design/vanilla/index.html).
+ * Description: Cztery karty „dlaczego Qutlet" (jeden egzemplarz, cena bez dopłaty za nówkę, mniej e-waste, szybka wysyłka). Port .usp-grid (design/vanilla/index.html). Ikony jako `core/spacer` + CSS `background-image` (P-11.5, zgłoszenie użytkownika) — NIE `wp:html` (poprzednia wersja): podgląd bloku Custom HTML renderuje się w edytorze w odizolowanym `<iframe sandbox>` bez `allow-same-origin`, więc CSS motywu tam nie dociera (ikona kurczyła się do ~17px zamiast 38px). Pusty `wp:group` jako alternatywa pokazuje w edytorze placeholder „wybierz layout" (sprawdzone) — `core/spacer` (blok projektowo pusty) nie ma tego problemu.
  * Keywords: usp, strona główna
  * Viewport Width: 1240
  *
@@ -22,7 +22,9 @@ defined( 'ABSPATH' ) || exit;
 
 <!-- wp:group {"className":"usp-card"} -->
 <div class="wp-block-group usp-card">
-<!-- wp:html --><span class="usp-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><path d="M10 12h4"></path></svg></span><!-- /wp:html -->
+<!-- wp:spacer {"height":"38px","className":"usp-icon usp-icon-package"} -->
+<div style="height:38px" aria-hidden="true" class="wp-block-spacer usp-icon usp-icon-package"></div>
+<!-- /wp:spacer -->
 <!-- wp:group -->
 <div class="wp-block-group">
 <!-- wp:heading {"level":4} -->
@@ -38,7 +40,9 @@ defined( 'ABSPATH' ) || exit;
 
 <!-- wp:group {"className":"usp-card"} -->
 <div class="wp-block-group usp-card">
-<!-- wp:html --><span class="usp-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"></path><path d="M3 3v5h5"></path></svg></span><!-- /wp:html -->
+<!-- wp:spacer {"height":"38px","className":"usp-icon usp-icon-refresh"} -->
+<div style="height:38px" aria-hidden="true" class="wp-block-spacer usp-icon usp-icon-refresh"></div>
+<!-- /wp:spacer -->
 <!-- wp:group -->
 <div class="wp-block-group">
 <!-- wp:heading {"level":4} -->
@@ -54,7 +58,9 @@ defined( 'ABSPATH' ) || exit;
 
 <!-- wp:group {"className":"usp-card"} -->
 <div class="wp-block-group usp-card">
-<!-- wp:html --><span class="usp-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6"></path></svg></span><!-- /wp:html -->
+<!-- wp:spacer {"height":"38px","className":"usp-icon usp-icon-leaf"} -->
+<div style="height:38px" aria-hidden="true" class="wp-block-spacer usp-icon usp-icon-leaf"></div>
+<!-- /wp:spacer -->
 <!-- wp:group -->
 <div class="wp-block-group">
 <!-- wp:heading {"level":4} -->
@@ -70,7 +76,9 @@ defined( 'ABSPATH' ) || exit;
 
 <!-- wp:group {"className":"usp-card"} -->
 <div class="wp-block-group usp-card">
-<!-- wp:html --><span class="usp-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg></span><!-- /wp:html -->
+<!-- wp:spacer {"height":"38px","className":"usp-icon usp-icon-truck"} -->
+<div style="height:38px" aria-hidden="true" class="wp-block-spacer usp-icon usp-icon-truck"></div>
+<!-- /wp:spacer -->
 <!-- wp:group -->
 <div class="wp-block-group">
 <!-- wp:heading {"level":4} -->

@@ -3,7 +3,7 @@
  * Title: Dlaczego to ma sens (tekst + fakty)
  * Slug: qutlet-theme/how-why
  * Categories: qutlet
- * Description: Dwie kolumny — proza + trzy karty faktów z ikoną. Port .how-why/.how-why-facts (design/vanilla/jak-to-dziala.html).
+ * Description: Dwie kolumny — proza + trzy karty faktów z ikoną. Port .how-why/.how-why-facts (design/vanilla/jak-to-dziala.html). Ikony jako `core/spacer` + CSS `background-image` (P-11.5, ta sama poprawka co home-usp) — nie `wp:html`, patrz opis tamtego patternu.
  * Keywords: fakty, dlaczego, jak to działa
  * Viewport Width: 1240
  *
@@ -43,9 +43,9 @@ echo wp_kses_post(
 
 <!-- wp:group {"className":"how-fact"} -->
 <div class="wp-block-group how-fact">
-<!-- wp:html -->
-<span class="how-fact-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"></path><path d="M6 6 5 3H2"></path><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle></svg></span>
-<!-- /wp:html -->
+<!-- wp:spacer {"height":"38px","className":"how-fact-icon how-fact-icon-cart"} -->
+<div style="height:38px" aria-hidden="true" class="wp-block-spacer how-fact-icon how-fact-icon-cart"></div>
+<!-- /wp:spacer -->
 <!-- wp:group -->
 <div class="wp-block-group">
 <!-- wp:heading {"level":4} -->
@@ -61,9 +61,9 @@ echo wp_kses_post(
 
 <!-- wp:group {"className":"how-fact"} -->
 <div class="wp-block-group how-fact">
-<!-- wp:html -->
-<span class="how-fact-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5Z"></path></svg></span>
-<!-- /wp:html -->
+<!-- wp:spacer {"height":"38px","className":"how-fact-icon how-fact-icon-shield"} -->
+<div style="height:38px" aria-hidden="true" class="wp-block-spacer how-fact-icon how-fact-icon-shield"></div>
+<!-- /wp:spacer -->
 <!-- wp:group -->
 <div class="wp-block-group">
 <!-- wp:heading {"level":4} -->
@@ -79,9 +79,9 @@ echo wp_kses_post(
 
 <!-- wp:group {"className":"how-fact"} -->
 <div class="wp-block-group how-fact">
-<!-- wp:html -->
-<span class="how-fact-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6"></path></svg></span>
-<!-- /wp:html -->
+<!-- wp:spacer {"height":"38px","className":"how-fact-icon how-fact-icon-leaf"} -->
+<div style="height:38px" aria-hidden="true" class="wp-block-spacer how-fact-icon how-fact-icon-leaf"></div>
+<!-- /wp:spacer -->
 <!-- wp:group -->
 <div class="wp-block-group">
 <!-- wp:heading {"level":4} -->
