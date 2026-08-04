@@ -1,5 +1,6 @@
 /**
- * Qutlet — rejestracja klienta (edytor) bloków dynamicznych bloga (P-11.3).
+ * Qutlet — rejestracja klienta (edytor) bloków dynamicznych bloga (P-11.3,
+ * rozszerzone P-11.5).
  *
  * Bez build-stepu (brak npm/wp-scripts w tym repo, pierwszy precedens
  * własnych bloków dynamicznych — zwykły JS, `wp.element.createElement`, bez
@@ -12,12 +13,22 @@
  * Lista nazw MUSI być zsynchronizowana ręcznie z katalogami w
  * `inc/features/Blog/blocks/*` (brak automatycznego odkrywania po stronie
  * klienta) — dodanie nowego bloku wymaga dopisania go tutaj.
+ *
+ * `qutlet/article-product` (P-11.5) dostaje WŁASNY `edit` — w odróżnieniu od
+ * pozostałych 15 bloków (dane z kontekstu pętli/bieżącego wpisu, bez
+ * atrybutów do ręcznego ustawienia) ten blok wymaga, żeby redaktor wskazał
+ * KONKRETNY produkt (`productId`) — stąd panel boczny (`InspectorControls`)
+ * z polem liczbowym zamiast samego podglądu SSR.
  */
-( function ( blocks, element, blockEditor, serverSideRender ) {
+( function ( blocks, element, blockEditor, components, serverSideRender ) {
 	'use strict';
 
 	var el = element.createElement;
+	var Fragment = element.Fragment;
 	var useBlockProps = blockEditor.useBlockProps;
+	var InspectorControls = blockEditor.InspectorControls;
+	var PanelBody = components.PanelBody;
+	var TextControl = components.TextControl;
 	var ServerSideRender = serverSideRender;
 
 	var BLOCK_NAMES = [
@@ -57,4 +68,49 @@
 			},
 		} );
 	} );
-} )( window.wp.blocks, window.wp.element, window.wp.blockEditor, window.wp.serverSideRender );
+
+	blocks.registerBlockType( 'qutlet/article-product', {
+		edit: function ( props ) {
+			var blockProps = useBlockProps( { className: 'qutlet-block-preview' } );
+			var attributes = props.attributes;
+			var setAttributes = props.setAttributes;
+			var productId = attributes.productId || 0;
+
+			return el(
+				Fragment,
+				{},
+				el(
+					InspectorControls,
+					{},
+					el(
+						PanelBody,
+						{ title: 'Produkt', initialOpen: true },
+						el( TextControl, {
+							label: 'ID produktu (WooCommerce)',
+							type: 'number',
+							value: productId || '',
+							onChange: function ( value ) {
+								setAttributes( { productId: value ? parseInt( value, 10 ) : 0 } );
+							},
+							__next40pxDefaultSize: true,
+							__nextHasNoMarginBottom: true,
+						} )
+					)
+				),
+				el(
+					'div',
+					blockProps,
+					productId > 0
+						? el( ServerSideRender, {
+							block: 'qutlet/article-product',
+							attributes: attributes,
+						} )
+						: el( 'p', {}, 'Wpisz ID produktu w panelu bocznym →' )
+				)
+			);
+		},
+		save: function () {
+			return null;
+		},
+	} );
+} )( window.wp.blocks, window.wp.element, window.wp.blockEditor, window.wp.components, window.wp.serverSideRender );
