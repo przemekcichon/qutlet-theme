@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.15
+Version:           0.1.16
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -1444,6 +1444,20 @@ body.qt-hide-nlband .nlband { display: none; }
 .how-hero .lead strong { color: #fff; }
 
 .how-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 40px; }
+/* P-11.5, zgłoszenie użytkownika (screenshoty: box 1 wyższy niż 2-4 w
+   edytorze, front OK): TEN SAM problem co reset przy `* { box-sizing... }`
+   wyżej w tym pliku (P-11.2, editor-only `.is-layout-flow > * { margin-block-start: 24px }`)
+   — ALE sitewide reset stamtąd (`:root :where(.is-layout-flow) > *`) go tu
+   NIE łapie: ground-truth runtime (ta sesja) — w edytorze arkusz motywu
+   ładuje się PRZED `global-styles-inline-css` (odwrotna kolejność niż na
+   froncie, gdzie ten sam reset działa), więc identyczna specyficzność
+   (0,1,0) obu reguł rozstrzyga się tam na korzyść WP, nie nas. `.how-step`
+   (2., 3., 4. dziecko grida) dostaje realny margin-top:24px, którego `.how-step`
+   nr 1 (:first-child, zwolnione) nie ma — stretch grida rozciąga WIERSZ do
+   najwyższego (nr 1), a pozostałe tracą 24px swojej widocznej wysokości na
+   ten margines. Lokalna łatka (nie sitewide — patrz PR #21, to osobny,
+   głębszy problem do decyzji poza tym punktem planu). */
+.how-steps > .how-step { margin-top: 0; }
 .how-step { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding-top: 26px; padding-bottom: 26px; padding-left: 24px; padding-right: 24px; position: relative; }
 /* P-11.2: prototyp renderuje odznakę numeru jako <span>, więc `.how-step p`
    niżej (myślana WYŁĄCZNIE dla akapitu opisu) nigdy jej nie dotykała. Nasz
