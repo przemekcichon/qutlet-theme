@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.16
+Version:           0.1.18
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -107,7 +107,29 @@ Text Domain:       qutlet-theme
    (zweryfikowane runtime), więc ten reset wygrywa z WP; świadome reguły
    typu `.how-steps` (też 0,0,1,0, ale NIŻEJ w tym samym pliku) wygrywają
    z kolei z tym resetem — poprawny łańcuch nadpisań bez przypadkowego
-   ubicia wartości, które już mieliśmy dobrze. */
+   ubicia wartości, które już mieliśmy dobrze.
+
+   DOPISEK (P-11.5, ground-truth runtime tej sesji): powyższe „arkusz motywu
+   ładuje się PO global-styles-inline-css" jest prawdziwe TYLKO na froncie.
+   W EDYTORZE POSTA kolejność jest ODWRÓCONA (sprawdzone przez odczyt
+   kolejności tagów `<style>` w iframie edytora) — nasz arkusz ładuje się
+   tam PRZED global-styles-inline-css, więc przy identycznej specyficzności
+   (0,1,0) ten reset PRZEGRYWA z regułą WP w edytorze, mimo że wygrywa na
+   froncie. Efekt widoczny WYŁĄCZNIE w kontenerach `display:flex`/`display:grid`
+   (margin nie zwija się między flex/grid itemami jak w zwykłym block-flow,
+   więc doliczony 24px jest tam realnie widoczny jako rozjazd) — stąd osobne,
+   lokalne resety `> {selector} { margin-top: 0; }` przy poszczególnych
+   patternach niżej w tym pliku (art-step, warn-note, art-stat-band,
+   art-tools, how-steps, usp-grid/usp-card, help-cards, perks3,
+   contact-layout, nl-grid, nlband-inner, how-why-facts/how-fact) —
+   audyt WSZYSTKICH patternów pod tym kątem, sesja P-11.5 (PR #21).
+   `.eko-grid`/`.eko-card`/`.perk3`/`.contact-item` sprawdzone tą samą metodą
+   i NIE dotknięte — ich layout to zwykły block-flow (bez flex/grid na
+   poziomie, gdzie problem by się objawił), więc margines się zwija i bug
+   jest tam niewidoczny. Podnoszenie specyficzności SAMEGO resetu (żeby
+   wygrywał w obu kontekstach naraz) rozbiłoby równowagę opisaną wyżej
+   (`.how-steps{margin-top:...}` i podobne przestałyby wygrywać z resetem)
+   — świadomie NIE ruszane, to osobna decyzja poza zakresem tej sesji. */
 :root :where(.is-layout-flow) > * { margin-block-start: 0; }
 /* Ten sam mechanizm co reset wyżej, ale INNY selektor WP: `.wp-site-blocks`
    (korzeń każdego szablonu blokowego — header/main/footer jako jego
@@ -333,6 +355,9 @@ body[data-page="newsletter"] .nlband { display: none; }
 	display: grid; grid-template-columns: 1.12fr .88fr; gap: 44px; align-items: center;
 	padding-top: 48px; padding-bottom: 48px; padding-left: 54px; padding-right: 54px;
 }
+/* P-11.5: editor-only phantom margin (patrz nota na górze pliku) — selektor
+   klasowy, nie `> *` (patrz wyjaśnienie przy .contact-layout niżej w pliku). */
+.nlband-inner > .wp-block-html { margin-top: 0; }
 .nlband-title { font-family: var(--font-display); font-size: clamp(26px, 2.9vw, 38px); font-weight: 800; letter-spacing: -.03em; line-height: 1.08; margin: 0; }
 .nlband-lead { margin-top: 14px; font-size: 16px; line-height: 1.55; color: rgba(255,255,255,.78); max-width: 450px; }
 .nlband-form { display: flex; flex-direction: column; gap: 11px; }
@@ -391,11 +416,17 @@ body[data-page="newsletter"] .nlband { display: none; }
    `section.wrap > .usp-grid` podbija specyficzność do (0,2,1). */
 section.wrap > .usp-grid { margin-top: 18px; }
 .usp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+/* P-11.5: editor-only phantom margin (patrz nota na górze pliku) — karty
+   2-4 zjeżdżały w dół względem karty 1 w gridzie edytora. */
+.usp-grid > .usp-card { margin-top: 0; }
 .usp-card {
 	background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
 	display: flex; gap: 13px; align-items: flex-start;
 	padding-top: 18px; padding-bottom: 18px; padding-left: 20px; padding-right: 20px;
 }
+/* P-11.5: tak samo wewnątrz karty — grupa (nagłówek+opis) była w edytorze
+   24px niżej niż ikona obok niej. */
+.usp-card > .wp-block-group { margin-top: 0; }
 .usp-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--panel); display: grid; place-items: center; color: var(--accent); flex-shrink: 0; }
 .usp-card h4 { font-size: 14.5px; font-weight: 700; margin: 0 0 2px; }
 .usp-card p { font-size: 12.5px; color: var(--muted); line-height: 1.45; margin: 0; }
@@ -1233,6 +1264,8 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 }
 .help-quick a:hover { border-color: var(--ink); color: var(--ink); }
 .help-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+/* P-11.5: editor-only phantom margin (patrz nota na górze pliku). */
+.help-cards > .help-card { margin-top: 0; }
 .help-card {
 	background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
 	text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 6px;
@@ -1326,6 +1359,15 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .field input.invalid { border-color: var(--error); }
 
 .contact-layout { display: grid; grid-template-columns: 300px 1fr; gap: 40px; align-items: start; }
+/* P-11.5: editor-only phantom margin (patrz nota na górze pliku) — 2. kolumna
+   (karta formularza) startowała 24px niżej niż 1. w edytorze. Selektor MUSI
+   być klasowy (0,2,0), nie `> *` (0,1,0) — przy uniwersalnym `*` reguła
+   traci z regułą WP przez identyczną specyficzność + kolejność w edytorze
+   (ta sama pułapka, którą opisuje nota na górze pliku; złapane empirycznie
+   przy audycie tej sesji, `> *` nie wystarczał mimo że działał gdzie indziej
+   z klasą). 1. kolumna (`.contact-head`) nie potrzebuje resetu — zwalniana
+   jako `:first-child` przez regułę WP. */
+.contact-layout > .form-card { margin-top: 0; }
 .contact-head h1 { font-size: clamp(30px, 4vw, 46px); font-weight: 800; margin: 0; }
 .contact-head p { color: var(--muted); font-size: 15px; line-height: 1.7; margin-top: 12px; max-width: 300px; }
 .contact-list { display: flex; flex-direction: column; gap: 18px; margin-top: 30px; }
@@ -1351,6 +1393,9 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 /* ---------- Newsletter (page-newsletter.php) ---------- */
 .nl-page { padding-bottom: 72px; }
 .nl-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: start; margin-top: 6px; }
+/* P-11.5: editor-only phantom margin (patrz nota na górze pliku) — selektor
+   klasowy, nie `> *` (patrz wyjaśnienie przy .contact-layout wyżej). */
+.nl-grid > .nl-form-card { margin-top: 0; }
 .nl-grid h1 { font-size: clamp(32px, 4vw, 52px); font-weight: 800; letter-spacing: -.035em; line-height: 1.04; margin: 0; }
 .nl-grid .accent { color: var(--accent); }
 .nl-lead { margin-top: 20px; font-size: 18px; line-height: 1.55; color: var(--ink-soft); max-width: 480px; }
@@ -1399,6 +1444,8 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .perks3-section { margin-top: 60px; }
 .perks3-section h2 { font-size: clamp(23px, 2.5vw, 31px); font-weight: 800; margin: 0 0 26px; letter-spacing: -.02em; }
 .perks3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+/* P-11.5: editor-only phantom margin (patrz nota na górze pliku). */
+.perks3 > .perk3 { margin-top: 0; }
 .perk3 { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 26px; }
 .perk3-icon { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--plum); color: var(--lime); margin-bottom: 16px; }
 .perk3 h4 { font-size: 16.5px; font-weight: 800; margin: 0 0 8px; }
@@ -1479,7 +1526,15 @@ body.qt-hide-nlband .nlband { display: none; }
 .how-why p { font-size: 15.5px; line-height: 1.75; color: var(--ink-soft); margin: 0 0 14px; }
 .how-why p b, .how-why p strong { color: var(--ink); }
 .how-why-facts { display: flex; flex-direction: column; gap: 14px; }
+/* P-11.5: editor-only phantom margin (patrz nota na górze pliku) — flex
+   items (w odróżnieniu od zwykłego block-flow) nie zwijają marginesów, więc
+   2. i 3. karta dostawały w edytorze 24px DODATKOWO do już ustawionego
+   gapu 14px. */
+.how-why-facts > .how-fact { margin-top: 0; }
 .how-fact { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); display: flex; gap: 16px; align-items: flex-start; padding-top: 18px; padding-bottom: 18px; padding-left: 20px; padding-right: 20px; }
+/* P-11.5: tak samo wewnątrz karty — grupa (nagłówek+opis) była w edytorze
+   24px niżej niż ikona obok niej. */
+.how-fact > .wp-block-group { margin-top: 0; }
 .how-fact-icon { flex: none; width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--plum); color: var(--lime); }
 .how-fact h4 { font-size: 15px; font-weight: 800; margin: 0 0 4px; }
 .how-fact p { font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); margin: 0; }
