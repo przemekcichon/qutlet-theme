@@ -1785,7 +1785,22 @@ body.qt-hide-nlband .nlband { display: none; }
 }
 .qutlet-cart-badges { grid-column: 1; grid-row: 2; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 9px; }
 .wc-block-components-product-metadata:empty { display: none; }
-.wc-block-cart-item__quantity { grid-column: 1; grid-row: 3; margin-top: 9px; }
+/* Cały wiersz (nie tylko kolumna 1) — `.wc-block-cart-item__remove-link`
+   (przycisk „Usuń") jest DZIECKIEM tego diva w DOM-ie bloku, nie osobnym
+   rodzeństwem w `.wc-block-cart-item__wrap` (zweryfikowane runtime), więc
+   nie da się go umieścić w prawej kolumnie gridem — miejsce na to ma tylko
+   jego RODZIC. Flex + space-between rozsuwa stepper (lewo) i „Usuń" (prawo)
+   w obrębie tego jednego wiersza zamiast (nieosiągalnego bez przepisania
+   DOM-u bloku) dokładnego podziału `.cart-row-info`/`.cart-row-side`
+   prototypu. */
+.wc-block-cart-item__quantity {
+	grid-column: 1 / -1;
+	grid-row: 3;
+	margin-top: 9px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
 .wc-block-cart-item__prices {
 	grid-column: 2;
 	grid-row: 1 / span 2;
@@ -1807,9 +1822,6 @@ body.qt-hide-nlband .nlband { display: none; }
 }
 .cart-old-price .woocommerce-Price-amount { color: inherit; }
 .wc-block-cart-item__remove-link {
-	grid-column: 2;
-	grid-row: 3;
-	justify-self: end;
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
@@ -1930,11 +1942,18 @@ body.woocommerce-cart .wp-block-post-title {
 
 @media (max-width: 900px) {
 	.wp-block-woocommerce-filled-cart-block { grid-template-columns: 1fr; }
-	.wp-block-woocommerce-cart-totals-block { position: static; }
+	/* Selektor złożony, jak w regule desktopowej wyżej (ta sama specyficzność,
+	   0,2,0) — inaczej `position: sticky` z tamtej reguły wygrywa mimo media
+	   query (kaskada rozstrzyga po specyficzności, nie po kolejności/zakresie
+	   viewportu), złapane w niezależnej recenzji. */
+	.wc-block-components-sidebar.wp-block-woocommerce-cart-totals-block { position: static; }
 }
 @media (max-width: 560px) {
 	.wc-block-cart-items__row { flex-wrap: wrap; }
 	.wc-block-cart-item__wrap { grid-template-columns: 1fr; }
-	.wc-block-cart-item__prices,
-	.wc-block-cart-item__remove-link { grid-column: 1; justify-self: start; text-align: left; }
+	/* `.wc-block-cart-item__quantity` już zajmuje pełną szerokość na każdej
+	   szerokości ekranu (`grid-column: 1 / -1`) — `.wc-block-cart-item__remove-link`
+	   nie jest już bezpośrednim dzieckiem grida (patrz komentarz przy
+	   `.wc-block-cart-item__quantity` wyżej), więc nie ma tu nic do zerowania. */
+	.wc-block-cart-item__prices { grid-column: 1; justify-self: start; text-align: left; }
 }
