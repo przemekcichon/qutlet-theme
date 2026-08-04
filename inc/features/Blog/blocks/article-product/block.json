@@ -1,0 +1,22 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/article-product",
+	"title": "Qutlet: wstawka produktowa (artykuł)",
+	"category": "qutlet-blog",
+	"icon": "cart",
+	"description": "Wstawka produktowa w treści artykułu — czyta realny produkt WooCommerce po ID (nazwa, cena, link).",
+	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-blog-blocks-editor",
+	"attributes": {
+		"productId": {
+			"type": "number",
+			"default": 0
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": false
+	},
+	"render": "file:./render.php"
+}

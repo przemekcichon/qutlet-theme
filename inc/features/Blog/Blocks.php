@@ -72,7 +72,7 @@ final class Blocks {
 		wp_register_script(
 			self::EDITOR_SCRIPT_HANDLE,
 			get_theme_file_uri( 'assets/js/blog-blocks-editor.js' ),
-			array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-server-side-render', 'wp-i18n' ),
+			array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-server-side-render', 'wp-i18n' ),
 			Theme\VERSION,
 			true
 		);
