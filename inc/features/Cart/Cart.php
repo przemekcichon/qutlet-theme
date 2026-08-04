@@ -291,7 +291,7 @@ final class Cart {
 						<div class="cart-menu-item">
 							<div class="cart-thumb cart-thumb-sm"<?php echo $image_url ? ' style="background-image:url(' . esc_url( $image_url ) . ')"' : ''; ?>></div>
 							<div class="cart-menu-item-info">
-								<div class="cart-menu-item-title"><?php echo esc_html( $product->get_name() ); ?></div>
+								<div class="cart-menu-item-title" title="<?php echo esc_attr( $product->get_name() ); ?>"><?php echo esc_html( $product->get_name() ); ?></div>
 								<div class="cart-menu-item-meta">
 									<?php
 									if ( '' !== $condition_code ) {

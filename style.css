@@ -281,8 +281,22 @@ a { color: inherit; }
 .cart-menu-head { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
 .cart-menu-list { display: flex; flex-direction: column; gap: 13px; max-height: 280px; overflow-y: auto; }
 .cart-menu-item { display: flex; gap: 12px; align-items: center; }
+/* P-8.6a: brakowało bazowej definicji — .cart-thumb/-sm żyły w prototypie
+   (design/vanilla/css/style.css:443-448), tu nigdy nie zostały doportowane,
+   więc miniaturka renderowała się jako 0×0 mimo poprawnego background-image
+   z PHP (Cart::render_cart_menu()). */
+.cart-thumb {
+	border-radius: 9px; background-color: var(--panel); background-size: contain; background-position: center;
+	background-repeat: no-repeat; border: 1px solid var(--line); flex-shrink: 0; overflow: hidden;
+	background-origin: content-box;
+}
+.cart-thumb-sm { width: 48px; height: 48px; padding: 5px; }
+.cart-menu .cart-thumb-sm { width: 50px; height: 50px; }
 .cart-menu-item-info { flex: 1; min-width: 0; }
-.cart-menu-item-title { font-size: 13px; font-weight: 700; line-height: 1.3; }
+.cart-menu-item-title {
+	font-size: 13px; font-weight: 700; line-height: 1.3;
+	display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
 .cart-menu-item-meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
 .cart-menu-item-price { font-family: var(--font-display); font-weight: 800; font-size: 14px; white-space: nowrap; }
 .cart-menu-item-remove { width: 26px; height: 26px; border-radius: 7px; background: var(--panel); border: 0; cursor: pointer; display: grid; place-items: center; color: var(--muted); flex-shrink: 0; }
