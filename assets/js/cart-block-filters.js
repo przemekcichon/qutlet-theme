@@ -25,6 +25,17 @@
 	var NAMESPACE = 'qutlet-klasa';
 
 	/**
+	 * `klasa_stanu` to zamknięty słownik ACF (A-D, kontrakt §2), więc w praktyce
+	 * nie jest wstrzykiwalny — escapowanie i tak przed wklejeniem do innerHTML
+	 * (obrona w głąb: wartość podróżuje przez Store API/JSON, nie kod motywu).
+	 */
+	function escHtml(value) {
+		return String(value).replace(/[&<>"']/g, function (c) {
+			return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+		});
+	}
+
+	/**
 	 * Suma oszczędności w wierszu totali — bezpieczne przez registerCheckoutFilters
 	 * (renderowane jako czysty tekst, zweryfikowane runtime).
 	 */
@@ -82,8 +93,8 @@
 			var html = '';
 
 			if (data.klasa_stanu) {
-				var dot = String(data.klasa_stanu).toLowerCase();
-				html += '<span class="pill cart-klasa-badge"><span class="dot dot-' + dot + '"></span>Klasa ' + data.klasa_stanu + '</span>' +
+				var dot = escHtml(String(data.klasa_stanu).toLowerCase());
+				html += '<span class="pill"><span class="dot dot-' + dot + '"></span>Klasa ' + escHtml(data.klasa_stanu) + '</span>' +
 					'<span class="pill">Gwarancja 1 rok</span>';
 			}
 
