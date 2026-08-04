@@ -4,10 +4,11 @@
  *
  * Rejestruje JS motywu (`assets/js/cart-block-filters.js`) jako zależność
  * bloku `woocommerce/cart` — bez tego skrypt ładowałby się na każdej stronie,
- * nie tylko tam, gdzie Cart Block faktycznie się renderuje. Sam skrypt woła
- * `registerCheckoutFilters()` (global `window.wc.blocksCheckout`) — brak build
- * stepu, dependency script handle `wc-blocks-checkout` (WooCommerce 10.9.4
- * wystawia go jako gotowy runtime bundle, patrz D-8.6a.1).
+ * nie tylko tam, gdzie Cart Block faktycznie się renderuje. Sam skrypt czyta
+ * `wp.data.select('wc/store/cart')` i wstrzykuje węzły DOM (global
+ * `window.wp.data`) — brak build stepu, dependency script handles
+ * `wc-blocks-data-store`/`wp-data` (WooCommerce 10.9.4 wystawia gotowy
+ * runtime bundle, patrz D-8.6a.1).
  *
  * @package Qutlet\Theme
  */
@@ -46,7 +47,8 @@ final class CartBlocksIntegration implements IntegrationInterface {
 			get_theme_file_uri( 'assets/js/cart-block-filters.js' ),
 			// `wc-blocks-data-store` = sklep `wc/store/cart` (odczyt `item.extensions`
 			// przez wp.data.select — DOM-injection odznak, patrz nagłówek pliku JS).
-			array( 'wc-blocks-checkout', 'wc-blocks-data-store', 'wp-data' ),
+			// `jquery` — most do `wc_fragment_refresh` (mini-koszyk headera, D-8.6a.3).
+			array( 'wc-blocks-data-store', 'wp-data', 'jquery' ),
 			\Qutlet\Theme\VERSION,
 			true
 		);

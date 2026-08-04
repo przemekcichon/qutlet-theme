@@ -1698,65 +1698,243 @@ body.qt-hide-nlband .nlband { display: none; }
 /* ---------- Koszyk (P-8.6a) ----------
    Cart Block (`wp:woocommerce/cart`, D-8.6a.1) — motyw NIE kontroluje jego
    DOM-u (React/Interactivity API), więc to reskin natywnych klas WC
-   (`wc-block-*`), nie port selektorów `.cart-layout`/`.cart-row`/
-   `.summary-card` z prototypu (te nie mają odpowiednika w tym markupie).
-   `.qutlet-cart-item-meta` (odznaka klasy + gwarancja + stara cena)
-   wstrzykuje `assets/js/cart-block-filters.js` jako osobny węzeł DOM OBOK
-   nazwy produktu, nie wewnątrz jej stringu (świadomie — `registerCheckoutFilters`
-   z filtrem `itemName` zanieczyszczał aria-label przycisków ilości/usuwania
-   surowym HTML, zweryfikowane runtime). `.pill`/`.dot`/`.dot-a…d` to już
-   istniejące klasy globalne (patrz sekcja kart produktu). */
-.qutlet-cart-item-meta {
+   (`wc-block-*`), nie dosłowny port `.cart-layout`/`.cart-row`/`.summary-card`
+   z prototypu — te selektory tu NIE ISTNIEJĄ, ale strukturę DOM-u dało się
+   dociągnąć do niej na tyle blisko (2 kolumny, wiersz produktu jako
+   flex/grid, jedna karta podsumowania), że większość reguł niżej to
+   bezpośrednie porty wartości z `design/vanilla/css/style.css:436-473`,
+   tylko pod natywnymi selektorami WC. `.qutlet-cart-badges`/`.cart-old-price`/
+   `.qutlet-cart-subtotal-row`/`.qutlet-cart-savings-note` wstrzykuje
+   `assets/js/cart-block-filters.js` jako osobne węzły DOM (nie modyfikacje
+   istniejących stringów — `registerCheckoutFilters` z filtrem `itemName`
+   zanieczyszczał aria-label przycisków ilości/usuwania surowym HTML,
+   zweryfikowane runtime). `.pill`/`.dot`/`.dot-a…d` to już istniejące klasy
+   globalne (patrz sekcja kart produktu). */
+
+/* Układ 2-kolumnowy strony (`.cart-layout`, koszyk pełny). */
+.wp-block-woocommerce-filled-cart-block {
+	display: grid;
+	grid-template-columns: 1fr 380px;
+	gap: 40px;
+	align-items: start;
+}
+/* WC-owe `.wc-block-components-main`/`-sidebar` niosą własne `width: 65%`/`35%`
+   + padding-left/right (procentowe) z macierzystego layoutu flex-wrap
+   (`assets/client/blocks/cart.css`) — w kontekście grida procent liczy się
+   od szerokości TRACKA, nie całego rzędu, więc sidebar kurczył się do 35%
+   z 380px (133px) zamiast wypełniać kolumnę. `gap` na rodzicu zastępuje
+   procentowy padding WC (stąd zerowanie), karta podsumowania dostaje swój
+   padding niżej razem z resztą wyglądu `.summary-card`, w TEJ SAMEJ regule
+   (żeby nie przegrywać specyficznością z zerowaniem tu). */
+.wc-block-components-main.wp-block-woocommerce-cart-items-block {
+	width: auto;
+	padding: 0;
+}
+
+/* Nagłówek tabeli (PRODUKT/ŁĄCZNIE) nie ma odpowiednika w prototypie —
+   ukryty wizualnie; tabela i tak jest odblokowana przez display:flex na
+   wierszach niżej (blokifikacja komórek tabeli w kontekście flex to
+   zachowanie specyfikacji CSS, nie hack). */
+.wc-block-cart-items__header { display: none; }
+
+/* Wiersz produktu — port `.cart-row` (design/vanilla/css/style.css:438-442). */
+.wc-block-cart-items__row {
 	display: flex;
+	gap: 18px;
 	align-items: center;
-	flex-wrap: wrap;
-	gap: 6px;
-	margin-top: 6px;
+	border-top: 1px solid var(--line);
+	border-bottom: 1px solid var(--line);
+	margin-top: -1px;
+	padding-top: 20px;
+	padding-bottom: 20px;
+}
+.wc-block-cart-item__image { padding: 0; }
+.wc-block-cart-item__image img {
+	width: 88px;
+	height: 88px;
+	box-sizing: border-box;
+	object-fit: contain;
+	border-radius: 12px;
+	border: 1px solid var(--line);
+	background: var(--panel);
+	padding: 8px;
+}
+.wc-block-cart-item__product { flex: 1; min-width: 0; padding: 0; }
+/* Kolumna "Łącznie" (ilość × cena) nie ma odpowiednika w prototypie — jeden
+   wiersz koszyka pokazuje WYŁĄCZNIE cenę jednostkową (`.cart-row-price`), bez
+   osobnego przeliczenia ilości. */
+.wc-block-cart-item__total { display: none; }
+
+/* Wewnątrz `.wc-block-cart-item__wrap` WC trzyma nazwę/ceny/metadane/ilość/
+   usuń jako płaskie rodzeństwo (jeden div) — siatka z jawnym umiejscowieniem
+   per klasa odtwarza dwie kolumny prototypu (`.cart-row-info`/`.cart-row-side`)
+   bez przepisywania DOM-u bloku. */
+.wc-block-cart-item__wrap {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	column-gap: 16px;
+}
+.wc-block-components-product-name {
+	grid-column: 1;
+	grid-row: 1;
+	font-size: 16px;
+	font-weight: 700;
+	line-height: 1.3;
+	color: var(--ink);
+	text-decoration: none;
+}
+.qutlet-cart-badges { grid-column: 1; grid-row: 2; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 9px; }
+.wc-block-components-product-metadata:empty { display: none; }
+.wc-block-cart-item__quantity { grid-column: 1; grid-row: 3; margin-top: 9px; }
+.wc-block-cart-item__prices {
+	grid-column: 2;
+	grid-row: 1 / span 2;
+	justify-self: end;
+	text-align: right;
+}
+.wc-block-cart-item__prices .wc-block-components-product-price__value {
+	font-family: var(--font-display);
+	font-weight: 800;
+	font-size: 19px;
+	white-space: nowrap;
 }
 .cart-old-price {
-	font-size: 12.5px;
+	display: block;
+	margin-top: 2px;
+	font-size: 12px;
 	color: var(--muted);
 	text-decoration: line-through;
 }
 .cart-old-price .woocommerce-Price-amount { color: inherit; }
+.wc-block-cart-item__remove-link {
+	grid-column: 2;
+	grid-row: 3;
+	justify-self: end;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--muted);
+	background: none;
+	border: 0;
+	padding: 0;
+	cursor: pointer;
+	font-size: 12.5px;
+	font-weight: 700;
+}
+/* Blok Cart renderuje przycisk usunięcia jako sam SVG (bez tekstu) — dopisek
+   "Usuń" jak w `.cart-row-remove` prototypu bez ingerencji w komponent. */
+.wc-block-cart-item__remove-link::after { content: "Usuń"; }
 
-.wc-block-cart-item__remove-link { color: var(--muted); }
-
-.cart-continue-shopping { margin-top: 22px; }
-.cart-continue-shopping .wp-block-button__link {
-	border-radius: 999px;
+/* Link powrotu — port `.continue-link` (design/vanilla/css/style.css:459),
+   markup wstawiony jako custom HTML w treści Strony (nie block button — w
+   prototypie to zwykły link z ikoną, nie przycisk). */
+.continue-link {
+	margin-top: 22px;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 700;
+	color: var(--accent);
 	font-size: 14.5px;
+	text-decoration: none;
 }
 
-/* Karta podsumowania — odpowiednik `.summary-card` prototypu. */
-.wp-block-woocommerce-cart-order-summary-block,
-.wp-block-woocommerce-cart-accepted-payment-methods-block {
+/* Karta podsumowania — jedna karta na CAŁY `.wp-block-woocommerce-cart-totals-block`
+   (port `.summary-card`), nie osobne karty na summary-block/payment-methods —
+   w prototypie przycisk „Przejdź do kasy" i metody płatności żyją WEWNĄTRZ
+   tej samej białej karty, nie pod nią. */
+.wc-block-components-sidebar.wp-block-woocommerce-cart-totals-block {
+	width: auto;
 	background: #fff;
 	border: 1px solid var(--line);
 	border-radius: var(--radius);
 	padding: 24px;
+	position: sticky;
+	top: 96px;
 }
-.wp-block-woocommerce-cart-order-summary-block { position: sticky; top: 96px; }
 .wc-block-cart__totals-title {
 	font-family: var(--font-display);
 	font-size: 17px;
 	font-weight: 800;
 	margin: 0 0 16px;
 }
-.wc-block-components-totals-item__label { color: var(--ink-soft); }
+.wc-block-components-totals-item__label { color: var(--ink-soft); font-size: 14.5px; }
+.qutlet-cart-subtotal-row .wc-block-components-totals-item,
+.wp-block-woocommerce-cart-order-summary-shipping-block .wc-block-components-totals-item {
+	font-size: 14.5px;
+	padding-top: 7px;
+	padding-bottom: 7px;
+}
+/* Zielony box oszczędności — port `.savings-note` (design/vanilla/css/style.css:464-468). */
+.qutlet-cart-savings-note {
+	background: var(--green-bg);
+	color: var(--green-ink);
+	font-weight: 700;
+	font-size: 13px;
+	border-radius: 10px;
+	display: flex;
+	justify-content: space-between;
+	margin-top: 6px;
+	margin-bottom: 2px;
+	padding: 9px 13px;
+}
 .wc-block-components-totals-footer-item {
 	border-top: 1px solid var(--line);
-	margin-top: 12px;
-	padding-top: 14px;
+	margin-top: 10px;
+	padding-top: 15px;
+	font-family: var(--font-display);
 	font-weight: 800;
+	font-size: 22px;
 }
+.wp-block-woocommerce-proceed-to-checkout-block { margin-top: 18px; }
 .wp-block-woocommerce-proceed-to-checkout-block .wp-block-button__link,
 .wc-block-cart__submit-container a {
 	border-radius: 999px;
+	width: 100%;
+	text-align: center;
+}
+.wp-block-woocommerce-cart-accepted-payment-methods-block { margin-top: 12px; }
+
+/* Pusty koszyk — port `.empty-state` (design/vanilla/css/style.css:390-391,929).
+   `.empty-icon` to własny SVG w treści (wp:html), nie natywna ikona WC
+   (`.with-empty-cart-icon::before`, maska buźki) — klasa świadomie pominięta
+   w post_content Strony. */
+.wp-block-woocommerce-empty-cart-block {
+	text-align: center;
+	color: var(--muted);
+	padding-top: 70px;
+	padding-bottom: 70px;
+}
+.empty-icon { color: var(--line); margin-bottom: 16px; }
+.wc-block-cart__empty-cart__title {
+	font-family: var(--font-display);
+	font-size: 20px;
+	font-weight: 700;
+	color: var(--ink);
+	margin-bottom: 8px;
+}
+.wp-block-woocommerce-empty-cart-block .wp-block-button__link { border-radius: 999px; margin-top: 10px; }
+
+/* Tytuł strony — blok `page-cart` WooCommerce (CartTemplate.php) wygrywa
+   priorytetem nad `templates/page.html` motywu, więc h1 to `wp:post-title`
+   bez klasy `.page-title`; dociągnięty tu do tej samej typografii zamiast
+   duplikować regułę pod nowym selektorem. Breadcrumb „Home / Koszyk" z
+   prototypu POZOSTAJE nieadresowany — wymagałby własnego
+   `templates/page-koszyk.html` (ten sam wzorzec co `page-{slug}.php` w
+   D-8.5.1), poza zakresem tej poprawki. */
+body.woocommerce-cart .wp-block-post-title {
+	font-family: var(--font-display);
+	font-size: clamp(28px, 3.2vw, 40px);
+	font-weight: 800;
 }
 
-.wc-block-cart__empty-cart__title { font-family: var(--font-display); }
-
-@media (max-width: 782px) {
-	.wp-block-woocommerce-cart-order-summary-block { position: static; }
+@media (max-width: 900px) {
+	.wp-block-woocommerce-filled-cart-block { grid-template-columns: 1fr; }
+	.wp-block-woocommerce-cart-totals-block { position: static; }
+}
+@media (max-width: 560px) {
+	.wc-block-cart-items__row { flex-wrap: wrap; }
+	.wc-block-cart-item__wrap { grid-template-columns: 1fr; }
+	.wc-block-cart-item__prices,
+	.wc-block-cart-item__remove-link { grid-column: 1; justify-self: start; text-align: left; }
 }

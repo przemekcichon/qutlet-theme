@@ -9,8 +9,9 @@
  * których stock cart item Woo nie ma (klasa stanu, stara cena/oszczędności —
  * kontrakt §2/§6), dostarcza WooCommerce Blocks Integration: Store API
  * `woocommerce_store_api_register_endpoint_data()` (namespace `qutlet-klasa`,
- * endpointy `cart-item` i `cart`) + JS `registerCheckoutFilters()`
- * (`CartBlocksIntegration`, `assets/js/cart-block-filters.js`).
+ * endpointy `cart-item` i `cart`) + JS wstrzykujący węzły DOM na podstawie
+ * `wp.data.select('wc/store/cart')` (`CartBlocksIntegration`,
+ * `assets/js/cart-block-filters.js`).
  *
  * Mini-koszyk w headerze (`.cart-badge`/`.cart-menu` w `parts/header.html`,
  * P-8.1) renderuje się przez classic `woocommerce_add_to_cart_fragments`
@@ -200,25 +201,30 @@ final class Cart {
 		}
 
 		return array(
-			// Zwykły tekst, nie wc_price() HTML: `totalValue` (JS) renderuje
-			// zwracany string jako czysty tekst (bez interpretacji znaczników —
-			// zweryfikowane runtime, w przeciwieństwie do `itemName`), więc HTML
-			// wyszedłby na ekranie dosłownie jako escapowane `&lt;span&gt;`.
-			'total_savings_text' => $total_savings > 0.0
-				? html_entity_decode( wp_strip_all_tags( wc_price( $total_savings ) ), ENT_QUOTES, 'UTF-8' )
-				: '',
+			// Store API zwraca gotowy HTML (wc_price()) — JS wstrzykuje ten wiersz
+			// jako WĘZEŁ DOM (ten sam mechanizm co odznaki per-wiersz), nie przez
+			// registerCheckoutFilters, więc surowy HTML jest tu bezpieczny (patrz
+			// nagłówek assets/js/cart-block-filters.js).
+			'subtotal_formatted'      => wp_kses_post( wc_price( (float) $cart->get_subtotal() ) ),
+			'total_savings_formatted' => $total_savings > 0.0 ? wp_kses_post( wc_price( $total_savings ) ) : '',
 		);
 	}
 
 	/**
-	 * Schemat pola z `cart_totals_data()`.
+	 * Schemat pól z `cart_totals_data()`.
 	 *
 	 * @return array<string, array<string, mixed>>
 	 */
 	public static function cart_totals_schema(): array {
 		return array(
-			'total_savings_text' => array(
-				'description' => __( 'Suma oszczędności koszyka vs. ceny rynkowe nowych produktów (zwykły tekst).', 'qutlet-theme' ),
+			'subtotal_formatted'      => array(
+				'description' => __( 'Sformatowana wartość produktów (suma cen sprzedaży, bez dostawy).', 'qutlet-theme' ),
+				'type'        => array( 'string', 'null' ),
+				'context'     => array( 'view', 'edit' ),
+				'readonly'    => true,
+			),
+			'total_savings_formatted' => array(
+				'description' => __( 'Suma oszczędności koszyka vs. ceny rynkowe nowych produktów.', 'qutlet-theme' ),
 				'type'        => array( 'string', 'null' ),
 				'context'     => array( 'view', 'edit' ),
 				'readonly'    => true,
