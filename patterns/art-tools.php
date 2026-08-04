@@ -3,7 +3,7 @@
  * Title: Artykuł — czego potrzebujesz
  * Slug: qutlet-theme/art-tools
  * Categories: qutlet
- * Description: Ramka z checklistą narzędzi/materiałów potrzebnych do instrukcji (P-11.5). Port .art-tools (design/vanilla/blog-artykul.html). Lista jako blok Custom HTML (ikony checkmarków SVG nie mieszczą się w edytowalnym core/list) — nagłówek osobnym, edytowalnym blokiem.
+ * Description: Ramka z checklistą narzędzi/materiałów potrzebnych do instrukcji (P-11.5). Port .art-tools (design/vanilla/blog-artykul.html). Lista jako prawdziwy blok core/list — WŁASNY HTML odrzucony (zgłoszenie użytkownika, ground-truth runtime: podgląd bloku Custom HTML renderuje się w edytorze w odizolowanym `<iframe sandbox>` bez `allow-same-origin`, więc CSS motywu fizycznie tam nie dociera — bullet pointy i inny kształt checkmarka w edytorze, mimo poprawnego frontu). Checkmark jako czysty CSS `::before` na `<li>`, bez SVG — działa identycznie w edytorze i na froncie. Kosztem: pozycja listy to jeden jednolity rozmiar tekstu (bez wyszarzonego/pomniejszonego dopisku `<small>` jak w prototypie — core/list-item nie ma na to formatowania).
  * Keywords: artykuł, blog, narzędzia, checklista
  * Viewport Width: 720
  *
@@ -22,12 +22,17 @@ defined( 'ABSPATH' ) || exit;
 <h4 class="wp-block-heading"><?php esc_html_e( 'Czego potrzebujesz', 'qutlet-theme' ); ?></h4>
 <!-- /wp:heading -->
 
-<!-- wp:html -->
-<ul>
-	<li><span class="check-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"></path></svg></span><span><?php esc_html_e( 'Narzędzie/materiał', 'qutlet-theme' ); ?> <small><?php esc_html_e( '— szacunkowy koszt', 'qutlet-theme' ); ?></small></span></li>
-	<li><span class="check-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"></path></svg></span><span><?php esc_html_e( 'Narzędzie/materiał', 'qutlet-theme' ); ?> <small><?php esc_html_e( '— szacunkowy koszt', 'qutlet-theme' ); ?></small></span></li>
+<!-- wp:list -->
+<ul class="wp-block-list">
+<!-- wp:list-item -->
+<li><?php esc_html_e( 'Narzędzie/materiał — szacunkowy koszt', 'qutlet-theme' ); ?></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><?php esc_html_e( 'Narzędzie/materiał — szacunkowy koszt', 'qutlet-theme' ); ?></li>
+<!-- /wp:list-item -->
 </ul>
-<!-- /wp:html -->
+<!-- /wp:list -->
 
 </div>
 <!-- /wp:group -->

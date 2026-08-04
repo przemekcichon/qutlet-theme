@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.14
+Version:           0.1.15
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -1063,13 +1063,28 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .art-tools { background: var(--panel); border-radius: var(--radius); margin-top: 30px; margin-bottom: 30px; padding-top: 24px; padding-bottom: 24px; padding-left: 26px; padding-right: 26px; }
 .art-tools h4 { font-family: var(--font-display); font-size: 15px; font-weight: 800; margin: 0 0 14px; color: var(--ink); }
 /* P-11.5: jak przy .art-step wyżej — editor-only `.is-layout-flow > * + *`
-   dokłada margin-top na bloku Własny HTML (2. dziecko), dublując odstęp już
+   dokłada margin-top na bloku Lista (2. dziecko), dublując odstęp już
    ustawiony marginesem dolnym nagłówka tylko w edytorze, nie na froncie. */
-.art-tools > .wp-block-html { margin-top: 0; }
+.art-tools > ul { margin-top: 0; }
 .art-tools ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.art-tools li { display: flex; gap: 11px; font-size: 14.5px; line-height: 1.5; }
-.art-tools li .check-ico { width: 22px; height: 22px; }
-.art-tools li small { color: var(--muted); font-weight: 600; }
+.art-tools li { display: flex; align-items: flex-start; gap: 11px; font-size: 14.5px; line-height: 1.5; }
+/* P-11.5, zgłoszenie użytkownika: lista była blokiem Własny HTML (SVG
+   checkmark nie mieści się w edytowalnym core/list-item), ale JEGO podgląd w
+   edytorze renderuje się w odizolowanym `<iframe sandbox="…">` BEZ
+   `allow-same-origin` (ground-truth runtime, sprawdzone atrybutem `sandbox`
+   na realnym bloku) — CSS motywu fizycznie tam nie dociera, więc front i
+   edytor renderowały się różnie (kropki listy, inny kształt checkmarka) i
+   żadna poprawka w tym pliku by tego nie naprawiła. Zamiast tego: prawdziwy
+   `core/list`/`core/list-item` (bez sandboxa) + checkmark czystym CSS-em na
+   `::before`, bez SVG w HTML — identyczne w obu kontekstach. Koszt: pozycja
+   listy to jeden rozmiar tekstu, bez wyszarzonego dopisku `<small>` z
+   prototypu (RichText `core/list-item` nie ma na to formatowania) —
+   świadoma decyzja użytkownika. */
+.art-tools li::before {
+	content: "\2713"; flex: none; width: 22px; height: 22px; border-radius: 7px;
+	background: var(--green-bg); color: var(--green-ink); font-size: 12px; font-weight: 800;
+	display: grid; place-items: center; margin-top: 1px;
+}
 
 /* kroki naprawy */
 .art-step { display: flex; gap: 18px; margin-bottom: 26px; }
