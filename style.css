@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.2
+Version:           0.1.8
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -109,6 +109,27 @@ Text Domain:       qutlet-theme
    z kolei z tym resetem — poprawny łańcuch nadpisań bez przypadkowego
    ubicia wartości, które już mieliśmy dobrze. */
 :root :where(.is-layout-flow) > * { margin-block-start: 0; }
+/* Ten sam mechanizm co reset wyżej, ale INNY selektor WP: `.wp-site-blocks`
+   (korzeń każdego szablonu blokowego — header/main/footer jako jego
+   bezpośrednie dzieci) nie nosi klasy `.is-layout-flow`, więc reset wyżej go
+   nie łapie. WP drukuje dla niego OSOBNĄ regułę
+   `:where(.wp-site-blocks) > *{margin-block: 24px 0}` (core, nie ten motyw)
+   — stąd 24px odstępu między headerem a `<main>`.
+   UWAGA — POPRAWKA PO REGRESJI: pierwsza wersja tej reguły zerowała ten
+   margines SITEWIDE (`.wp-site-blocks > main`). To był błąd — na stronie
+   produktu (i innych stronach zbudowanych PRZED tą sesją) ten margines
+   NIGDY nie był widoczny jako „szew" (tło strony pod nim jest tego samego
+   koloru co tło główne), za to `.breadcrumbs` (P-8.2a, `padding-top: 22px`)
+   był świadomie dostrojony z ZAŁOŻENIEM, że te 24px już tam są — zdjęcie ich
+   sitewide ścieśniło odstęp nad breadcrumbs na KAŻDEJ innej stronie
+   (zgłoszenie użytkownika, realny screenshot strony produktu). Widoczny
+   problem („szew" w innym kolorze) dotyczył WYŁĄCZNIE strony głównej, gdzie
+   pełnoszerokościowe tło `.home-hero-section` zaczyna się od razu pod
+   headerem — margines na `<main>` spycha więc W DÓŁ akurat TO tło, tworząc
+   pasek w kolorze strony między subnavem a hero. `:has()` zawęża regułę
+   WYŁĄCZNIE do tego przypadku (pierwsze dziecko `<main>` to hero), nie
+   dotykając żadnej innej strony — 24px wraca tam, gdzie już był dostrojony. */
+main:has(> .home-hero-section) { margin-block-start: 0; }
 [hidden] { display: none !important; }
 body {
 	margin: 0;
@@ -336,6 +357,93 @@ body[data-page="newsletter"] .nlband { display: none; }
 	font-size: 13px; color: var(--muted);
 	padding-top: 22px; padding-bottom: 22px;
 }
+
+/* ---------- Strona główna (front-page, P-11.4) ---------- */
+.home-hero-section { background: linear-gradient(135deg, #f0eef6, #e9e6f1); border-bottom: 1px solid var(--line); }
+.hero {
+	position: relative; color: var(--ink);
+	display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; align-items: center;
+	padding-top: 54px; padding-bottom: 54px;
+	min-height: 430px;
+}
+.hero h1 { font-family: var(--font-display); font-size: clamp(34px, 4.4vw, 58px); font-weight: 800; letter-spacing: -.035em; line-height: 1.08; margin: 0; }
+.hero-lead { margin-top: 18px; font-size: 17px; line-height: 1.55; color: var(--ink-soft); max-width: 480px; }
+.hero-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.hero-chip {
+	display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; font-size: 13.5px; font-weight: 700;
+	background: #fff; border: 1px solid var(--line); color: var(--ink-soft);
+	padding-top: 9px; padding-bottom: 9px; padding-left: 15px; padding-right: 15px;
+}
+.hero-chip-lime { background: #edf8d0; color: var(--lime-ink); border-color: #d3ea9b; font-weight: 800; }
+.hero-visual { position: relative; align-self: stretch; display: flex; align-items: center; justify-content: center; }
+@keyframes hero-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+.hero-visual img { position: relative; z-index: 1; max-width: 100%; max-height: 400px; object-fit: contain; filter: drop-shadow(0 28px 40px rgba(22,16,31,.30)); animation: hero-float 5.5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .hero-visual img { animation: none; } }
+.hero .kicker-lime { color: var(--accent-ink); }
+.hero .lime { color: var(--accent-deep); }
+
+/* `.usp-grid` jest pierwszym (i jedynym) dzieckiem swojej sekcji, więc oprócz
+   uniwersalnego resetu `:root :where(.is-layout-flow) > *` (który ten motyw
+   świadomie zeruje globalnie — patrz nota na górze pliku) łapie też core'owy
+   `:root :where(.is-layout-flow) > :first-child { margin-block-start: 0 }`
+   — DWIE pseudoklasy (`:root` + `:first-child`) dają specyficzność (0,2,0),
+   która bije samo `.usp-grid` (0,1,0) niezależnie od kolejności w pliku.
+   `section.wrap > .usp-grid` podbija specyficzność do (0,2,1). */
+section.wrap > .usp-grid { margin-top: 18px; }
+.usp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.usp-card {
+	background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+	display: flex; gap: 13px; align-items: flex-start;
+	padding-top: 18px; padding-bottom: 18px; padding-left: 20px; padding-right: 20px;
+}
+.usp-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--panel); display: grid; place-items: center; color: var(--accent); flex-shrink: 0; }
+.usp-card h4 { font-size: 14.5px; font-weight: 700; margin: 0 0 2px; }
+.usp-card p { font-size: 12.5px; color: var(--muted); line-height: 1.45; margin: 0; }
+
+.home-section { padding-top: 46px; padding-bottom: 46px; }
+/* `.home-section-tight` jest bez top-paddingu W ZAŁOŻENIU, że sekcja przed nią
+   (`.home-section` — „Świeżo na wyprzedaży") zawsze dostarcza własny
+   padding-bottom:46px. W prototypie ta sekcja jest statyczna, więc założenie
+   trzyma zawsze; w WP to DYNAMICZNY blok (`qutlet/featured-products`), który
+   przy braku wyróżnionych produktów NIE renderuje się wcale (pusty wynik →
+   `return;`, wzorem `qutlet/related-posts`) — dokładnie dzisiejszy stan tej
+   instalacji (0 produktów „featured"). Bez tej reguły kafle kategorii
+   dotykałyby bezpośrednio siatki USP. `:has()` dodaje padding-top TYLKO gdy
+   sekcja kategorii faktycznie sąsiaduje z sekcją USP (czyli middle-blok się
+   nie wyrenderował) — gdy blok jest obecny, zachowuje oryginalny brak
+   top-paddingu (jeden wspólny odstęp, bez dublowania). */
+.wrap:has(> .usp-grid) + .home-section-tight { padding-top: 46px; }
+.home-section-tight { padding-top: 0; padding-bottom: 46px; }
+
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+.section-head-solo { margin-bottom: 26px; }
+
+.cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.cat-tile {
+	position: relative; border-radius: var(--radius); overflow: hidden; aspect-ratio: 4/3; border: 1px solid #cfe884;
+	text-decoration: none; display: block;
+	background: #ddf394;
+	transition: background .15s;
+}
+.cat-tile:hover { background: #d4ef82; }
+.cat-tile-label {
+	position: absolute; left: 16px; bottom: 14px; z-index: 2; font-family: var(--font-display); font-weight: 800;
+	font-size: 17px; color: var(--lime-ink);
+}
+/* Zdjęcie kafla (opcjonalne, poza prototypem — miniaturka Woo kategorii,
+   patrz nota w patterns/home-categories.php). Podpięte pod .cat-tile-has-image,
+   żeby kafle BEZ zdjęcia (dziś większość) zostały dokładnie takie jak w
+   prototypie — bez żadnej z reguł niżej. */
+.cat-tile-has-image { background: #16101f; border-color: transparent; }
+.cat-tile-img {
+	position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; object-fit: cover;
+}
+.cat-tile-scrim {
+	position: absolute; inset: 0; z-index: 1;
+	background: linear-gradient(180deg, rgba(22,16,31,0) 40%, rgba(22,16,31,.78) 100%);
+}
+.cat-tile-has-image .cat-tile-label { color: #fff; }
 
 /* ---------- Strona produktu (P-8.2a: szkielet + galeria + nagłówek) ---------- */
 .breadcrumbs {
@@ -581,6 +689,37 @@ a.btn-buy-allegro:hover { background: #e65100; }
    (".wp-block-table td" vs ".class-table td") wygrywałby kod źródłowy core
    — złożony selektor podnosi specyficzność, żeby wygrywał zawsze,
    niezależnie od kolejności wczytywania arkuszy. */
+/* Wariant SUROWY (produkt, P-8.2b — `<table class="class-table">` wprost w
+   PHP, NIE przez blok core/table): reguły `.wp-block-table.class-table`
+   niżej go nie łapią, bo wymagają OBU klas naraz, a ten markup nigdy nie
+   przechodzi przez core/table, więc drugiej klasy nie ma. Efekt: cała
+   stylizacja (tło, obramowanie, zaokrąglenie, padding, wyrównanie nagłówka)
+   spadała do gołych domyślnych stylów przeglądarki — niewidoczne przy
+   wąskiej (720px) kolumnie sprzed naprawy `layout:constrained` (P-11.4),
+   rażące po jej poszerzeniu do pełnej szerokości (zgłoszenie użytkownika,
+   dwa realne screenshoty: WP vs prototyp). Poprzednia poprawka tej sesji
+   naprawiła TYLKO `text-align`, pomijając resztę — uzupełnione teraz o
+   pełny komplet, 1:1 powtórzony z wariantu blokowego niżej (nie da się
+   tego zrobić jednym wspólnym selektorem — wariant blokowy MUSI zachować
+   wyższą specyficzność, żeby bić inline style core/table, ten tutaj nie ma
+   z czym konkurować, więc nie musi). Selektor celowo `table.class-table`
+   (element+klasa), NIE bare `.class-table` — w wariancie blokowym klasa
+   `class-table` ląduje na opakowującym `<figure>` (patrz nota wyżej), nie
+   na `<table>`; bare `.class-table` złapałby więc (jako selektor potomków)
+   OBA warianty i dodał drugie, zagnieżdżone tło/obramowanie na `<figure>`
+   help-stron OBOK tego, które `.wp-block-table.class-table table` już
+   stawia na samym `<table>` — realna regresja złapana przed commitem,
+   nie tylko teoretyczna. `table.class-table` pasuje WYŁĄCZNIE tam, gdzie
+   klasa siedzi bezpośrednio na `<table>`, czyli tylko w wariancie surowym. */
+table.class-table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+table.class-table thead { border-bottom: 0; }
+table.class-table th {
+	text-align: left; font-size: 13px; background: var(--panel); font-family: var(--font-display); font-weight: 700;
+	border: 0; border-bottom: 1px solid var(--line);
+	padding-top: 15px; padding-bottom: 15px; padding-left: 18px; padding-right: 18px;
+}
+table.class-table td { font-size: 14px; border: 0; padding-top: 15px; padding-bottom: 15px; padding-left: 18px; padding-right: 18px; }
+table.class-table tr + tr td { border-top: 1px solid var(--line-soft); }
 .wp-block-table.class-table table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .wp-block-table.class-table thead { border-bottom: 0; }
 .wp-block-table.class-table th {
@@ -1282,6 +1421,9 @@ body.qt-hide-nlband .nlband { display: none; }
    ============================================================ */
 @media (max-width: 1020px) {
 	.grid-3 { grid-template-columns: repeat(2, 1fr); }
+	.grid-4, .cat-grid, .usp-grid { grid-template-columns: repeat(2, 1fr); }
+	.hero { grid-template-columns: 1fr; }
+	.hero-visual { display: none; }
 	.nlband-inner { grid-template-columns: 1fr; padding-left: 32px; padding-right: 32px; }
 	.footer-grid { grid-template-columns: 1fr 1fr; }
 	.mega-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1307,6 +1449,7 @@ body.qt-hide-nlband .nlband { display: none; }
 	.subnav { overflow-x: auto; }
 	.more-btn { display: none; }
 	.grid-3 { grid-template-columns: 1fr 1fr; gap: 12px; }
+	.grid-4, .cat-grid, .usp-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
 	.form-grid { grid-template-columns: 1fr; }
 	.cart-menu { width: min(360px, calc(100vw - 32px)); }
 	.buybar .btn-primary span { display: none; }
@@ -1315,6 +1458,8 @@ body.qt-hide-nlband .nlband { display: none; }
 
 @media (max-width: 560px) {
 	.grid-3 { grid-template-columns: 1fr; }
+	.grid-4 { grid-template-columns: 1fr; }
+	.hero { padding-top: 40px; padding-bottom: 40px; min-height: 0; }
 	.nlband-inner { padding-left: 24px; padding-right: 24px; }
 	.know { padding-left: 20px; padding-right: 20px; }
 }
