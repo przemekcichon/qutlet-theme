@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.13
+Version:           0.1.14
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -1020,6 +1020,24 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .art-body li { margin-bottom: 8px; }
 .art-body a { color: var(--accent); font-weight: 700; }
 .art-body img { max-width: 100%; height: auto; border-radius: var(--radius); }
+/* P-11.5, zgłoszenie użytkownika (screenshoty: font-family/weight/size,
+   line-height, kolor akapitu różne w edytorze niż na froncie): `.art-body`
+   istnieje TYLKO na froncie (`templates/single.html` owija `wp:post-content`
+   w `<article class="art-body">`, D-11.3.5) — klasyczny edytor wpisu nigdy
+   nie renderuje tego wrappera, jedyna klasa-kotwica w jego iframe to
+   `.editor-styles-wrapper` (ground-truth runtime: sprawdzone realnie
+   `document.body.className` w edytorze). Efekt: KAŻDY nagłówek/akapit w
+   TREŚCI DOWOLNEGO wpisu (nie tylko nowe patterny z tej sesji) dostaje w
+   edytorze domyślną typografię z theme.json zamiast reguł `.art-body`.
+   Lustrzane odbicie tych samych reguł pod `.editor-styles-wrapper`
+   (deskryptor, nie `>`, bo treść jest kilka poziomów zagnieżdżenia głębiej
+   niż `<body>`) — front ma własny, bardziej specyficzny/wcześniejszy
+   selektor `.art-body`, więc tam nic się nie zmienia. */
+.editor-styles-wrapper { font-size: 16.5px; line-height: 1.8; color: var(--ink-soft); }
+.editor-styles-wrapper b, .editor-styles-wrapper strong { color: var(--ink); }
+.editor-styles-wrapper h2 { font-family: var(--font-display); font-size: 26px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
+.editor-styles-wrapper h3 { font-family: var(--font-display); font-size: 19px; font-weight: 800; color: var(--ink); }
+.editor-styles-wrapper a { color: var(--accent); font-weight: 700; }
 .art-figure { margin-top: 30px; margin-bottom: 30px; margin-left: 0; margin-right: 0; }
 .art-figure .art-img { position: relative; border-radius: var(--radius); overflow: hidden; aspect-ratio: 16 / 9; background: var(--panel); }
 /* P-11.5: `patterns/art-figure.php` ships as a bare core/image block (no
