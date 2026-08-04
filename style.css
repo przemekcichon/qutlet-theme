@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.12
+Version:           0.1.13
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -527,6 +527,10 @@ section.wrap > .usp-grid { margin-top: 18px; }
 }
 .warn-note svg { flex-shrink: 0; margin-top: 1px; }
 .warn-note b { color: #5a3d0a; }
+/* P-11.5: jak przy .art-step wyżej — editor-only `.is-layout-flow > * + *`
+   dokłada margin-top na drugim dziecku (paragrafie), rozjeżdżając ikonę
+   z tekstem tylko w edytorze, nie na froncie. */
+.warn-note > p { margin-top: 0; }
 .btn-buy {
 	width: 100%; background: var(--accent); color: #fff; font-family: var(--font-display); font-weight: 800;
 	font-size: 17px; letter-spacing: .02em; border-radius: 14px; border: 0; cursor: pointer;
@@ -1032,10 +1036,18 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .art-stat { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); text-align: center; padding-top: 22px; padding-bottom: 22px; padding-left: 14px; padding-right: 14px; }
 .art-stat b { display: block; font-family: var(--font-display); font-size: clamp(26px, 2.6vw, 34px); font-weight: 800; letter-spacing: -.02em; color: var(--accent-deep); line-height: 1.05; }
 .art-stat span { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); line-height: 1.45; margin-top: 8px; }
+/* P-11.5: jak przy .art-step wyżej — editor-only `.is-layout-flow > * + *`
+   dokłada margin-top na 2. i 3. karcie `.art-stat` (siatka), rozjeżdżając je
+   pionowo tylko w edytorze, nie na froncie. */
+.art-stat-band > .art-stat { margin-top: 0; }
 
 /* checklista "czego potrzebujesz" */
 .art-tools { background: var(--panel); border-radius: var(--radius); margin-top: 30px; margin-bottom: 30px; padding-top: 24px; padding-bottom: 24px; padding-left: 26px; padding-right: 26px; }
 .art-tools h4 { font-family: var(--font-display); font-size: 15px; font-weight: 800; margin: 0 0 14px; color: var(--ink); }
+/* P-11.5: jak przy .art-step wyżej — editor-only `.is-layout-flow > * + *`
+   dokłada margin-top na bloku Własny HTML (2. dziecko), dublując odstęp już
+   ustawiony marginesem dolnym nagłówka tylko w edytorze, nie na froncie. */
+.art-tools > .wp-block-html { margin-top: 0; }
 .art-tools ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .art-tools li { display: flex; gap: 11px; font-size: 14.5px; line-height: 1.5; }
 .art-tools li .check-ico { width: 22px; height: 22px; }
@@ -1043,6 +1055,13 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 
 /* kroki naprawy */
 .art-step { display: flex; gap: 18px; margin-bottom: 26px; }
+/* P-11.5, zgłoszenie po recenzji użytkownika: `patterns/art-step.php` to
+   zwykły `wp:group` bez jawnego atrybutu `layout` (WP domyślnie traktuje go
+   jako `type: flow`) — w EDYTORZE (nie na froncie, block-library/style.css
+   nie ma tej reguły) core dokłada `.is-layout-flow > * + * { margin-block-start: 24px }`
+   między dziećmi, więc druga kolumna (tytuł+opis) była w edytorze wizualnie
+   niżej niż plakietka numeru, mimo identycznego markupu co front. */
+.art-step > .wp-block-group { margin-top: 0; }
 .art-step-num {
 	flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--lime); color: var(--lime-ink);
 	font-family: var(--font-display); font-size: 15px; font-weight: 800; display: grid; place-items: center; margin-top: 2px;
