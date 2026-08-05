@@ -111,13 +111,46 @@
 			// Stara cena w JEDNEJ LINII z odznakami (ten sam wiersz gridu, druga
 			// kolumna) — NIE wewnątrz `.wc-block-cart-item__prices` (tam by
 			// stackowała się pod ceną sprzedaży, w innym wierszu niż odznaki).
+			// Etykieta "Cena nowego" (poza prototypem, na wyraźną prośbę
+			// użytkownika) w osobnym spanie BEZ przekreślenia — przekreślona
+			// jest tylko sama kwota (`.cart-old-price-value`).
 			if (ext.old_price_formatted && !row.querySelector('.cart-old-price') && wrap) {
 				var oldPrice = document.createElement('small');
 				oldPrice.className = 'cart-old-price';
-				oldPrice.innerHTML = ext.old_price_formatted;
+				oldPrice.innerHTML =
+					'<span class="cart-old-price-label">Cena nowego</span>' +
+					'<span class="cart-old-price-value">' + ext.old_price_formatted + '</span>';
 				wrap.appendChild(oldPrice);
 			}
 		});
+
+		updateNameTruncation();
+	}
+
+	/**
+	 * Ikonka "?" (pełna nazwa w tooltipie) widoczna WYŁĄCZNIE, gdy nazwa
+	 * faktycznie się przycięła elipsą (`.wc-block-components-product-name`
+	 * ma `max-width:80%` w CSS — krótkie nazwy się nie przycinają, więc nie
+	 * powinny dostawać znaczka). Mierzone realnym `scrollWidth > clientWidth`,
+	 * nie samą obecnością `max-width` w CSS — jedyny sposób odróżnić „nazwa
+	 * zmieściła się w 80%" od „nazwa przekroczyła 80% i się przycięła".
+	 * Wywoływane po każdym wstrzyknięciu ORAZ po zmianie szerokości okna —
+	 * przycięcie zależy od dostępnej szerokości wiersza (patrz zgłoszenie o
+	 * węższych ekranach), nie tylko od długości nazwy.
+	 */
+	function updateNameTruncation() {
+		var rows = document.querySelectorAll('.qutlet-name-row');
+
+		for (var i = 0; i < rows.length; i++) {
+			var nameEl = rows[i].querySelector('.wc-block-components-product-name');
+			var tip = rows[i].querySelector('.qutlet-name-tooltip');
+
+			if (!nameEl || !tip) {
+				continue;
+			}
+
+			tip.classList.toggle('is-truncated', nameEl.scrollWidth > nameEl.clientWidth + 1);
+		}
 	}
 
 	/**
@@ -219,4 +252,13 @@
 	if (window.wp && window.wp.data && typeof window.wp.data.subscribe === 'function') {
 		window.wp.data.subscribe(scheduleInject);
 	}
+
+	// Przycięcie nazwy zależy od dostępnej szerokości wiersza (nie tylko od
+	// treści) — bez tego zmiana szerokości okna (np. obrót telefonu) mogłaby
+	// zostawić znaczek "?" tam, gdzie nazwa już się zmieściła, albo odwrotnie.
+	var resizeTimer = null;
+	window.addEventListener('resize', function () {
+		window.clearTimeout(resizeTimer);
+		resizeTimer = window.setTimeout(updateNameTruncation, 150);
+	});
 })();

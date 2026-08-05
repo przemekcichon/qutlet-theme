@@ -1812,10 +1812,21 @@ body.qt-hide-nlband .nlband { display: none; }
 .wc-block-components-product-name {
 	/* Grid/flex items dostają domyślnie min-width:auto (szerokość liczona
 	   z treści) — bez zerowania długie nazwy NIE przycinały się elipsą,
-	   tylko rozpychały wiersz. Jedna linia + elipsa (nie zawijanie, jak
-	   poprzednio) — na wyraźną prośbę użytkownika, stąd `.qutlet-name-tooltip`
-	   obok, żeby pełna nazwa była gdzieś dostępna. */
-	flex: 1 1 auto;
+	   tylko rozpychały wiersz. `flex: 0 1 auto` + `max-width: 80%` (nie
+	   `flex: 1 1 auto`, bez `max-width`) — na wyraźną prośbę użytkownika:
+	   elipsa ma się pojawiać TYLKO, gdy nazwa przekroczy 80% szerokości
+	   wiersza, nie zawsze wypełniać cały dostępny wiersz. Krótkie nazwy
+	   zostają swojej naturalnej szerokości (content-box), długie ucinają
+	   się na granicy 80%. Widoczność `.qutlet-name-tooltip` (klasa
+	   `.is-truncated`, JS: `updateNameTruncation()`) idzie za TYM SAMYM
+	   pomiarem realnego przycięcia (`scrollWidth > clientWidth`), nie za
+	   samą obecnością elipsy w CSS. WC ma tu WŁASNY `max-width:max-content`
+	   (`table.wc-block-cart-items .wc-block-cart-items__row
+	   .wc-block-components-product-name`, 0,2,1 — bije nasze 0,1,0), stąd
+	   `!important` (zweryfikowane computed style, nie tylko zrzut ekranu —
+	   ten sam trik dziedziczenia co reszta tej sekcji). */
+	flex: 0 1 auto;
+	max-width: 80% !important;
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1826,10 +1837,11 @@ body.qt-hide-nlband .nlband { display: none; }
 	color: var(--ink) !important;
 	text-decoration: none;
 }
-/* Ikonka "?" — czysty tytuł (natywny tooltip przeglądarki), bez własnego JS;
-   pełna nazwa w atrybucie `title` niezależnie od tego, czy nazwa w ogóle
-   się przycięła (prostsze niż mierzyć realny overflow w JS). */
+/* Ikonka "?" — domyślnie schowana, JS pokazuje ją (`.is-truncated`)
+   WYŁĄCZNIE gdy nazwa faktycznie się przycięła (patrz komentarz wyżej);
+   pełna nazwa w atrybucie `title`. */
 .qutlet-name-tooltip {
+	display: none;
 	flex-shrink: 0;
 	width: 16px;
 	height: 16px;
@@ -1838,11 +1850,11 @@ body.qt-hide-nlband .nlband { display: none; }
 	color: var(--muted);
 	font-size: 11px;
 	font-weight: 700;
-	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	cursor: help;
 }
+.qutlet-name-tooltip.is-truncated { display: inline-flex; }
 .qutlet-cart-badges { grid-column: 1; grid-row: 2; display: flex; gap: 8px; flex-wrap: wrap; }
 .wc-block-components-product-metadata:empty { display: none; }
 .wc-block-cart-item__prices {
@@ -1866,12 +1878,19 @@ body.qt-hide-nlband .nlband { display: none; }
 	grid-column: 2 !important;
 	grid-row: 2 !important;
 	justify-self: end;
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
 	font-family: var(--font-body) !important;
 	font-size: 12px !important;
 	font-weight: 600 !important;
 	color: var(--muted) !important;
-	text-decoration: line-through;
 }
+/* Etykieta "Cena nowego" — poza prototypem (tam sama przekreślona cena, bez
+   opisu), na wyraźną prośbę użytkownika: BEZ przekreślenia, samą kwotę
+   przekreśla `.cart-old-price-value`. */
+.cart-old-price-label { text-decoration: none; }
+.cart-old-price-value { text-decoration: line-through; }
 .cart-old-price .woocommerce-Price-amount { color: inherit; }
 /* `.wc-block-cart-item__remove-link` (przycisk „Usuń") jest DZIECKIEM tego
    diva w DOM-ie bloku, nie osobnym rodzeństwem w `.wc-block-cart-item__wrap`
