@@ -1748,6 +1748,19 @@ body.qt-hide-nlband .nlband { display: none; }
 	padding-top: 20px;
 	padding-bottom: 20px;
 }
+/* WC stawia border-top na KAŻDYM <td> z osobna (`.wc-block-cart-items td`,
+   cart.css), nie na wierszu — z display:flex na wierszu (wyżej) te dwa
+   bordery przestały się stykać z borderem wiersza (mają swój, przy własnej,
+   inaczej wyrównanej wysokości komórki), więc wychodziły jako DWA odrębne,
+   przesunięte segmenty nad miniaturką i opisem, zamiast jednej spójnej linii
+   (zgłoszone przez użytkownika). Selektor potomny (2 klasy, 0,2,0) bije
+   WC-owy `.wc-block-cart-items td` (klasa+typ, 0,1,1) niezależnie od
+   kolejności wczytania arkuszy. */
+.wc-block-cart-items__row .wc-block-cart-item__image,
+.wc-block-cart-items__row .wc-block-cart-item__product,
+.wc-block-cart-items__row .wc-block-cart-item__total {
+	border-top: 0;
+}
 .wc-block-cart-item__image { padding: 0; }
 .wc-block-cart-item__image img {
 	width: 88px;
