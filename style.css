@@ -1753,12 +1753,14 @@ body.qt-hide-nlband .nlband { display: none; }
    bordery przestały się stykać z borderem wiersza (mają swój, przy własnej,
    inaczej wyrównanej wysokości komórki), więc wychodziły jako DWA odrębne,
    przesunięte segmenty nad miniaturką i opisem, zamiast jednej spójnej linii
-   (zgłoszone przez użytkownika). Selektor potomny (2 klasy, 0,2,0) bije
-   WC-owy `.wc-block-cart-items td` (klasa+typ, 0,1,1) niezależnie od
-   kolejności wczytania arkuszy. */
-.wc-block-cart-items__row .wc-block-cart-item__image,
-.wc-block-cart-items__row .wc-block-cart-item__product,
-.wc-block-cart-items__row .wc-block-cart-item__total {
+   (zgłoszone przez użytkownika). Pierwsza poprawka (selektor potomny, 2 klasy,
+   0,2,0) NIE WYSTARCZYŁA — WC ma jeszcze WĘŻSZY wariant w `@container
+   (min-width:700px)`: `.wc-block-cart__main .wc-block-cart-items td` (2 klasy
+   + typ, 0,2,1), który bije 0,2,0 (zweryfikowane w DevTools). Trzecia klasa
+   w łańcuchu (0,3,0) bije obie warianty niezależnie od szerokości kontenera. */
+.wc-block-cart-items .wc-block-cart-items__row .wc-block-cart-item__image,
+.wc-block-cart-items .wc-block-cart-items__row .wc-block-cart-item__product,
+.wc-block-cart-items .wc-block-cart-items__row .wc-block-cart-item__total {
 	border-top: 0;
 }
 .wc-block-cart-item__image { padding: 0; }
