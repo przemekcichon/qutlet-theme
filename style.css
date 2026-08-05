@@ -252,8 +252,13 @@ a { color: inherit; }
    P-8.6a.2) — reużywa `.continue-link` (design/vanilla/css/style.css:459),
    tylko bez jego `margin-top:22px` (myślany do treści strony, nie do wiersza
    nagłówka) i dosunięty do prawej krawędzi, jak `.header-nav` gdzie indziej
-   w tym samym `.header-row` (`margin-left:auto`). */
-.header-back-link { margin-top: 0; margin-left: auto; }
+   w tym samym `.header-row` (`margin-left:auto`). Selektor złożony
+   `.continue-link.header-back-link` (0,2,0) — sam `.header-back-link` (0,1,0)
+   przegrywał z `.continue-link` (też 0,1,0, ale zdefiniowany PÓŹNIEJ w pliku —
+   przy remisie specyficzności wygrywa kolejność w źródle, nie kolejność klas
+   w HTML-u; złapane w niezależnej recenzji, zweryfikowane `getComputedStyle`
+   na `/koszyk/`: `margin-top` realnie zostawało 22px). */
+.continue-link.header-back-link { margin-top: 0; margin-left: auto; }
 
 .search { flex: 1; max-width: 520px; position: relative; }
 .search svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); }
