@@ -2241,4 +2241,61 @@ body.woocommerce-cart .wp-block-post-title {
 	.wc-block-cart-item__prices { grid-row: 2 !important; margin-top: 9px; }
 	.qutlet-cart-badges { grid-row: 3 !important; }
 	.wc-block-cart-item__quantity { grid-row: 4 !important; }
+
+	/* Nazwa produktu — zawijanie zamiast elipsy + mniejsza czcionka
+	   (P-8.6a.2, na wyraźną prośbę użytkownika). `!important` konieczne na
+	   white-space/max-width, ten sam powód co reguły wyżej w tym bloku —
+	   baza (linia ~1846) też ich używa, bez tego wygrywa mimo media query.
+	   Ikonka „?" znika RAZEM z mechanizmem przycinania (nie osobny
+	   wyłącznik) — bez ellipsy nie ma czego tłumaczyć w tooltipie. */
+	.wc-block-components-product-name {
+		max-width: 100% !important;
+		white-space: normal !important;
+		overflow: visible;
+		text-overflow: clip;
+		font-size: 14px !important;
+	}
+	.qutlet-name-tooltip { display: none !important; }
+	.wc-block-cart-item__prices .wc-block-components-product-price__value {
+		font-size: 16px !important;
+	}
+
+	/* Kontrolka usuwania — tylko ikonka, bez etykiety „Usuń" (baza, linia
+	   ~2002, dopisuje ją przez `::after{content:"Usuń"}`) — SVG zostaje. */
+	.wc-block-cart-item__remove-link::after { content: none; }
+
+	/* Stepper ilości znika (jedyny mechanizm zmiany ilości w Cart Blocku) —
+	   na wyraźną prośbę użytkownika ZAMIAST gołego ukrycia zostaje sama
+	   informacja "Ilość: N szt." (fraza z prototypu, patrz komentarz przy
+	   bazowej regule stepera), przyciski +/- znikają, `<input>` odklikany
+	   `pointer-events:none`, żeby nie sugerować interaktywności której nie
+	   ma. Etykieta/jednostka przez `::before`/`::after` na KONTENERZE, nie na
+	   `<input>` — generated content na polach formularza nie renderuje się w
+	   większości przeglądarek. */
+	.wc-block-components-quantity-selector__button { display: none; }
+	.wc-block-components-quantity-selector { pointer-events: none; }
+	/* `order` jawny — WC ustawia WŁASNY `order` na przyciskach/input (minus:1,
+	   input:2, plus:3, zweryfikowane runtime), a pseudo-elementy mają domyślnie
+	   `order:0` — bez tego oba (ten sam `order:0`) trafiają PRZED input (grupowane
+	   po `order`, potem dopiero po kolejności w drzewie), dając „Ilość: szt. 2"
+	   zamiast „Ilość: 2 szt.". */
+	.wc-block-components-quantity-selector::before {
+		content: "Ilość: ";
+		order: -1;
+		color: var(--ink-soft);
+		font-size: 13px;
+		font-weight: 600;
+	}
+	.wc-block-components-quantity-selector::after {
+		content: " szt.";
+		order: 4;
+		color: var(--ink-soft);
+		font-size: 13px;
+		font-weight: 600;
+	}
+	.wc-block-components-quantity-selector__input {
+		pointer-events: none;
+		border: none;
+		background: none;
+	}
 }
