@@ -2226,34 +2226,70 @@ body.woocommerce-cart .wp-block-post-title {
 	.wc-block-components-sidebar.wp-block-woocommerce-cart-totals-block { position: static; }
 }
 @media (max-width: 560px) {
-	.wc-block-cart-items__row { flex-wrap: wrap; }
-	.wc-block-cart-item__wrap { grid-template-columns: 1fr; }
-	/* Kolumna 2 znika na tej szerokości (grid-template-columns wyżej) —
-	   `grid-column: 2` na cenie/ilości utworzyłoby niejawną drugą kolumnę
-	   (przelew poza wiersz) — obie z powrotem do jedynej kolumny 1, lewe
-	   wyrównanie jak reszta karty. `!important` bo reguła bazowa (wyżej) też
-	   go używa — bez tego bazowa wygrywa mimo media query (`!important`
-	   zawsze bije zwykłą regułę, niezależnie od specyficzności/kolejności). */
-	.wc-block-cart-item__prices {
-		grid-column: 1 !important;
-		justify-self: start;
-		text-align: left;
+	/* Runda 3 (sesja 2026-08-05, feedback po realnym klikaniu): miniaturka
+	   przenosi się z osobnej kolumny na wysokość nazwy, cena/odznaki/ilość
+	   schodzą pod spód na pełną szerokość — jedna kolumna treści zamiast
+	   dwóch (miniaturka + reszta). DOM bloku Cart to `<tr>` z DWOMA `<td>`
+	   (`.wc-block-cart-item__image`, `.wc-block-cart-item__product` — w tym
+	   drugim `.wc-block-cart-item__wrap` z nazwą/ceną/odznakami/ilością jako
+	   płaskie rodzeństwo, patrz komentarz przy bazowej regule `.wc-block-
+	   cart-item__wrap` wyżej). `display:contents` na OBU `<td>`/`.wrap`
+	   zdejmuje ich własne pudełka z layoutu i PROMUJE ich dzieci na
+	   bezpośrednie dzieci `.wc-block-cart-items__row` — bez tego nie dałoby
+	   się rozdzielić „nazwa w wierszu 1 obok miniaturki" od „cena/odznaki/
+	   ilość pod spodem na pełną szerokość", bo cała zawartość drugiego `<td>`
+	   siedzi w JEDNYM pudełku. Zero ruszania węzłów DOM przez JS (`display:
+	   contents` nie przenosi nic, tylko zmienia generowanie boksu) — właśnie
+	   przenoszenie węzłów Reacta było źródłem crasha naprawionego wcześniej
+	   na tym branchu (patrz `wc-block-cart-item__wrap` wyżej i historia
+	   commitów), więc ta technika świadomie go omija.
+	   `!important` na `display`/`grid-template-columns` — WC ma WŁASNY
+	   layout na tej samej klasie pod `.is-mobile`/`.is-small`/`.is-medium`
+	   (`table.wc-block-cart-items .wc-block-cart-items__row`, cart.css,
+	   selektor `.is-mobile table.wc-block-cart-items .wc-block-cart-items__row`
+	   = 3 klasy + typ, 0,3,1 — bije nasz prosty `.wc-block-cart-items__row`,
+	   0,1,0; zweryfikowane w DevTools/`document.styleSheets`: bez tego
+	   kolumny wychodziły WC-owe `80px 132px` zamiast naszych `88px 1fr`).
+	   Te kontenerowe klasy WC dogrywa przez WŁASNE container queries,
+	   niezależnie od viewportowej media query tego bloku — stąd fight
+	   dopiero tutaj, nie przy pierwszym overridzie `display:flex` na
+	   bazowej regule (tam WC nie miał konkurencyjnej reguły o wyższej
+	   specyficzności, więc zwykłe zastąpienie wystarczyło). */
+	.wc-block-cart-items__row {
+		display: grid !important;
+		grid-template-columns: 88px 1fr !important;
+		column-gap: 14px;
+		row-gap: 10px;
+		align-items: start;
 	}
-	/* Jedna kolumna = jawna kolejność wierszy, inaczej cena/odznaki/ilość
-	   zostałyby na grid-row z reguł bazowych (1/2/3) i nałożyłyby się na
-	   siebie. Kolejność jak w prototypie z góry na dół: nazwa, cena, odznaki,
-	   ilość+usuń. */
-	.wc-block-cart-item__prices { grid-row: 2 !important; margin-top: 9px; }
-	.qutlet-cart-badges { grid-row: 3 !important; }
-	.wc-block-cart-item__quantity { grid-row: 4 !important; }
+	.wc-block-cart-item__product,
+	.wc-block-cart-item__wrap {
+		display: contents !important;
+	}
+	/* WC pod tym samym `.is-mobile` (container query, patrz wyżej) dokłada
+	   WŁASNY `padding-right:16px` na tym `<td>` (0,3,1, bije nasz `padding:0`
+	   bazowy 0,1,0) i `width:100%` na samym `<img>` (0,3,2, bije nasz
+	   `width:88px` bazowy 0,2,1) — bez `!important` obraz wychodził 64px i
+	   NIEKWADRATOWY (100% z węższej niż 88px komórki minus obcy padding,
+	   przy STAŁEJ wysokości 88px z naszej reguły; zweryfikowane
+	   `getComputedStyle`/`document.styleSheets`). Zerujemy obcy padding i
+	   wymuszamy z powrotem stały kwadrat. */
+	.wc-block-cart-item__image {
+		grid-column: 1;
+		grid-row: 1;
+		align-self: start;
+		padding-right: 0 !important;
+	}
+	.wc-block-cart-item__image img { width: 88px !important; }
 
-	/* Nazwa produktu — zawijanie zamiast elipsy + mniejsza czcionka
-	   (P-8.6a.2, na wyraźną prośbę użytkownika). `!important` konieczne na
-	   white-space/max-width, ten sam powód co reguły wyżej w tym bloku —
-	   baza (linia ~1846) też ich używa, bez tego wygrywa mimo media query.
-	   Ikonka „?" znika RAZEM z mechanizmem przycinania (nie osobny
-	   wyłącznik) — bez ellipsy nie ma czego tłumaczyć w tooltipie. */
+	/* Nazwa — kolumna 2, wiersz 1 (obok miniaturki). Zawijanie zamiast elipsy
+	   + mniejsza czcionka (P-8.6a.2, na wyraźną prośbę użytkownika) zostają —
+	   `!important` konieczne na white-space/max-width, baza (linia ~1846)
+	   też ich używa. Ikonka „?" znika RAZEM z mechanizmem przycinania (nie
+	   osobny wyłącznik) — bez ellipsy nie ma czego tłumaczyć w tooltipie. */
 	.wc-block-components-product-name {
+		grid-column: 2 !important;
+		grid-row: 1 !important;
 		max-width: 100% !important;
 		white-space: normal !important;
 		overflow: visible;
@@ -2261,46 +2297,30 @@ body.woocommerce-cart .wp-block-post-title {
 		font-size: 14px !important;
 	}
 	.qutlet-name-tooltip { display: none !important; }
+
+	/* Cena (główna + „Nowy za") — WŁASNY wiersz na pełną szerokość (obie
+	   kolumny, `1/-1`, spod miniaturki też), NIE pod nazwą jak miniaturka.
+	   Dzielą TEN SAM wiersz gridu (para justify-self:start/end, jak już
+	   robią kolumny 1/2 na desktopie wyżej — tu w jednej wspólnej komórce
+	   zamiast dwóch), więc nie zachodzą na siebie mimo wspólnego `grid-row`. */
+	.wc-block-cart-item__prices {
+		grid-column: 1 / -1 !important;
+		grid-row: 2 !important;
+		justify-self: start;
+	}
 	.wc-block-cart-item__prices .wc-block-components-product-price__value {
 		font-size: 16px !important;
 	}
+	.cart-old-price { grid-column: 1 / -1 !important; grid-row: 2 !important; }
 
-	/* Kontrolka usuwania — tylko ikonka, bez etykiety „Usuń" (baza, linia
-	   ~2002, dopisuje ją przez `::after{content:"Usuń"}`) — SVG zostaje. */
-	.wc-block-cart-item__remove-link::after { content: none; }
+	/* Odznaki (klasa + gwarancja) — pełna szerokość, wiersz 3. */
+	.qutlet-cart-badges { grid-column: 1 / -1 !important; grid-row: 3 !important; }
 
-	/* Stepper ilości znika (jedyny mechanizm zmiany ilości w Cart Blocku) —
-	   na wyraźną prośbę użytkownika ZAMIAST gołego ukrycia zostaje sama
-	   informacja "Ilość: N szt." (fraza z prototypu, patrz komentarz przy
-	   bazowej regule stepera), przyciski +/- znikają, `<input>` odklikany
-	   `pointer-events:none`, żeby nie sugerować interaktywności której nie
-	   ma. Etykieta/jednostka przez `::before`/`::after` na KONTENERZE, nie na
-	   `<input>` — generated content na polach formularza nie renderuje się w
-	   większości przeglądarek. */
-	.wc-block-components-quantity-selector__button { display: none; }
-	.wc-block-components-quantity-selector { pointer-events: none; }
-	/* `order` jawny — WC ustawia WŁASNY `order` na przyciskach/input (minus:1,
-	   input:2, plus:3, zweryfikowane runtime), a pseudo-elementy mają domyślnie
-	   `order:0` — bez tego oba (ten sam `order:0`) trafiają PRZED input (grupowane
-	   po `order`, potem dopiero po kolejności w drzewie), dając „Ilość: szt. 2"
-	   zamiast „Ilość: 2 szt.". */
-	.wc-block-components-quantity-selector::before {
-		content: "Ilość: ";
-		order: -1;
-		color: var(--ink-soft);
-		font-size: 13px;
-		font-weight: 600;
-	}
-	.wc-block-components-quantity-selector::after {
-		content: " szt.";
-		order: 4;
-		color: var(--ink-soft);
-		font-size: 13px;
-		font-weight: 600;
-	}
-	.wc-block-components-quantity-selector__input {
-		pointer-events: none;
-		border: none;
-		background: none;
-	}
+	/* Ilość + usuń — pełna szerokość, ostatni wiersz. Stepper (+/-) i
+	   kontrolka usuń Z IKONKĄ I ETYKIETĄ „Usuń" WRACAJĄ do pełnej,
+	   nieokrojonej wersji z desktopu (na wyraźną prośbę użytkownika —
+	   odwraca zawężenia z poprzedniej rundy: tam usuwanie było tylko ikonką,
+	   a stepper zamieniony na gołą informację „Ilość: N szt."). Kolumna już
+	   `1/-1` z reguły bazowej (grid-row 3 tam, więc tylko wiersz nadpisany). */
+	.wc-block-cart-item__quantity { grid-row: 4 !important; }
 }
