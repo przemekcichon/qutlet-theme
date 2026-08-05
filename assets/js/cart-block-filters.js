@@ -111,14 +111,14 @@
 			// Stara cena w JEDNEJ LINII z odznakami (ten sam wiersz gridu, druga
 			// kolumna) — NIE wewnątrz `.wc-block-cart-item__prices` (tam by
 			// stackowała się pod ceną sprzedaży, w innym wierszu niż odznaki).
-			// Etykieta "Cena nowego" (poza prototypem, na wyraźną prośbę
+			// Etykieta "Nowy za" (poza prototypem, na wyraźną prośbę
 			// użytkownika) w osobnym spanie BEZ przekreślenia — przekreślona
 			// jest tylko sama kwota (`.cart-old-price-value`).
 			if (ext.old_price_formatted && !row.querySelector('.cart-old-price') && wrap) {
 				var oldPrice = document.createElement('small');
 				oldPrice.className = 'cart-old-price';
 				oldPrice.innerHTML =
-					'<span class="cart-old-price-label">Cena nowego</span>' +
+					'<span class="cart-old-price-label">Nowy za</span>' +
 					'<span class="cart-old-price-value">' + ext.old_price_formatted + '</span>';
 				wrap.appendChild(oldPrice);
 			}

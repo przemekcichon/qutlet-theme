@@ -1846,8 +1846,8 @@ body.qt-hide-nlband .nlband { display: none; }
 	width: 16px;
 	height: 16px;
 	border-radius: 50%;
-	background: var(--panel);
-	color: var(--muted);
+	background: var(--ink-soft);
+	color: var(--line);
 	font-size: 11px;
 	font-weight: 700;
 	align-items: center;
@@ -1886,7 +1886,7 @@ body.qt-hide-nlband .nlband { display: none; }
 	font-weight: 600 !important;
 	color: var(--muted) !important;
 }
-/* Etykieta "Cena nowego" — poza prototypem (tam sama przekreślona cena, bez
+/* Etykieta "Nowy za" — poza prototypem (tam sama przekreślona cena, bez
    opisu), na wyraźną prośbę użytkownika: BEZ przekreślenia, samą kwotę
    przekreśla `.cart-old-price-value`. */
 .cart-old-price-label { text-decoration: none; }
@@ -1935,7 +1935,14 @@ body.qt-hide-nlband .nlband { display: none; }
 	opacity: 1;
 	font-size: 15px;
 }
-.wc-block-components-quantity-selector__button:hover:not(:disabled) { background: var(--panel); }
+/* Hover jako mała kropka (nie pełny kwadrat przycisku 32×32) — twardy
+   promień w `radial-gradient` (kolor do 12px, potem od razu przezroczyste,
+   bez rozmycia) daje kółko ~24px wyśrodkowane w przycisku, zamiast
+   wypełniania całego kwadratowego obszaru kliku. */
+.wc-block-components-quantity-selector__button:hover:not(:disabled) {
+	background: radial-gradient(circle 12px, var(--panel) 12px, transparent 12px);
+	border-radius: 50%;
+}
 .wc-block-components-quantity-selector__button:disabled { opacity: .3; cursor: default; }
 /* WC ma `.wc-block-cart-item__quantity .wc-block-cart-item__remove-link`
    (2 klasy, bije 1 klasę niżej) z `display:inline`, `width`/`height:24px`,
