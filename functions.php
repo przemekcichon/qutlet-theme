@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * dostawały `style.css?ver=0.1.0` i serwowały stary, scache'owany plik mimo
  * realnych zmian w CSS na dysku. Bumpować OBIE wartości razem.
  */
-const VERSION = '0.1.38';
+const VERSION = '0.1.42';
 
 /*
  * Autoloader Composera (D-G1): ładowany z guardem. Brak `vendor/autoload.php`

@@ -3,12 +3,11 @@
  *
  * Czyta dane wystawione przez Cart::cart_item_data()/cart_totals_data()
  * (Store API `item.extensions['qutlet-klasa']` / `cart.extensions['qutlet-klasa']`,
- * patrz inc/features/Cart/Cart.php). Bez build stepu — globale `window.wc.*`/
- * `window.wp.data` (WooCommerce 10.9.4 wystawia gotowy runtime bundle,
- * dependency script handle `wc-blocks-checkout`/`wc-blocks-data-store`, patrz
- * CartBlocksIntegration::initialize()). Ceny/kwoty przychodzą już
- * sformatowane z PHP (`wc_price()`) — ten plik tylko wkleja gotowe stringi,
- * nie liczy walut.
+ * patrz inc/features/Cart/Cart.php). Bez build stepu — global `window.wp.data`
+ * (WooCommerce 10.9.4 wystawia gotowy runtime bundle, dependency script handle
+ * `wc-blocks-data-store`, patrz CartBlocksIntegration::initialize()). Ceny/
+ * kwoty przychodzą już sformatowane z PHP (`wc_price()`) — ten plik tylko
+ * wkleja gotowe stringi, nie liczy walut.
  *
  * Wszystko wstrzykiwane jako WĘZŁY DOM (`wp.data.subscribe()` na sklepie
  * `wc/store/cart`), NIE przez `registerCheckoutFilters` — ten filtr
@@ -53,12 +52,10 @@
 	}
 
 	/**
-	 * Odznaka klasy stanu + gwarancja, obok nazwy produktu (osobny węzeł DOM,
-	 * nie modyfikacja stringu nazwy — patrz nagłówek pliku). Stara cena per
-	 * wiersz świadomie NIE jest tu wstrzykiwana (decyzja użytkownika, sesja
-	 * 2026-08-05 — różna wysokość między produktami z/bez `cena_rynkowa_nowego`
-	 * psuła wyrównanie wierszy); suma oszczędności w podsumowaniu
-	 * (`injectSummaryRows()`) liczy się niezależnie po stronie PHP.
+	 * Odznaka klasy stanu + gwarancja (obok nazwy produktu) i stara cena
+	 * (osobny blok WEWNĄTRZ kolumny ceny, pod ceną sprzedaży — jak
+	 * `.cart-row-price small` w prototypie) — dwa OSOBNE węzły DOM, nie
+	 * modyfikacje istniejących stringów (patrz nagłówek pliku).
 	 */
 	function injectItemBadges() {
 		var data = getCartData();
@@ -92,6 +89,14 @@
 				nameEl.insertAdjacentElement('afterend', badges);
 			}
 
+			var pricesEl = row.querySelector('.wc-block-cart-item__prices');
+
+			if (pricesEl && ext.old_price_formatted && !pricesEl.querySelector('.cart-old-price')) {
+				var oldPrice = document.createElement('small');
+				oldPrice.className = 'cart-old-price';
+				oldPrice.innerHTML = ext.old_price_formatted;
+				pricesEl.appendChild(oldPrice);
+			}
 		});
 	}
 

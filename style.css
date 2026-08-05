@@ -1815,31 +1815,54 @@ body.qt-hide-nlband .nlband { display: none; }
 }
 .qutlet-cart-badges { grid-column: 1; grid-row: 2; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 9px; }
 .wc-block-components-product-metadata:empty { display: none; }
+/* WC ma tu `display:flex` (wiersz) — `.cart-old-price` mimo własnego
+   `display:block` układał się OBOK ceny, nie pod nią (w flexie display
+   dziecka nie ma znaczenia, liczy się flex-direction rodzica), zgłoszone
+   przez użytkownika. `flex-direction:column` układa cenę i starą cenę
+   pionowo, `align-items:flex-end` zostawia obie do prawej. */
 .wc-block-cart-item__prices {
 	grid-column: 2 !important;
 	grid-row: 1 !important;
 	justify-self: end;
-	text-align: right;
-}
-/* `.wc-block-cart-item__remove-link` (przycisk „Usuń") jest DZIECKIEM tego
-   diva w DOM-ie bloku, nie osobnym rodzeństwem w `.wc-block-cart-item__wrap`
-   (zweryfikowane runtime) — cały div (stepper + „Usuń") przeniesiony do
-   prawej kolumny, pod cenę, jak `.cart-row-side` prototypu (na wyraźną
-   prośbę użytkownika — wcześniej zostawał w lewej, rozsuwany flexem). */
-.wc-block-cart-item__quantity {
-	grid-column: 2 !important;
-	grid-row: 2 !important;
-	margin-top: 9px;
-	display: flex !important;
 	flex-direction: column !important;
 	align-items: flex-end !important;
-	gap: 10px;
+	text-align: right;
 }
 .wc-block-cart-item__prices .wc-block-components-product-price__value {
 	font-family: var(--font-display);
 	font-weight: 800;
 	font-size: 19px;
 	white-space: nowrap;
+}
+/* Stara cena — WEWNĄTRZ `.wc-block-cart-item__prices` (dopisana tam przez JS,
+   nie osobny grid item), więc stackuje się pod ceną sprzedaży samym
+   `display:block`, bez własnego umiejscowienia w gridzie. Port
+   `.cart-row-price small` prototypu. */
+.cart-old-price {
+	display: block;
+	margin-top: 2px;
+	font-size: 12px;
+	color: var(--muted);
+	text-decoration: line-through;
+}
+.cart-old-price .woocommerce-Price-amount { color: inherit; }
+/* `.wc-block-cart-item__remove-link` (przycisk „Usuń") jest DZIECKIEM tego
+   diva w DOM-ie bloku, nie osobnym rodzeństwem w `.wc-block-cart-item__wrap`
+   (zweryfikowane runtime) — całość rozciągnięta na PEŁNĄ szerokość wiersza
+   (obie kolumny), stepper wyrównany do lewej, „Usuń" do prawej — ilość pod
+   odznakami (lewa kolumna), usuń pod ceną (prawa kolumna), oba na tym samym
+   poziomie, jak w prototypie (`.cart-row-qty` / `.cart-row-remove`), tylko
+   połączone w jeden wspólny wiersz zamiast dwóch niezależnych komórek —
+   DOM bloku Cart nie rozdziela stepera i „Usuń" na dwa osobne węzły, więc
+   nie da się ich umieścić w dwóch kolumnach gridu bez przepisania komponentu. */
+.wc-block-cart-item__quantity {
+	grid-column: 1 / -1 !important;
+	grid-row: 3 !important;
+	margin-top: 9px;
+	display: flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	justify-content: space-between;
 }
 
 /* Stepper ilości — prototyp go nie ma (tam to statyczny tekst "Ilość: 1 szt."),
@@ -1871,17 +1894,28 @@ body.qt-hide-nlband .nlband { display: none; }
 }
 .wc-block-components-quantity-selector__button:hover:not(:disabled) { background: var(--panel); }
 .wc-block-components-quantity-selector__button:disabled { opacity: .3; cursor: default; }
+/* WC ma `.wc-block-cart-item__quantity .wc-block-cart-item__remove-link`
+   (2 klasy, bije 1 klasę niżej) z `display:inline`, `width`/`height:24px`,
+   `font-*:inherit` (koniec końców trafia na domyślną czcionkę/rozmiar
+   przeglądarki — w Chrome szeryfowa "system font" 16px, stąd "Usuń"
+   wyglądało jak z innej strony, zgłoszone przez użytkownika). Zweryfikowane
+   computed style (nie tylko zrzut ekranu) — przegrywały WSZYSTKIE
+   właściwości poniżej, nie tylko te wizualnie oczywiste, więc `!important`
+   na całym zestawie na raz, konsekwentnie z resztą tej sekcji. */
 .wc-block-cart-item__remove-link {
-	display: inline-flex;
-	align-items: center;
+	display: inline-flex !important;
+	align-items: center !important;
+	width: auto !important;
+	height: auto !important;
 	gap: 6px;
-	color: var(--muted);
+	font-family: var(--font-body) !important;
+	color: var(--muted) !important;
 	background: none;
 	border: 0;
 	padding: 0;
 	cursor: pointer;
-	font-size: 12.5px;
-	font-weight: 700;
+	font-size: 12.5px !important;
+	font-weight: 700 !important;
 }
 /* Blok Cart renderuje przycisk usunięcia jako sam SVG (bez tekstu, 24×24 —
    dużo większy niż ikona kosza z prototypu, `QT.SVG.trash` 15×15) — dopisek
@@ -2033,15 +2067,16 @@ body.woocommerce-cart .wp-block-post-title {
 	   wyrównanie jak reszta karty. `!important` bo reguła bazowa (wyżej) też
 	   go używa — bez tego bazowa wygrywa mimo media query (`!important`
 	   zawsze bije zwykłą regułę, niezależnie od specyficzności/kolejności). */
-	.wc-block-cart-item__prices,
-	.wc-block-cart-item__quantity {
+	.wc-block-cart-item__prices {
 		grid-column: 1 !important;
 		justify-self: start;
-		align-items: flex-start !important;
 		text-align: left;
 	}
-	/* Jedna kolumna = jawna kolejność wierszy, inaczej cena i ilość zostałyby
-	   na grid-row z bazowej reguły (1 i 2) i nałożyłyby się na nazwę/odznaki. */
-	.wc-block-cart-item__prices { grid-row: 3 !important; margin-top: 9px; }
+	/* Jedna kolumna = jawna kolejność wierszy, inaczej cena/odznaki/ilość
+	   zostałyby na grid-row z reguł bazowych (1/2/3) i nałożyłyby się na
+	   siebie. Kolejność jak w prototypie z góry na dół: nazwa, cena, odznaki,
+	   ilość+usuń. */
+	.wc-block-cart-item__prices { grid-row: 2 !important; margin-top: 9px; }
+	.qutlet-cart-badges { grid-row: 3 !important; }
 	.wc-block-cart-item__quantity { grid-row: 4 !important; }
 }
