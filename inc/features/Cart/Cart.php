@@ -127,10 +127,12 @@ final class Cart {
 	}
 
 	/**
-	 * Dane per-wiersz koszyka: klasa stanu + stara cena (kontrakt §2).
+	 * Dane per-wiersz koszyka: klasa stanu (kontrakt §2).
 	 *
-	 * Formatowane przez `wc_price()` PO STRONIE PHP (nie w JS) — Store API
-	 * zwraca gotowy HTML, JS tylko wkleja string, bez liczenia walut.
+	 * Stara cena per-wiersz świadomie USUNIĘTA z widoku koszyka (decyzja
+	 * użytkownika, sesja 2026-08-05) — powodowała nierówne wysokości wierszy
+	 * między produktami z/bez `cena_rynkowa_nowego`. Suma oszczędności w
+	 * podsumowaniu (`cart_totals_data()`) liczy się niezależnie od tego pola.
 	 *
 	 * @param array $cart_item Wiersz koszyka (`WC_Cart::get_cart()`).
 	 * @return array<string, string>
@@ -142,14 +144,8 @@ final class Cart {
 			return array();
 		}
 
-		$product_id     = $product->get_id();
-		$condition_code = (string) ProductPage::acf_field( 'klasa_stanu', $product_id );
-		$market_price   = (float) ProductPage::acf_field( 'cena_rynkowa_nowego', $product_id );
-		$sale_price     = (float) $product->get_price();
-
 		return array(
-			'klasa_stanu'         => $condition_code,
-			'old_price_formatted' => $market_price > $sale_price ? wp_kses_post( wc_price( $market_price ) ) : '',
+			'klasa_stanu' => (string) ProductPage::acf_field( 'klasa_stanu', $product->get_id() ),
 		);
 	}
 
@@ -160,14 +156,8 @@ final class Cart {
 	 */
 	public static function cart_item_schema(): array {
 		return array(
-			'klasa_stanu'         => array(
+			'klasa_stanu' => array(
 				'description' => __( 'Kod klasy stanu (A-D).', 'qutlet-theme' ),
-				'type'        => array( 'string', 'null' ),
-				'context'     => array( 'view', 'edit' ),
-				'readonly'    => true,
-			),
-			'old_price_formatted' => array(
-				'description' => __( 'Sformatowana cena rynkowa nowego (tylko gdy wyższa od ceny sprzedaży).', 'qutlet-theme' ),
 				'type'        => array( 'string', 'null' ),
 				'context'     => array( 'view', 'edit' ),
 				'readonly'    => true,

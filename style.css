@@ -1833,7 +1833,7 @@ body.qt-hide-nlband .nlband { display: none; }
 	display: flex !important;
 	flex-direction: column !important;
 	align-items: flex-end !important;
-	gap: 8px;
+	gap: 10px;
 }
 .wc-block-cart-item__prices .wc-block-components-product-price__value {
 	font-family: var(--font-display);
@@ -1871,14 +1871,6 @@ body.qt-hide-nlband .nlband { display: none; }
 }
 .wc-block-components-quantity-selector__button:hover:not(:disabled) { background: var(--panel); }
 .wc-block-components-quantity-selector__button:disabled { opacity: .3; cursor: default; }
-.cart-old-price {
-	display: block;
-	margin-top: 2px;
-	font-size: 12px;
-	color: var(--muted);
-	text-decoration: line-through;
-}
-.cart-old-price .woocommerce-Price-amount { color: inherit; }
 .wc-block-cart-item__remove-link {
 	display: inline-flex;
 	align-items: center;
@@ -1891,9 +1883,12 @@ body.qt-hide-nlband .nlband { display: none; }
 	font-size: 12.5px;
 	font-weight: 700;
 }
-/* Blok Cart renderuje przycisk usunięcia jako sam SVG (bez tekstu) — dopisek
-   "Usuń" jak w `.cart-row-remove` prototypu bez ingerencji w komponent. */
+/* Blok Cart renderuje przycisk usunięcia jako sam SVG (bez tekstu, 24×24 —
+   dużo większy niż ikona kosza z prototypu, `QT.SVG.trash` 15×15) — dopisek
+   "Usuń" i pomniejszenie ikony jak w `.cart-row-remove` prototypu, bez
+   ingerencji w sam komponent. */
 .wc-block-cart-item__remove-link::after { content: "Usuń"; }
+.wc-block-cart-item__remove-link svg { width: 15px; height: 15px; }
 
 /* Link powrotu — port `.continue-link` (design/vanilla/css/style.css:459),
    markup wstawiony jako custom HTML w treści Strony (nie block button — w

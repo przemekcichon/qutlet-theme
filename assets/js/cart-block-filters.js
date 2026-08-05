@@ -53,12 +53,12 @@
 	}
 
 	/**
-	 * Odznaka klasy stanu + gwarancja (obok nazwy produktu) i stara cena
-	 * (wewnątrz kolumny ceny) — dwa OSOBNE węzły, bo w prototypie
-	 * (design/vanilla/koszyk.html, .cart-row) badge'e żyją przy tytule, a stara
-	 * cena pod ceną sprzedaży — spłaszczony `.wc-block-cart-item__wrap` bloku
-	 * Cart trzyma oba miejsca jako rodzeństwo, więc trzeba wstrzyknąć w dwóch
-	 * różnych punktach, nie jeden wspólny węzeł.
+	 * Odznaka klasy stanu + gwarancja, obok nazwy produktu (osobny węzeł DOM,
+	 * nie modyfikacja stringu nazwy — patrz nagłówek pliku). Stara cena per
+	 * wiersz świadomie NIE jest tu wstrzykiwana (decyzja użytkownika, sesja
+	 * 2026-08-05 — różna wysokość między produktami z/bez `cena_rynkowa_nowego`
+	 * psuła wyrównanie wierszy); suma oszczędności w podsumowaniu
+	 * (`injectSummaryRows()`) liczy się niezależnie po stronie PHP.
 	 */
 	function injectItemBadges() {
 		var data = getCartData();
@@ -92,14 +92,6 @@
 				nameEl.insertAdjacentElement('afterend', badges);
 			}
 
-			var pricesEl = row.querySelector('.wc-block-cart-item__prices');
-
-			if (pricesEl && ext.old_price_formatted && !pricesEl.querySelector('.cart-old-price')) {
-				var oldPrice = document.createElement('small');
-				oldPrice.className = 'cart-old-price';
-				oldPrice.innerHTML = ext.old_price_formatted;
-				pricesEl.appendChild(oldPrice);
-			}
 		});
 	}
 
