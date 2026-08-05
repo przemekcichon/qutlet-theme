@@ -256,9 +256,24 @@ a { color: inherit; }
 	font-family: inherit; font-size: 14.5px; background: #fff; color: var(--ink);
 }
 
-.header-nav { display: flex; align-items: center; gap: 26px; margin-left: auto; }
+/* `position:relative` na `.header-nav`, NIE na `.header-menu-wrap` (jak
+   wcześniej) — `.dropdown` (niżej) zakotwicza się `right:0` względem
+   NAJBLIŻSZEGO positioned ancestora. Gdy tym ancestorem był sam
+   `.header-menu-wrap` (wąski, ~46px, tyle co ikona), `right:0` działało
+   poprawnie TYLKO dla ikony, która faktycznie leży na samym prawym krańcu
+   `.header-nav` — na mobile ikona koszyka NIE jest już ostatnia (po niej
+   jest ikona konta i hamburger, `.nav-link`e chowają się w tej samej
+   media query), więc rozwijany panel (do 360px szerokości) wystawał daleko
+   w lewo poza viewport (zgłoszone przez użytkownika, zrzut ekranu).
+   `.header-nav` ma `margin-left:auto` i jest ostatnim elementem
+   `.header-row` — jego WŁASNA prawa krawędź zawsze styka się z prawym
+   krańcem wiersza, niezależnie od tego, ile ikon w nim jest i która z nich
+   otworzyła dropdown, więc `right:0` względem NIEGO jest bezpieczne przy
+   każdej szerokości ekranu. Na desktopie bez zmiany widocznej — ikona konta
+   (ostatnia widoczna wtedy) i tak stykała się z prawą krawędzią `.header-nav`. */
+.header-nav { display: flex; align-items: center; gap: 26px; margin-left: auto; position: relative; }
 .nav-link { font-size: 14px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; text-decoration: none; }
-.header-menu-wrap { position: relative; }
+.header-menu-wrap { position: static; }
 .icon-btn {
 	position: relative; width: 46px; height: 46px; border-radius: 12px;
 	display: grid; place-items: center; background: var(--panel); border: 0; cursor: pointer; color: var(--ink);
