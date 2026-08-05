@@ -1545,6 +1545,12 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
    `body_class` (Help::filter_body_class(), D-8.G1: bez atrybutu
    data-page, którego block template canvas nie ma jak przyjąć). */
 body.qt-hide-nlband .nlband { display: none; }
+/* Ten sam banner ukryty na koszyku (P-8.6a.2) — bez zajeżdżania o
+   `Help::filter_body_class()`: `body.woocommerce-cart` to natywna klasa WC
+   (WC dogrywa ją przez własny `body_class` filtr, potwierdzona runtime na
+   `/koszyk/`), więc nie trzeba PHP w motywie na osobną klasę — konsekwentnie
+   z regułą wyżej (ten sam selektor `.nlband`), tylko inny hak w body. */
+body.woocommerce-cart .nlband { display: none; }
 
 /* ---------- „Jak to działa" (page-jak-to-dziala.php, port <style>) ---------- */
 .hero-cta {
