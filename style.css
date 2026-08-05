@@ -1783,15 +1783,30 @@ body.qt-hide-nlband .nlband { display: none; }
 /* Wewnątrz `.wc-block-cart-item__wrap` WC trzyma nazwę/ceny/metadane/ilość/
    usuń jako płaskie rodzeństwo (jeden div) — siatka z jawnym umiejscowieniem
    per klasa odtwarza dwie kolumny prototypu (`.cart-row-info`/`.cart-row-side`)
-   bez przepisywania DOM-u bloku. */
+   bez przepisywania DOM-u bloku.
+   UWAGA: `!important` na WŁAŚCIWOŚCIACH UKŁADU (display/grid-column/grid-row/
+   flex-direction) w całej tej sekcji jest ŚWIADOMY, nie lenistwo — WC ma
+   WŁASNY, dwutorowy system (grid w jednym kontekście, flex-column w drugim,
+   re-deklarowany w kilku `@container` breakpointach) na TYCH SAMYCH
+   elementach, każdy pod selektorem `table.wc-block-cart-items
+   .wc-block-cart-items__row .wc-block-cart-item__X` (3 klasy + typ, 0,3,1).
+   Dwie kolejne rundy podnoszenia specyficzności selektora (do 0,4,0) i tak
+   przegrały z jeszcze inną odmianą tej samej reguły WC gdzie indziej w tym
+   pliku (zweryfikowane w DevTools, dwukrotnie) — `!important` kończy tę
+   pogoń raz na zawsze, zamiast czekać na trzecią odmianę. */
 .wc-block-cart-item__wrap {
-	display: grid;
+	display: grid !important;
 	grid-template-columns: 1fr auto;
 	column-gap: 16px;
+	align-items: start;
 }
 .wc-block-components-product-name {
-	grid-column: 1;
-	grid-row: 1;
+	grid-column: 1 !important;
+	grid-row: 1 !important;
+	/* Grid items dostają domyślnie min-width:auto (szerokość liczona z treści),
+	   więc bez zerowania długie nazwy NIE zawijały się w kolumnie 1fr, tylko
+	   rozpychały cały wiersz — zgłoszone przez użytkownika. */
+	min-width: 0;
 	font-size: 16px;
 	font-weight: 700;
 	line-height: 1.3;
@@ -1800,27 +1815,25 @@ body.qt-hide-nlband .nlband { display: none; }
 }
 .qutlet-cart-badges { grid-column: 1; grid-row: 2; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 9px; }
 .wc-block-components-product-metadata:empty { display: none; }
-/* Cały wiersz (nie tylko kolumna 1) — `.wc-block-cart-item__remove-link`
-   (przycisk „Usuń") jest DZIECKIEM tego diva w DOM-ie bloku, nie osobnym
-   rodzeństwem w `.wc-block-cart-item__wrap` (zweryfikowane runtime), więc
-   nie da się go umieścić w prawej kolumnie gridem — miejsce na to ma tylko
-   jego RODZIC. Flex + space-between rozsuwa stepper (lewo) i „Usuń" (prawo)
-   w obrębie tego jednego wiersza zamiast (nieosiągalnego bez przepisania
-   DOM-u bloku) dokładnego podziału `.cart-row-info`/`.cart-row-side`
-   prototypu. */
-.wc-block-cart-item__quantity {
-	grid-column: 1 / -1;
-	grid-row: 3;
-	margin-top: 9px;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-}
 .wc-block-cart-item__prices {
-	grid-column: 2;
-	grid-row: 1 / span 2;
+	grid-column: 2 !important;
+	grid-row: 1 !important;
 	justify-self: end;
 	text-align: right;
+}
+/* `.wc-block-cart-item__remove-link` (przycisk „Usuń") jest DZIECKIEM tego
+   diva w DOM-ie bloku, nie osobnym rodzeństwem w `.wc-block-cart-item__wrap`
+   (zweryfikowane runtime) — cały div (stepper + „Usuń") przeniesiony do
+   prawej kolumny, pod cenę, jak `.cart-row-side` prototypu (na wyraźną
+   prośbę użytkownika — wcześniej zostawał w lewej, rozsuwany flexem). */
+.wc-block-cart-item__quantity {
+	grid-column: 2 !important;
+	grid-row: 2 !important;
+	margin-top: 9px;
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: flex-end !important;
+	gap: 8px;
 }
 .wc-block-cart-item__prices .wc-block-components-product-price__value {
 	font-family: var(--font-display);
@@ -1828,6 +1841,36 @@ body.qt-hide-nlband .nlband { display: none; }
 	font-size: 19px;
 	white-space: nowrap;
 }
+
+/* Stepper ilości — prototyp go nie ma (tam to statyczny tekst "Ilość: 1 szt."),
+   ale koszyk realnie potrzebuje działającej zmiany ilości, więc dostaje
+   własny styl na wzór `.field input`/`.pill` z resztą motywu (border
+   var(--line), radius 10px, biały spód) zamiast domyślnego, przezroczystego
+   WC (border-radius 4px, przyciski o opacity .6). */
+.wc-block-components-quantity-selector {
+	border: 1.5px solid var(--line);
+	border-radius: 10px;
+	background: #fff;
+	width: auto;
+	height: 38px;
+}
+.wc-block-components-quantity-selector__input {
+	width: 34px;
+	min-width: 0;
+	color: var(--ink);
+	font-family: var(--font-body);
+	font-weight: 700;
+	font-size: 14px;
+}
+.wc-block-components-quantity-selector__button {
+	width: 32px;
+	min-width: 32px;
+	color: var(--ink);
+	opacity: 1;
+	font-size: 15px;
+}
+.wc-block-components-quantity-selector__button:hover:not(:disabled) { background: var(--panel); }
+.wc-block-components-quantity-selector__button:disabled { opacity: .3; cursor: default; }
 .cart-old-price {
 	display: block;
 	margin-top: 2px;
@@ -1989,9 +2032,21 @@ body.woocommerce-cart .wp-block-post-title {
 @media (max-width: 560px) {
 	.wc-block-cart-items__row { flex-wrap: wrap; }
 	.wc-block-cart-item__wrap { grid-template-columns: 1fr; }
-	/* `.wc-block-cart-item__quantity` już zajmuje pełną szerokość na każdej
-	   szerokości ekranu (`grid-column: 1 / -1`) — `.wc-block-cart-item__remove-link`
-	   nie jest już bezpośrednim dzieckiem grida (patrz komentarz przy
-	   `.wc-block-cart-item__quantity` wyżej), więc nie ma tu nic do zerowania. */
-	.wc-block-cart-item__prices { grid-column: 1; justify-self: start; text-align: left; }
+	/* Kolumna 2 znika na tej szerokości (grid-template-columns wyżej) —
+	   `grid-column: 2` na cenie/ilości utworzyłoby niejawną drugą kolumnę
+	   (przelew poza wiersz) — obie z powrotem do jedynej kolumny 1, lewe
+	   wyrównanie jak reszta karty. `!important` bo reguła bazowa (wyżej) też
+	   go używa — bez tego bazowa wygrywa mimo media query (`!important`
+	   zawsze bije zwykłą regułę, niezależnie od specyficzności/kolejności). */
+	.wc-block-cart-item__prices,
+	.wc-block-cart-item__quantity {
+		grid-column: 1 !important;
+		justify-self: start;
+		align-items: flex-start !important;
+		text-align: left;
+	}
+	/* Jedna kolumna = jawna kolejność wierszy, inaczej cena i ilość zostałyby
+	   na grid-row z bazowej reguły (1 i 2) i nałożyłyby się na nazwę/odznaki. */
+	.wc-block-cart-item__prices { grid-row: 3 !important; margin-top: 9px; }
+	.wc-block-cart-item__quantity { grid-row: 4 !important; }
 }
