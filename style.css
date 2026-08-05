@@ -2019,13 +2019,29 @@ body.qt-hide-nlband .nlband { display: none; }
 }
 /* Panel kuponu — poza prototypem (tam brak formularza kuponów), ale mieszka
    w tej samej karcie, więc dostaje ten sam język wizualny (radius/border
-   pól z resztą motywu). Border-top znika: WC niesie GO z dwóch stron na raz
-   — `packages-style.css` ma `.wc-block-components-totals-wrapper{border-top:...}`
-   ORAZ `:first-child` (0,2,0) na TYM SAMYM elemencie — nasza reguła musi
-   trafić w obie naraz (stąd `!important`, nie tylko wyższa specyficzność —
-   zweryfikowane computed style, `packages-style.css` ładuje się PO `cart.css`,
-   które próbuje zresetować ten border zwykłym `border:0` (0,1,0, przegrywa)). */
+   pól z resztą motywu). Border-top znika: `packages-style.css` ma
+   `.wc-block-components-totals-wrapper{border-top:...}` (0,1,0) ORAZ
+   `:first-child` (0,2,0) na TYM SAMYM elemencie (jest pierwszym dzieckiem
+   `.wp-block-woocommerce-cart-order-summary-block") — `cart.css` resetuje
+   `border:0`, ale TYLKO potomkom `.wp-block-woocommerce-cart-order-summary-totals-block`
+   (inny rodzic, nie trafia w panel kuponu), więc bez własnej reguły border
+   zostaje. `!important` na wszelki wypadek przeciw `:first-child` (ten sam
+   0,2,0 co nasz selektor — bez `!important` byłaby to zwykła loteria kolejności
+   w arkuszu, nie gwarantowane zwycięstwo). */
 .wp-block-woocommerce-cart-order-summary-coupon-form-block.wc-block-components-totals-wrapper {
+	border-top: none !important;
+}
+/* Wiersz „Szacowana łączna kwota" — TEN SAM base+`:first-child" para z
+   `packages-style.css` co wyżej, ale ten wrapper nie ma własnej klasy bloku
+   (goły `.wc-block-components-totals-wrapper`) i NIE jest potomkiem
+   `...-totals-block` (jest rodzeństwem, dzieckiem `...-summary-block`
+   bezpośrednio, ostatnim w kolejności) — ani nasza reguła wyżej (inna klasa
+   bloku), ani reset `cart.css` (złej rodzic) go nie łapią. Selektor przez
+   `:has()` (zamiast dodawać klasę w JS/PHP), bo to jedyny sposób odróżnić
+   GO od innych gołych `.wc-block-components-totals-wrapper` bez własnej
+   klasy — po dziecku, które faktycznie ma tylko ten jeden wrapper
+   (`.wc-block-components-totals-footer-item`). */
+.wp-block-woocommerce-cart-order-summary-block > .wc-block-components-totals-wrapper:has(> .wc-block-components-totals-footer-item) {
 	border-top: none !important;
 }
 .wc-block-components-totals-coupon .wc-block-components-panel__button {
