@@ -1,0 +1,21 @@
+<!-- wp:html -->
+<!--
+	Qutlet — nagłówek minimalny strony koszyka (P-8.6a.2). Poza prototypem:
+	design/vanilla/koszyk.html:15 ładuje TEN SAM globalny partials/header.html
+	co każda inna strona; ten part to nowa decyzja na wyraźną prośbę
+	użytkownika — WYŁĄCZNIE logo + link powrotu do frontu sklepu, bez
+	szukajki/nawigacji/dropdownów koszyka i konta z parts/header.html.
+	Podpięty w templates/page-cart.html zamiast wspólnego "header".
+-->
+<header class="site-header">
+  <div class="wrap header-row">
+    <a href="/" class="logo">
+      <span class="logo-name">qutlet</span><span class="logo-mark"></span>
+    </a>
+    <a href="/" class="continue-link header-back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"></path></svg>
+      Wróć do sklepu
+    </a>
+  </div>
+</header>
+<!-- /wp:html -->

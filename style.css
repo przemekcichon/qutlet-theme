@@ -248,6 +248,13 @@ a { color: inherit; }
 .logo-footer .logo-name { color: var(--ink); }
 .site-footer .logo-sub { display: block; color: var(--muted); margin-top: 10px; }
 
+/* Link powrotu w nagłówku minimalnym koszyka (parts/header-cart.html,
+   P-8.6a.2) — reużywa `.continue-link` (design/vanilla/css/style.css:459),
+   tylko bez jego `margin-top:22px` (myślany do treści strony, nie do wiersza
+   nagłówka) i dosunięty do prawej krawędzi, jak `.header-nav` gdzie indziej
+   w tym samym `.header-row` (`margin-left:auto`). */
+.header-back-link { margin-top: 0; margin-left: auto; }
+
 .search { flex: 1; max-width: 520px; position: relative; }
 .search svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); }
 .search input {
