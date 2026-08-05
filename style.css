@@ -1745,8 +1745,6 @@ body.qt-hide-nlband .nlband { display: none; }
 	border-top: 1px solid var(--line);
 	border-bottom: 1px solid var(--line);
 	margin-top: -1px;
-	padding-top: 20px;
-	padding-bottom: 20px;
 }
 /* WC stawia border-top na KAŻDYM <td> z osobna (`.wc-block-cart-items td`,
    cart.css), nie na wierszu — z display:flex na wierszu (wyżej) te dwa
@@ -1845,7 +1843,7 @@ body.qt-hide-nlband .nlband { display: none; }
 	justify-content: center;
 	cursor: help;
 }
-.qutlet-cart-badges { grid-column: 1; grid-row: 2; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
+.qutlet-cart-badges { grid-column: 1; grid-row: 2; display: flex; gap: 8px; flex-wrap: wrap; }
 .wc-block-components-product-metadata:empty { display: none; }
 .wc-block-cart-item__prices {
 	grid-column: 2 !important;
@@ -1887,7 +1885,6 @@ body.qt-hide-nlband .nlband { display: none; }
 .wc-block-cart-item__quantity {
 	grid-column: 1 / -1 !important;
 	grid-row: 3 !important;
-	margin-top: 6px;
 	display: flex !important;
 	flex-direction: row !important;
 	align-items: center !important;
@@ -1895,14 +1892,12 @@ body.qt-hide-nlband .nlband { display: none; }
 }
 
 /* Stepper ilości — prototyp go nie ma (tam to statyczny tekst "Ilość: 1 szt."),
-   ale koszyk realnie potrzebuje działającej zmiany ilości, więc dostaje
-   własny styl na wzór `.field input`/`.pill` z resztą motywu (border
-   var(--line), radius 10px, biały spód) zamiast domyślnego, przezroczystego
-   WC (border-radius 4px, przyciski o opacity .6). */
+   ale koszyk realnie potrzebuje działającej zmiany ilości. Bez własnej
+   ramki/tła (na wyraźną prośbę użytkownika) — same znaki „−"/„+"/liczba w
+   linii z resztą wiersza, zamiast domyślnego przezroczystego pudełka WC. */
 .wc-block-components-quantity-selector {
-	border: 1.5px solid var(--line);
+	border: none;
 	border-radius: 10px;
-	background: #fff;
 	width: auto;
 	height: 32px;
 }
