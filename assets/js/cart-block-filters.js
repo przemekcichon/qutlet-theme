@@ -207,6 +207,24 @@
 	}
 
 	/**
+	 * Etykieta wiersza „Razem" — WC-owy label to string „Estimated total"
+	 * tłumaczony (paczka językowa community, nie nasz kod) na „Szacowana
+	 * łączna kwota": poprawne, ale zbyt długie/toporne, na wyraźną prośbę
+	 * użytkownika zamienione na krótkie „Razem" (port `.summary-total`
+	 * prototypu, design/vanilla/koszyk.html:40). Podmiana przez DOM,
+	 * NIE filtr tłumaczeń — string leci z JS-owego bundla bloku Cart
+	 * (`wp.i18n`, nie PHP `__()`), więc `gettext`/`load_script_translation_file`
+	 * by nie trafiły; DOM injection już i tak jest mechanizmem całego pliku.
+	 */
+	function renameFooterTotalLabel() {
+		var label = document.querySelector('.wc-block-components-totals-footer-item .wc-block-components-totals-item__label');
+
+		if (label && label.textContent !== 'Razem') {
+			label.textContent = 'Razem';
+		}
+	}
+
+	/**
 	 * Mini-koszyk w headerze (`.cart-badge`/`.cart-menu`, D-8.6a.3) żyje na
 	 * classic `woocommerce_add_to_cart_fragments` + `wc-cart-fragments.js`,
 	 * który odświeża się na zdarzenie jQuery `wc_fragment_refresh` — ale
@@ -236,6 +254,7 @@
 	function inject() {
 		injectItemBadges();
 		injectSummaryRows();
+		renameFooterTotalLabel();
 		refreshHeaderFragmentsOnChange();
 	}
 

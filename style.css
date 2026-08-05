@@ -2106,9 +2106,21 @@ body.qt-hide-nlband .nlband { display: none; }
 	border-top: 1px solid var(--line);
 	margin-top: 10px;
 	padding-top: 15px;
-	font-family: var(--font-display);
-	font-weight: 800;
-	font-size: 22px;
+}
+/* Font „Razem"/kwoty — WC deklaruje WŁASNY font-weight/font-size DIREKTNIE
+   na labelu i wartości (`.wc-block-components-totals-footer-item
+   .wc-block-components-totals-item__label`/`__value`, cart.css, 0,2,0) —
+   ustawienie fontu na RODZICU (reguła wyżej) nic tu nie dawało, dziecko ma
+   własną, bardziej specyficzną deklarację, która wygrywa niezależnie od
+   stylu odziedziczonego z rodzica (zweryfikowane computed style). Port
+   `.summary-total` prototypu (design/vanilla/css/style.css:469-472) —
+   ten sam selektor co WC, żeby trafić w oba naraz. */
+.wc-block-components-totals-footer-item .wc-block-components-totals-item__label,
+.wc-block-components-totals-footer-item .wc-block-components-totals-item__value {
+	font-family: var(--font-display) !important;
+	font-weight: 800 !important;
+	font-size: 22px !important;
+	color: var(--ink) !important;
 }
 .wp-block-woocommerce-proceed-to-checkout-block { margin-top: 18px; }
 /* Prawdziwa klasa przycisku (`.wc-block-cart__submit-button`) — WCowy
