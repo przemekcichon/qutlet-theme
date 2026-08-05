@@ -1798,34 +1798,39 @@ body.qt-hide-nlband .nlband { display: none; }
 	column-gap: 16px;
 	align-items: start;
 }
-/* Kontener nazwy + ikonki "?" (tooltip pełnej nazwy) — TEN dostaje
-   umiejscowienie w gridzie (kolumna 1, wiersz 1), nie sama nazwa, bo od tej
-   rundy nazwa i ikonka współdzielą jedną komórkę. */
-.qutlet-name-row {
-	grid-column: 1 !important;
-	grid-row: 1 !important;
-	display: flex !important;
-	align-items: baseline;
-	gap: 5px;
-	min-width: 0;
-}
 .wc-block-components-product-name {
-	/* Grid/flex items dostają domyślnie min-width:auto (szerokość liczona
+	/* Kolumna 1, wiersz 1 — DIREKTNIE na `nameEl` (nie na osobnym
+	   kontenerze!). Wcześniejsza wersja owijała nazwę we wspólny `<span>`
+	   z ikonką „?" — czyli PRZENOSIŁA węzeł DOM Reacta (`nameRow.appendChild(nameEl)`)
+	   do nowego rodzica. Cart Block jest komponentem Reacta: React śledzi
+	   WŁASNE referencje do węzłów, a przeniesienie jednego z nich do innego
+	   rodzica psuje to śledzenie — przy najbliższym re-renderze (usunięcie
+	   INNEJ pozycji z koszyka, przeliczenie sumy) React próbuje
+	   `removeChild` węzła, który już nie jest dzieckiem oczekiwanego
+	   rodzica → crash "Unexpected error in: woocommerce/cart-line-items-block"
+	   (zgłoszone przez użytkownika — mimo że dane w koszyku były
+	   poprawne, sam re-render Reacta wywalał wyjątek). Poprawka: `nameEl`
+	   NIGDY nie zmienia rodzica, ikonka to OSOBNY węzeł dopisany do
+	   `wrap` (patrz `injectItemBadges()`), w TEJ SAMEJ komórce gridu
+	   (`justify-self:start` na obu, więc się nie stretchują) —
+	   pozycjonowanie „za nazwą" liczone w JS przez `margin-left`
+	   (`updateNameTruncation()`), nie przez wspólny flex-kontener.
+
+	   Grid items dostają domyślnie min-width:auto (szerokość liczona
 	   z treści) — bez zerowania długie nazwy NIE przycinały się elipsą,
-	   tylko rozpychały wiersz. `flex: 0 1 auto` + `max-width: 80%` (nie
-	   `flex: 1 1 auto`, bez `max-width`) — na wyraźną prośbę użytkownika:
-	   elipsa ma się pojawiać TYLKO, gdy nazwa przekroczy 80% szerokości
-	   wiersza, nie zawsze wypełniać cały dostępny wiersz. Krótkie nazwy
-	   zostają swojej naturalnej szerokości (content-box), długie ucinają
-	   się na granicy 80%. Widoczność `.qutlet-name-tooltip` (klasa
-	   `.is-truncated`, JS: `updateNameTruncation()`) idzie za TYM SAMYM
-	   pomiarem realnego przycięcia (`scrollWidth > clientWidth`), nie za
-	   samą obecnością elipsy w CSS. WC ma tu WŁASNY `max-width:max-content`
+	   tylko rozpychały wiersz. `max-width:80%` (nie 100%) — na wyraźną
+	   prośbę użytkownika: elipsa ma się pojawiać TYLKO, gdy nazwa
+	   przekroczy 80% szerokości wiersza. Widoczność `.qutlet-name-tooltip`
+	   (klasa `.is-truncated`, JS) idzie za TYM SAMYM pomiarem realnego
+	   przycięcia (`scrollWidth > clientWidth`), nie za samą obecnością
+	   elipsy w CSS. WC ma tu WŁASNY `max-width:max-content`
 	   (`table.wc-block-cart-items .wc-block-cart-items__row
 	   .wc-block-components-product-name`, 0,2,1 — bije nasze 0,1,0), stąd
 	   `!important` (zweryfikowane computed style, nie tylko zrzut ekranu —
 	   ten sam trik dziedziczenia co reszta tej sekcji). */
-	flex: 0 1 auto;
+	grid-column: 1 !important;
+	grid-row: 1 !important;
+	justify-self: start;
 	max-width: 80% !important;
 	min-width: 0;
 	overflow: hidden;
@@ -1839,10 +1844,16 @@ body.qt-hide-nlband .nlband { display: none; }
 }
 /* Ikonka "?" — domyślnie schowana, JS pokazuje ją (`.is-truncated`)
    WYŁĄCZNIE gdy nazwa faktycznie się przycięła (patrz komentarz wyżej);
-   pełna nazwa w atrybucie `title`. */
+   pełna nazwa w atrybucie `title`. Ta sama komórka gridu co nazwa
+   (`grid-column:1; grid-row:1`) — `margin-left` (JS, `updateNameTruncation()`)
+   ją przesuwa za renderowaną (możliwe, że przyciętą) szerokość nazwy,
+   `justify-self:start` na obu zapobiega rozciągnięciu na całą kolumnę. */
 .qutlet-name-tooltip {
 	display: none;
-	flex-shrink: 0;
+	grid-column: 1 !important;
+	grid-row: 1 !important;
+	justify-self: start;
+	align-self: center;
 	width: 16px;
 	height: 16px;
 	border-radius: 50%;

@@ -81,31 +81,40 @@
 			var nameEl = row.querySelector('.wc-block-components-product-name');
 			var wrap = row.querySelector('.wc-block-cart-item__wrap');
 
-			// Owija nazwę produktu + ikonkę "?" (tooltip z pełną nazwą, na
-			// wypadek przycięcia elipsą w CSS) we wspólny kontener — inaczej
-			// obie zajmowałyby tę samą komórkę gridu (kolizja), a nie da się
-			// pozycjonować samej ikonki bez wspólnego rodzica.
-			if (nameEl && !nameEl.parentElement.classList.contains('qutlet-name-row')) {
-				var nameRow = document.createElement('span');
-				nameRow.className = 'qutlet-name-row';
-				nameEl.insertAdjacentElement('beforebegin', nameRow);
-				nameRow.appendChild(nameEl);
+			if (!wrap) {
+				return;
+			}
 
+			// Ikonka "?" — WYŁĄCZNIE dopisana jako nowy węzeł do `wrap`, NIGDY
+			// nie owijamy/przenosimy `nameEl` samego (poprzednia wersja robiła
+			// `nameRow.appendChild(nameEl)` — przenosiła węzeł Reacta do nowego
+			// rodzica). Cart Block to komponent Reacta: przeniesienie jego
+			// węzła psuje wewnętrzne śledzenie DOM przez Reacta, a przy
+			// najbliższym re-renderze (np. usunięcie INNEJ pozycji z koszyka,
+			// przeliczenie sumy) React próbuje `removeChild` węzła, który już
+			// nie jest dzieckiem oczekiwanego rodzica → crash "Unexpected
+			// error in: woocommerce/cart-line-items-block" (zgłoszone przez
+			// użytkownika — błąd występował tylko po dodaniu tego wrappera).
+			// Pozycja ikonki „za nazwą" liczona w JS (`updateNameTruncation()`,
+			// `margin-left` na podstawie realnej renderowanej szerokości
+			// nazwy) — obie są w TEJ SAMEJ komórce gridu (kolumna 1, wiersz 1),
+			// bez wspólnego kontenera.
+			if (nameEl && !wrap.querySelector('.qutlet-name-tooltip')) {
 				var tip = document.createElement('span');
 				tip.className = 'qutlet-name-tooltip';
 				tip.textContent = '?';
 				tip.title = item.name || '';
-				nameRow.appendChild(tip);
+				wrap.appendChild(tip);
 			}
 
-			if (ext.klasa_stanu && !row.querySelector('.qutlet-cart-badges')) {
+			if (ext.klasa_stanu && !wrap.querySelector('.qutlet-cart-badges')) {
 				var dot = escHtml(String(ext.klasa_stanu).toLowerCase());
 				var badges = document.createElement('div');
 				badges.className = 'qutlet-cart-badges';
 				badges.innerHTML =
 					'<span class="pill"><span class="dot dot-' + dot + '"></span>Klasa ' + escHtml(ext.klasa_stanu) + '</span>' +
 					'<span class="pill">Gwarancja 1 rok</span>';
-				(nameEl.parentElement || row).insertAdjacentElement('afterend', badges);
+				wrap.appendChild(badges);
 			}
 
 			// Stara cena w JEDNEJ LINII z odznakami (ten sam wiersz gridu, druga
@@ -114,7 +123,7 @@
 			// Etykieta "Nowy za" (poza prototypem, na wyraźną prośbę
 			// użytkownika) w osobnym spanie BEZ przekreślenia — przekreślona
 			// jest tylko sama kwota (`.cart-old-price-value`).
-			if (ext.old_price_formatted && !row.querySelector('.cart-old-price') && wrap) {
+			if (ext.old_price_formatted && !row.querySelector('.cart-old-price')) {
 				var oldPrice = document.createElement('small');
 				oldPrice.className = 'cart-old-price';
 				oldPrice.innerHTML =
@@ -134,22 +143,31 @@
 	 * powinny dostawać znaczka). Mierzone realnym `scrollWidth > clientWidth`,
 	 * nie samą obecnością `max-width` w CSS — jedyny sposób odróżnić „nazwa
 	 * zmieściła się w 80%" od „nazwa przekroczyła 80% i się przycięła".
+	 *
+	 * Nazwa i ikonka są w TEJ SAMEJ komórce gridu (kolumna 1, wiersz 1) —
+	 * bez wspólnego kontenera (patrz komentarz w `injectItemBadges()` o tym,
+	 * czemu nie owijamy `nameEl`) — więc pozycję ikonki „za nazwą" liczymy
+	 * tu, `margin-left` na podstawie realnej (możliwe, że przyciętej)
+	 * renderowanej szerokości nazwy (`clientWidth`, NIE `scrollWidth` — to
+	 * byłaby szerokość PRZED przycięciem).
+	 *
 	 * Wywoływane po każdym wstrzyknięciu ORAZ po zmianie szerokości okna —
-	 * przycięcie zależy od dostępnej szerokości wiersza (patrz zgłoszenie o
-	 * węższych ekranach), nie tylko od długości nazwy.
+	 * przycięcie/pozycja zależą od dostępnej szerokości wiersza (patrz
+	 * zgłoszenie o węższych ekranach), nie tylko od długości nazwy.
 	 */
 	function updateNameTruncation() {
-		var rows = document.querySelectorAll('.qutlet-name-row');
+		var wraps = document.querySelectorAll('.wc-block-cart-item__wrap');
 
-		for (var i = 0; i < rows.length; i++) {
-			var nameEl = rows[i].querySelector('.wc-block-components-product-name');
-			var tip = rows[i].querySelector('.qutlet-name-tooltip');
+		for (var i = 0; i < wraps.length; i++) {
+			var nameEl = wraps[i].querySelector('.wc-block-components-product-name');
+			var tip = wraps[i].querySelector('.qutlet-name-tooltip');
 
 			if (!nameEl || !tip) {
 				continue;
 			}
 
 			tip.classList.toggle('is-truncated', nameEl.scrollWidth > nameEl.clientWidth + 1);
+			tip.style.marginLeft = (nameEl.clientWidth + 6) + 'px';
 		}
 	}
 
