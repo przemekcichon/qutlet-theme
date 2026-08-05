@@ -1800,49 +1800,78 @@ body.qt-hide-nlband .nlband { display: none; }
 	column-gap: 16px;
 	align-items: start;
 }
-.wc-block-components-product-name {
+/* Kontener nazwy + ikonki "?" (tooltip pełnej nazwy) — TEN dostaje
+   umiejscowienie w gridzie (kolumna 1, wiersz 1), nie sama nazwa, bo od tej
+   rundy nazwa i ikonka współdzielą jedną komórkę. */
+.qutlet-name-row {
 	grid-column: 1 !important;
 	grid-row: 1 !important;
-	/* Grid items dostają domyślnie min-width:auto (szerokość liczona z treści),
-	   więc bez zerowania długie nazwy NIE zawijały się w kolumnie 1fr, tylko
-	   rozpychały cały wiersz — zgłoszone przez użytkownika. */
+	display: flex !important;
+	align-items: baseline;
+	gap: 5px;
 	min-width: 0;
-	font-size: 16px;
-	font-weight: 700;
+}
+.wc-block-components-product-name {
+	/* Grid/flex items dostają domyślnie min-width:auto (szerokość liczona
+	   z treści) — bez zerowania długie nazwy NIE przycinały się elipsą,
+	   tylko rozpychały wiersz. Jedna linia + elipsa (nie zawijanie, jak
+	   poprzednio) — na wyraźną prośbę użytkownika, stąd `.qutlet-name-tooltip`
+	   obok, żeby pełna nazwa była gdzieś dostępna. */
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap !important;
+	font-size: 16px !important;
+	font-weight: 700 !important;
 	line-height: 1.3;
-	color: var(--ink);
+	color: var(--ink) !important;
 	text-decoration: none;
 }
-.qutlet-cart-badges { grid-column: 1; grid-row: 2; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 9px; }
+/* Ikonka "?" — czysty tytuł (natywny tooltip przeglądarki), bez własnego JS;
+   pełna nazwa w atrybucie `title` niezależnie od tego, czy nazwa w ogóle
+   się przycięła (prostsze niż mierzyć realny overflow w JS). */
+.qutlet-name-tooltip {
+	flex-shrink: 0;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: var(--panel);
+	color: var(--muted);
+	font-size: 11px;
+	font-weight: 700;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: help;
+}
+.qutlet-cart-badges { grid-column: 1; grid-row: 2; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
 .wc-block-components-product-metadata:empty { display: none; }
-/* WC ma tu `display:flex` (wiersz) — `.cart-old-price` mimo własnego
-   `display:block` układał się OBOK ceny, nie pod nią (w flexie display
-   dziecka nie ma znaczenia, liczy się flex-direction rodzica), zgłoszone
-   przez użytkownika. `flex-direction:column` układa cenę i starą cenę
-   pionowo, `align-items:flex-end` zostawia obie do prawej. */
 .wc-block-cart-item__prices {
 	grid-column: 2 !important;
 	grid-row: 1 !important;
 	justify-self: end;
-	flex-direction: column !important;
-	align-items: flex-end !important;
 	text-align: right;
 }
 .wc-block-cart-item__prices .wc-block-components-product-price__value {
-	font-family: var(--font-display);
-	font-weight: 800;
-	font-size: 19px;
+	font-family: var(--font-display) !important;
+	font-weight: 800 !important;
+	font-size: 19px !important;
 	white-space: nowrap;
 }
-/* Stara cena — WEWNĄTRZ `.wc-block-cart-item__prices` (dopisana tam przez JS,
-   nie osobny grid item), więc stackuje się pod ceną sprzedaży samym
-   `display:block`, bez własnego umiejscowienia w gridzie. Port
-   `.cart-row-price small` prototypu. */
+/* Stara cena — teraz OSOBNY grid item (wstrzykiwany jako rodzeństwo w
+   `.wc-block-cart-item__wrap`, nie zagnieżdżony w `.wc-block-cart-item__prices`),
+   w TYM SAMYM wierszu co odznaki (druga kolumna) — "Klasa, gwarancja i cena
+   nowego w jednej linii", na wyraźną prośbę użytkownika. Port
+   `.cart-row-price small` prototypu (waga 600 — „lekko pogrubiona"). */
 .cart-old-price {
-	display: block;
-	margin-top: 2px;
-	font-size: 12px;
-	color: var(--muted);
+	grid-column: 2 !important;
+	grid-row: 2 !important;
+	justify-self: end;
+	font-family: var(--font-body) !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	color: var(--muted) !important;
 	text-decoration: line-through;
 }
 .cart-old-price .woocommerce-Price-amount { color: inherit; }
@@ -1850,15 +1879,15 @@ body.qt-hide-nlband .nlband { display: none; }
    diva w DOM-ie bloku, nie osobnym rodzeństwem w `.wc-block-cart-item__wrap`
    (zweryfikowane runtime) — całość rozciągnięta na PEŁNĄ szerokość wiersza
    (obie kolumny), stepper wyrównany do lewej, „Usuń" do prawej — ilość pod
-   odznakami (lewa kolumna), usuń pod ceną (prawa kolumna), oba na tym samym
-   poziomie, jak w prototypie (`.cart-row-qty` / `.cart-row-remove`), tylko
-   połączone w jeden wspólny wiersz zamiast dwóch niezależnych komórek —
+   odznakami (lewa kolumna), usuń pod starą ceną (prawa kolumna), oba na tym
+   samym poziomie, jak w prototypie (`.cart-row-qty` / `.cart-row-remove"),
+   tylko połączone w jeden wspólny wiersz zamiast dwóch niezależnych komórek —
    DOM bloku Cart nie rozdziela stepera i „Usuń" na dwa osobne węzły, więc
    nie da się ich umieścić w dwóch kolumnach gridu bez przepisania komponentu. */
 .wc-block-cart-item__quantity {
 	grid-column: 1 / -1 !important;
 	grid-row: 3 !important;
-	margin-top: 9px;
+	margin-top: 6px;
 	display: flex !important;
 	flex-direction: row !important;
 	align-items: center !important;
@@ -1875,7 +1904,7 @@ body.qt-hide-nlband .nlband { display: none; }
 	border-radius: 10px;
 	background: #fff;
 	width: auto;
-	height: 38px;
+	height: 32px;
 }
 .wc-block-components-quantity-selector__input {
 	width: 34px;
@@ -1917,12 +1946,14 @@ body.qt-hide-nlband .nlband { display: none; }
 	font-size: 12.5px !important;
 	font-weight: 700 !important;
 }
-/* Blok Cart renderuje przycisk usunięcia jako sam SVG (bez tekstu, 24×24 —
-   dużo większy niż ikona kosza z prototypu, `QT.SVG.trash` 15×15) — dopisek
-   "Usuń" i pomniejszenie ikony jak w `.cart-row-remove` prototypu, bez
-   ingerencji w sam komponent. */
+/* Blok Cart renderuje przycisk usunięcia jako sam SVG (bez tekstu, 24×24) —
+   dopisek "Usuń" jak w `.cart-row-remove" prototypu, bez ingerencji w sam
+   komponent. Ikona nie zjeżdża 1:1 na `QT.SVG.trash` prototypu (15×15) —
+   to WYPEŁNIONY kształt WC (nie kontur jak w prototypie), przy 15px wyglądał
+   znacząco drobniej niż w prototypie mimo identycznego wymiaru, stąd większy
+   rozmiar na wyraźną prośbę użytkownika po porównaniu wizualnym. */
 .wc-block-cart-item__remove-link::after { content: "Usuń"; }
-.wc-block-cart-item__remove-link svg { width: 15px; height: 15px; }
+.wc-block-cart-item__remove-link svg { width: 19px; height: 19px; }
 
 /* Link powrotu — port `.continue-link` (design/vanilla/css/style.css:459),
    markup wstawiony jako custom HTML w treści Strony (nie block button — w

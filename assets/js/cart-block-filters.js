@@ -52,10 +52,11 @@
 	}
 
 	/**
-	 * Odznaka klasy stanu + gwarancja (obok nazwy produktu) i stara cena
-	 * (osobny blok WEWNĄTRZ kolumny ceny, pod ceną sprzedaży — jak
-	 * `.cart-row-price small` w prototypie) — dwa OSOBNE węzły DOM, nie
-	 * modyfikacje istniejących stringów (patrz nagłówek pliku).
+	 * Odznaka klasy stanu + gwarancja (w jednej linii ze starą ceną — trzy
+	 * osobne węzły DOM na tym samym wierszu gridu, dwie kolumny), ikonka „?"
+	 * z pełną nazwą w tooltipie obok (możliwe) przyciętej nazwy produktu —
+	 * żadna z tych operacji nie modyfikuje istniejących stringów (patrz
+	 * nagłówek pliku).
 	 */
 	function injectItemBadges() {
 		var data = getCartData();
@@ -78,24 +79,43 @@
 			}
 
 			var nameEl = row.querySelector('.wc-block-components-product-name');
+			var wrap = row.querySelector('.wc-block-cart-item__wrap');
 
-			if (nameEl && ext.klasa_stanu && !row.querySelector('.qutlet-cart-badges')) {
+			// Owija nazwę produktu + ikonkę "?" (tooltip z pełną nazwą, na
+			// wypadek przycięcia elipsą w CSS) we wspólny kontener — inaczej
+			// obie zajmowałyby tę samą komórkę gridu (kolizja), a nie da się
+			// pozycjonować samej ikonki bez wspólnego rodzica.
+			if (nameEl && !nameEl.parentElement.classList.contains('qutlet-name-row')) {
+				var nameRow = document.createElement('span');
+				nameRow.className = 'qutlet-name-row';
+				nameEl.insertAdjacentElement('beforebegin', nameRow);
+				nameRow.appendChild(nameEl);
+
+				var tip = document.createElement('span');
+				tip.className = 'qutlet-name-tooltip';
+				tip.textContent = '?';
+				tip.title = item.name || '';
+				nameRow.appendChild(tip);
+			}
+
+			if (ext.klasa_stanu && !row.querySelector('.qutlet-cart-badges')) {
 				var dot = escHtml(String(ext.klasa_stanu).toLowerCase());
 				var badges = document.createElement('div');
 				badges.className = 'qutlet-cart-badges';
 				badges.innerHTML =
 					'<span class="pill"><span class="dot dot-' + dot + '"></span>Klasa ' + escHtml(ext.klasa_stanu) + '</span>' +
 					'<span class="pill">Gwarancja 1 rok</span>';
-				nameEl.insertAdjacentElement('afterend', badges);
+				(nameEl.parentElement || row).insertAdjacentElement('afterend', badges);
 			}
 
-			var pricesEl = row.querySelector('.wc-block-cart-item__prices');
-
-			if (pricesEl && ext.old_price_formatted && !pricesEl.querySelector('.cart-old-price')) {
+			// Stara cena w JEDNEJ LINII z odznakami (ten sam wiersz gridu, druga
+			// kolumna) — NIE wewnątrz `.wc-block-cart-item__prices` (tam by
+			// stackowała się pod ceną sprzedaży, w innym wierszu niż odznaki).
+			if (ext.old_price_formatted && !row.querySelector('.cart-old-price') && wrap) {
 				var oldPrice = document.createElement('small');
 				oldPrice.className = 'cart-old-price';
 				oldPrice.innerHTML = ext.old_price_formatted;
-				pricesEl.appendChild(oldPrice);
+				wrap.appendChild(oldPrice);
 			}
 		});
 	}
