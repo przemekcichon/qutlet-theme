@@ -2415,8 +2415,21 @@ body.woocommerce-checkout .wp-block-post-title {
    ten sam fix co Cart Block (`.wc-block-components-main.wp-block-woocommerce-cart-items-block`
    wyżej): WC-owe `.wc-block-components-main`/`-sidebar` niosą własny
    `width: 65%`/`35%` z macierzystego layoutu flex-wrap, który w kontekście
-   grida liczyłby procent od szerokości TRACKA, nie całego rzędu. */
-.wp-block-woocommerce-checkout {
+   grida liczyłby procent od szerokości TRACKA, nie całego rzędu.
+   POPRAWKA (zgłoszenie użytkownika, sesja 2026-08-06 — podsumowanie
+   renderowało się pod formularzem na KAŻDEJ szerokości, nie tylko poniżej
+   900px): selektor `.wp-block-woocommerce-checkout` to zewnętrzny wrapper
+   bloku (align/id), NIE prawdziwy kontener layoutu — main/sidebar są
+   dziećmi INNEGO, głębiej zagnieżdżonego elementu,
+   `.wc-block-components-sidebar-layout.wc-block-checkout` (zweryfikowane
+   runtime: `main.parentElement === sidebar.parentElement`, ich wspólna
+   klasa to WŁAŚNIE ta para, nie `wp-block-woocommerce-checkout`). W
+   koszyku ten sam błąd by NIE wystąpił, gdyby nie przypadek: tam
+   `wp-block-woocommerce-filled-cart-block` i `wc-block-components-sidebar-layout`
+   SĄ tym samym elementem (dwie klasy na jednym divie) — w checkout to DWA
+   RÓŻNE, zagnieżdżone elementy, więc grid na zewnętrznym nie miał żadnego
+   efektu na faktyczne dzieci. */
+.wc-block-components-sidebar-layout.wc-block-checkout {
 	display: grid;
 	grid-template-columns: 1fr 420px;
 	gap: 40px;
@@ -2587,7 +2600,7 @@ body.woocommerce-checkout .wp-block-post-title {
 }
 
 @media (max-width: 900px) {
-	.wp-block-woocommerce-checkout { grid-template-columns: 1fr; }
+	.wc-block-components-sidebar-layout.wc-block-checkout { grid-template-columns: 1fr; }
 	/* Ten sam trik specyficzności co Cart Block wyżej (0,2,0) — `position:
 	   sticky` z reguły desktopowej wygrywa mimo media query bez selektora
 	   złożonego. */
