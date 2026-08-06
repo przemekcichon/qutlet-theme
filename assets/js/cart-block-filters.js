@@ -233,7 +233,20 @@
 
 			if (!select) {
 				var min = parseInt(nativeInput.min, 10) || 1;
-				var max = parseInt(nativeInput.max, 10) || min;
+				// `Math.max(…, item.quantity)` — jeśli obecna ilość w koszyku jest
+				// (teoretycznie) POZA przeliczonym `max` natywnego inputu (np. stan
+				// magazynowy spadł PO dodaniu do koszyka, w innej karcie/sesji),
+				// opcja dla niej i tak istnieje — inaczej `<select>` nie miałby
+				// gdzie ustawić bieżącej wartości (`select.value=…` niżej trafiłoby
+				// w nieistniejącą opcję, natywny `<input type="number">` tego
+				// problemu nie ma, bo pokazuje liczbę niezależnie od atrybutu `max`).
+				// `Math.min(…, 50)` — górny cap na wszelki wypadek: produkt bez
+				// zarządzanego stanu magazynowego dostaje z Store API `max=9999`
+				// (`QuantityLimits::adjust_product_quantity_limit()`), co przy tym
+				// modelu biznesowym (pojedyncze/limitowane egzemplarze) nie powinno
+				// się zdarzyć, ale 9999 węzłów `<option>` byłoby bezsensowne, gdyby
+				// się zdarzyło.
+				var max = Math.max( Math.min( parseInt(nativeInput.max, 10) || min, 50 ), item.quantity );
 
 				select = document.createElement('select');
 				select.className = 'qutlet-qty-select';
