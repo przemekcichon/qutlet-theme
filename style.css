@@ -1831,7 +1831,17 @@ body.woocommerce-cart .nlband { display: none; }
 	column-gap: 16px;
 	align-items: start;
 }
-.wc-block-components-product-name {
+/* Selektor SCOPE'OWANY do `.wc-block-cart-item__wrap` (kontener grida
+   koszyka) — POPRAWKA (zgłoszenie użytkownika, sesja 2026-08-06): ta sama
+   klasa `.wc-block-components-product-name` żyje TAKŻE w podsumowaniu
+   kasy (P-8.6b), gdzie kontekst jest flex-column, nie grid. Gołe
+   `max-width:80% !important`/`white-space:nowrap !important` (bez
+   scope'owania) nie miały tam żadnego sensownego ograniczenia szerokości
+   (procent liczony od flex-column, który sam rósł do szerokości treści —
+   pętla: nazwa nie zawija się → kolumna rośnie → 80% z rosnącej kolumny
+   dalej nie ogranicza) — nazwa produktu wyjeżdżała poza kartę
+   podsumowania. Reguła kasy niżej (sekcja „Kasa"). */
+.wc-block-cart-item__wrap .wc-block-components-product-name {
 	/* Kolumna 1, wiersz 1 — DIREKTNIE na `nameEl` (nie na osobnym
 	   kontenerze!). Wcześniejsza wersja owijała nazwę we wspólny `<span>`
 	   z ikonką „?" — czyli PRZENOSIŁA węzeł DOM Reacta (`nameRow.appendChild(nameEl)`)
@@ -1881,7 +1891,7 @@ body.woocommerce-cart .nlband { display: none; }
    (`grid-column:1; grid-row:1`) — `margin-left` (JS, `updateNameTruncation()`)
    ją przesuwa za renderowaną (możliwe, że przyciętą) szerokość nazwy,
    `justify-self:start` na obu zapobiega rozciągnięciu na całą kolumnę. */
-.qutlet-name-tooltip {
+.wc-block-cart-item__wrap .qutlet-name-tooltip {
 	display: none;
 	grid-column: 1 !important;
 	grid-row: 1 !important;
@@ -1899,9 +1909,15 @@ body.woocommerce-cart .nlband { display: none; }
 	cursor: help;
 }
 .qutlet-name-tooltip.is-truncated { display: inline-flex; }
-.qutlet-cart-badges { grid-column: 1; grid-row: 2; display: flex; gap: 8px; flex-wrap: wrap; }
+.wc-block-cart-item__wrap .qutlet-cart-badges { grid-column: 1; grid-row: 2; }
+.qutlet-cart-badges { display: flex; gap: 8px; flex-wrap: wrap; }
 .wc-block-components-product-metadata:empty { display: none; }
-.wc-block-cart-item__prices {
+/* Pozycjonowanie (grid-column/row/justify-self/text-align) scope'owane do
+   koszyka (`.wc-block-cart-item__wrap`) — w kasie ten sam element żyje w
+   flex-column (patrz nota przy `.wc-block-components-product-name` wyżej),
+   `text-align:right` bez scope'owania right-alignowałoby cenę jednostkową
+   pod lewo-wyrównaną nazwą, niespójnie z resztą kolumny. */
+.wc-block-cart-item__wrap .wc-block-cart-item__prices {
 	grid-column: 2 !important;
 	grid-row: 1 !important;
 	justify-self: end;
@@ -1918,10 +1934,12 @@ body.woocommerce-cart .nlband { display: none; }
    w TYM SAMYM wierszu co odznaki (druga kolumna) — "Klasa, gwarancja i cena
    nowego w jednej linii", na wyraźną prośbę użytkownika. Port
    `.cart-row-price small` prototypu (waga 600 — „lekko pogrubiona"). */
-.cart-old-price {
+.wc-block-cart-item__wrap .cart-old-price {
 	grid-column: 2 !important;
 	grid-row: 2 !important;
 	justify-self: end;
+}
+.cart-old-price {
 	display: flex;
 	align-items: baseline;
 	gap: 4px;
@@ -1970,11 +1988,13 @@ body.woocommerce-cart .nlband { display: none; }
    ceny/stara cena wyżej) — wstawiane przez JS WYŁĄCZNIE gdy produkt ma
    `cena_rynkowa_nowego` wyższą od ceny sprzedaży (Cart::cart_item_data()),
    inaczej węzeł się nie pojawia. */
-.qutlet-item-savings {
+.wc-block-cart-item__wrap .qutlet-item-savings {
 	grid-column: 2;
 	grid-row: 3;
 	justify-self: end;
 	align-self: center;
+}
+.qutlet-item-savings {
 	background: var(--green-bg);
 	color: var(--green-ink);
 	font-weight: 700;
@@ -1982,6 +2002,7 @@ body.woocommerce-cart .nlband { display: none; }
 	border-radius: 8px;
 	padding: 5px 10px;
 	white-space: nowrap;
+	align-self: flex-start;
 }
 
 /* Stepper natywny (+/-/input) — ZASTĄPIONY dropdownem (na wyraźną prośbę
@@ -2320,7 +2341,7 @@ body.woocommerce-cart .wp-block-post-title {
 	   `!important` konieczne na white-space/max-width, baza (linia ~1846)
 	   też ich używa. Ikonka „?" znika RAZEM z mechanizmem przycinania (nie
 	   osobny wyłącznik) — bez ellipsy nie ma czego tłumaczyć w tooltipie. */
-	.wc-block-components-product-name {
+	.wc-block-cart-item__wrap .wc-block-components-product-name {
 		grid-column: 2 !important;
 		grid-row: 1 !important;
 		max-width: 100% !important;
@@ -2329,7 +2350,7 @@ body.woocommerce-cart .wp-block-post-title {
 		text-overflow: clip;
 		font-size: 14px !important;
 	}
-	.qutlet-name-tooltip { display: none !important; }
+	.wc-block-cart-item__wrap .qutlet-name-tooltip { display: none !important; }
 
 	/* Runda 4 (sesja 2026-08-06): przegrupowanie wierszy pod spodem —
 	   „Oszczędzasz X" (nowość, patrz `.qutlet-item-savings` przy regule
@@ -2341,7 +2362,7 @@ body.woocommerce-cart .wp-block-post-title {
 	   z trzema liczbami. Odznaki i akcje (ilość+usuń) schodzą o wiersz niżej
 	   (4, 5) niż w rundzie 3. Wiersz najwyższego poziomu (miniaturka+nazwa,
 	   1) NIETKNIĘTY. */
-	.wc-block-cart-item__prices {
+	.wc-block-cart-item__wrap .wc-block-cart-item__prices {
 		grid-column: 1 / -1 !important;
 		grid-row: 2 !important;
 		justify-self: start;
@@ -2352,15 +2373,15 @@ body.woocommerce-cart .wp-block-post-title {
 	/* Stara cena — na mobile PO LEWEJ (odwrotnie niż desktop, gdzie dzieli
 	   kolumnę 2 z ceną główną) — na tym wierszu jest teraz sama, „Oszczędzasz"
 	   bierze prawą stronę. */
-	.cart-old-price {
+	.wc-block-cart-item__wrap .cart-old-price {
 		grid-column: 1 / -1 !important;
 		grid-row: 3 !important;
 		justify-self: start;
 	}
-	.qutlet-item-savings { grid-column: 1 / -1 !important; grid-row: 3 !important; }
+	.wc-block-cart-item__wrap .qutlet-item-savings { grid-column: 1 / -1 !important; grid-row: 3 !important; }
 
 	/* Odznaki (klasa + gwarancja) — pełna szerokość, wiersz 4. */
-	.qutlet-cart-badges { grid-column: 1 / -1 !important; grid-row: 4 !important; }
+	.wc-block-cart-item__wrap .qutlet-cart-badges { grid-column: 1 / -1 !important; grid-row: 4 !important; }
 
 	/* Ilość + usuń — pełna szerokość, ostatni wiersz (5). Kolumna już `1/-1`
 	   z reguły bazowej, tu tylko wiersz nadpisany. Kontrolka usuń Z IKONKĄ I
