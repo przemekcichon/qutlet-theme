@@ -2721,6 +2721,24 @@ body.woocommerce-checkout .wp-block-post-title {
 .wp-block-woocommerce-checkout-order-summary-coupon-form-block.wc-block-components-totals-wrapper {
 	border-top: none !important;
 }
+/* Wiersz „Razem" ma WŁASNY wrapper (`.wc-block-components-totals-wrapper`,
+   gołą klasą — jedyny w tym miejscu, który OTACZA
+   `.wc-block-components-totals-footer-item`, stąd `:has()`, ten sam wzorzec
+   co koszyk wyżej) z natywnym `padding-top:16px` + `border-top` (0,8px,
+   czarny 20% alpha) — DODATKOWY do `margin-top:10px`/`padding-top:15px`/
+   `border-top` już ustawionych na SAMYM `.wc-block-components-totals-footer-item`
+   (reguła niżej). Efekt: podwójny odstęp nad „Razem" (zmierzone: ~43px
+   zamiast ~26px) — zgłoszone przez użytkownika jako „zbędne marginesy
+   powyżej przycisku" (przycisk dopiero PO tym wierszu, ale odstęp nad
+   Razem wizualnie odpychał też i jego). Rodzic tego wrappera w kasie to
+   `.wc-block-components-checkout-order-summary__content` (INNY poziom
+   zagnieżdżenia niż w koszyku, `...-summary-block` bezpośrednio) —
+   scope'owane przez `.wc-block-checkout__sidebar`, nie przez dokładnego
+   rodzica, żeby nie łamać się przy kolejnej różnicy struktury DOM. */
+.wc-block-checkout__sidebar .wc-block-components-totals-wrapper:has(> .wc-block-components-totals-footer-item) {
+	border-top: none !important;
+	padding-top: 0 !important;
+}
 
 @media (max-width: 900px) {
 	.wc-block-components-sidebar-layout.wc-block-checkout { grid-template-columns: 1fr; }
