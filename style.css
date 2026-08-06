@@ -2655,7 +2655,26 @@ body.woocommerce-checkout .wp-block-post-title {
    (zweryfikowane runtime, `getBoundingClientRect`). Koszyk nie ma tego
    elementu w ogóle (inny, prostszy nagłówek), stąd rozjazd widoczny
    tylko tutaj. */
-.wc-block-components-checkout-order-summary__title { margin-top: 0; }
+.wp-block-woocommerce-checkout-order-summary-block .wc-block-components-checkout-order-summary__title {
+	margin-top: 0 !important;
+}
+/* Cztery dodatkowe naprawy paddingów/marginesów natywnie ustawionych przez
+   WC pod `@container (min-width: 700px)` (zidentyfikowane przez
+   użytkownika bezpośrednio w DevTools, sesja 2026-08-06) — kontener
+   `.wp-block-woocommerce-checkout` ma własny `container-type:inline-size`,
+   więc te reguły WC żyją w `@container`, nie zwykłym media query; zwykłe
+   (bez `@container`) nadpisanie działa identycznie, bo specyficzność liczy
+   się z SELEKTORA, nie z tego, czy reguła siedzi w `@container` czy nie. */
+.wp-block-woocommerce-checkout.alignwide.wc-block-checkout {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+.wc-block-checkout__sidebar .wc-block-components-order-summary {
+	padding: 0 !important;
+}
+.wp-block-woocommerce-checkout-order-summary-block .wc-block-components-checkout-order-summary__title .wc-block-components-checkout-order-summary__title-text {
+	margin: 0 0 8px !important;
+}
 
 /* Wiersz pozycji w podsumowaniu — port `.co-item`/`.co-item-title`/
    `.co-item-price` (design/vanilla/css/style.css:520-523,
@@ -2664,16 +2683,20 @@ body.woocommerce-checkout .wp-block-post-title {
    prototypem): bez kolorowych chipów klasy/gwarancji, bez starej ceny/
    pigułki oszczędności per pozycja (usunięte razem z `injectSavingsRow`
    w assets/js/checkout-block-filters.js — poprzednia wersja tej sekcji).
-   Miniaturka przestylowana na wygląd koszyka (`.wc-block-cart-item__image img`
-   wyżej, 88px) zamiast natywnego 48px WC. */
+   Miniaturka: SZEROKOŚĆ jak koszyk (`.wc-block-cart-item__image img` wyżej,
+   88px), WYSOKOŚĆ zostaje natywna WC 48px — na wyraźną prośbę użytkownika
+   (gęstszy wiersz w kompaktowym podsumowaniu kasy niż w pełnej liście
+   koszyka; `object-fit:contain` nie zniekształca zdjęcia w niekwadratowej
+   ramce, tylko kadruje dostępną wysokość). */
 .wc-block-components-order-summary-item {
 	border-bottom: 1px solid var(--line-soft);
 	padding-top: 11px;
 	padding-bottom: 11px;
 }
 .wc-block-components-order-summary-item__image img {
-	width: 88px;
-	height: 88px;
+	width: 88px !important;
+	max-width: 88px !important;
+	height: 48px;
 	box-sizing: border-box;
 	object-fit: contain;
 	border-radius: 12px;
