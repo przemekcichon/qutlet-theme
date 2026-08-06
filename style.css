@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.19
+Version:           0.1.23
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -2384,3 +2384,317 @@ body.woocommerce-cart .wp-block-post-title {
 	   „Usuń" zostawał tuż przy etykiecie, nie na prawym krańcu wiersza). */
 	.wc-block-cart-item__remove-link { order: 3; margin-left: auto !important; }
 }
+
+/* ---------- Kasa (P-8.6b) ----------
+   Checkout Block (`wp:woocommerce/checkout`, D-8.6b — ten sam wzorzec co
+   koszyk, D-8.6a.1) reskinowany przez natywne klasy `wc-block-*`, jak Cart
+   Block wyżej — `.form-card`/`.step-title`/`.step-num`/`.option-list`/
+   `.option`/`.agree-row` (już wyżej w pliku, sekcja Kontakt, P-8.5) NIE są
+   dopisywane przez JS jako classNames (React nie renderuje ich pod tymi
+   nazwami) — te reguły niżej celują WPROST w natywne selektory WC, z tymi
+   samymi wartościami co odpowiadające im klasy prototypu, żeby nie
+   duplikować liczb w dwóch miejscach bez potrzeby.
+   `.qutlet-cart-badges`/`.cart-old-price`/`.qutlet-item-savings`/
+   `.qutlet-cart-savings-note` (odznaki/stara cena/oszczędności per wiersz +
+   zielony box podsumowania) to REUŻYTE, już zdefiniowane wyżej (sekcja
+   Koszyk) klasy — `assets/js/checkout-block-filters.js` wstrzykuje te SAME
+   węzły co `cart-block-filters.js` (D-12.G2), więc bez osobnych reguł: te
+   klasy są bare/globalne (nieopakowane selektorem `.wc-block-cart-*`), stąd
+   automatycznie działają identycznie w obu blokach. */
+
+/* Tytuł strony — ten sam wzorzec co koszyk (`body.woocommerce-cart
+   .wp-block-post-title` wyżej): `wp:post-title` bez klasy `.page-title`,
+   dociągnięty tu do tej samej typografii. */
+body.woocommerce-checkout .wp-block-post-title {
+	font-family: var(--font-display);
+	font-size: clamp(28px, 3.2vw, 40px);
+	font-weight: 800;
+}
+
+/* Układ 2-kolumnowy (port `.co-layout`, design/vanilla/css/style.css:476) —
+   ten sam fix co Cart Block (`.wc-block-components-main.wp-block-woocommerce-cart-items-block`
+   wyżej): WC-owe `.wc-block-components-main`/`-sidebar` niosą własny
+   `width: 65%`/`35%` z macierzystego layoutu flex-wrap, który w kontekście
+   grida liczyłby procent od szerokości TRACKA, nie całego rzędu. */
+.wp-block-woocommerce-checkout {
+	display: grid;
+	grid-template-columns: 1fr 420px;
+	gap: 40px;
+	align-items: start;
+}
+.wc-block-components-main.wp-block-woocommerce-checkout-fields-block {
+	width: auto;
+	padding: 0;
+}
+
+/* Kroki formularza jako karty (port `.form-card`/`.step-title`/`.step-num`,
+   design/vanilla/css/style.css:478-483, już wyżej w pliku jako klasy —
+   tutaj te SAME wartości pod natywnymi selektorami WC, bo Checkout Block
+   nie da się opisać dopisanymi classNames). Licznik numeruje kroki
+   automatycznie (`counter-increment`/`::before`) zamiast hardkodować
+   `<span class="step-num">1</span>` w PHP — WC renderuje te fieldsety samo,
+   bez punktu wstrzyknięcia znacznika kroku w markupie. */
+.wp-block-woocommerce-checkout-fields-block form {
+	counter-reset: qutlet-checkout-step;
+}
+.wc-block-components-checkout-step {
+	background: #fff !important;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	padding-top: 24px;
+	padding-bottom: 24px;
+	padding-left: 26px;
+	padding-right: 26px;
+	margin-bottom: 16px;
+}
+.wc-block-components-checkout-step__heading-container { margin-bottom: 18px; }
+/* Selektor potomny (`.wc-block-components-checkout-step .…__title`), NIE
+   goły `.wc-block-components-checkout-step__title` — WC reużywa TĘ SAMĄ
+   klasę tytułu też dla nagłówka „Podsumowanie zamówienia" (współdzielony
+   komponent `<Title>`), który na mobile chowa się w tym samym miejscu co
+   kroki formularza, ale NIE jest krokiem (brak przodka `.checkout-step`,
+   zweryfikowane runtime) — goły selektor numerowałby go jako „5.", co nie
+   ma sensu (zgłoszone przez zrzut ekranu mobile, sesja 2026-08-06). */
+.wc-block-components-checkout-step .wc-block-components-checkout-step__title {
+	font-size: 17px;
+	font-weight: 800;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	counter-increment: qutlet-checkout-step;
+}
+.wc-block-components-checkout-step .wc-block-components-checkout-step__title::before {
+	content: counter(qutlet-checkout-step);
+	width: 27px;
+	height: 27px;
+	border-radius: 50%;
+	background: var(--ink);
+	color: #fff;
+	font-size: 13px;
+	font-weight: 800;
+	display: grid;
+	place-items: center;
+	font-family: var(--font-display);
+	flex-shrink: 0;
+}
+
+/* Pola tekstowe/select (adres, kontakt) — port kolorów/promienia `.field
+   input` (design/vanilla/css/style.css:488-492). Natywny mechanizm
+   „floating label" WC ZOSTAJE (inny niż `.field label` prototypu, ale
+   funkcjonalnie równoważny — etykieta nad polem po wypełnieniu) — reskin
+   WYŁĄCZNIE koloru/promienia obramowania, nie przepisanie komponentu. */
+.wc-block-components-text-input input,
+.wc-blocks-components-select__select {
+	border-radius: 10px !important;
+	border-color: var(--line) !important;
+}
+.wc-block-components-text-input input:focus,
+.wc-blocks-components-select__select:focus {
+	border-color: var(--accent) !important;
+}
+
+/* Opcje dostawy/płatności (port `.option`/`.option-info`/`.option-name`/
+   `.option-desc`/`.option-price`, design/vanilla/css/style.css:495-514) —
+   natywny radio ZOSTAJE (native input, akcent koloru przez `accent-color`),
+   nie custom `.radio-ring` — DOM WC nie ma odpowiadającego węzła bez
+   przepisania komponentu. WC pozycjonuje `<input>` ABSOLUTNIE (`left:16px`,
+   szerokość 20px) i liczy na WŁASNY `padding-left` (zzuty naszą regułą
+   niżej) na etykiecie, żeby zrobić dla niego miejsce — bez większego
+   `padding-left` niż `padding-right`/`-top`/`-bottom` tekst nachodził na
+   kontrolkę (zweryfikowane runtime/zrzut ekranu, sesja 2026-08-06). */
+.wc-block-components-radio-control__option {
+	border: 1.5px solid var(--line);
+	border-radius: 12px;
+	padding-top: 15px;
+	padding-bottom: 15px;
+	padding-left: 50px;
+	padding-right: 16px;
+}
+.wc-block-components-radio-control__option-checked {
+	border-color: var(--accent);
+}
+.wc-block-components-radio-control__input { accent-color: var(--accent); }
+.wc-block-components-radio-control__label { font-weight: 700; font-size: 14.5px; }
+.wc-block-components-radio-control__secondary-label { font-weight: 800; font-size: 14.5px; }
+
+/* Regulamin (port `.agree-row`, design/vanilla/css/style.css:516-519) —
+   tekst natywny WC („Kontynuując zamówienie…"), NIE literalny tekst
+   prototypu o 14-dniowym prawie zwrotu (ten wymaga edycji treści bloku w
+   Site Editorze/DB, nie kodu motywu — poza zakresem tej poprawki, patrz PR). */
+.wc-block-checkout__terms {
+	font-size: 13px;
+	color: var(--ink-soft);
+	margin-top: 16px;
+	line-height: 1.5;
+}
+.wc-block-checkout__terms a { color: var(--accent); font-weight: 700; }
+
+/* Przycisk złożenia zamówienia — port `.btn-primary`/`.btn-lg`/`.btn-block`
+   (design/vanilla/css/style.css:69-70,75,111 — radius 12px, NIE pill), ten
+   sam wzorzec co `.wc-block-cart__submit-button` wyżej. */
+.wc-block-components-checkout-place-order-button {
+	background: var(--accent) !important;
+	color: #fff !important;
+	border-radius: 12px !important;
+	font-family: var(--font-display) !important;
+	font-size: 16px !important;
+	padding-top: 16px !important;
+	padding-bottom: 16px !important;
+	width: 100%;
+}
+.wc-block-components-checkout-place-order-button:hover {
+	background: var(--accent-deep) !important;
+}
+
+/* Karta podsumowania — ten sam wzorzec co koszyk
+   (`.wc-block-components-sidebar.wp-block-woocommerce-cart-totals-block`
+   wyżej), port `.summary-card`. */
+.wc-block-components-sidebar.wp-block-woocommerce-checkout-totals-block {
+	width: auto;
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	padding: 24px;
+	position: sticky;
+	top: 96px;
+}
+.wc-block-components-checkout-order-summary__title-text {
+	font-family: var(--font-display);
+	font-size: 17px;
+	font-weight: 800;
+}
+
+/* Wiersz pozycji w podsumowaniu (port `.co-item`,
+   design/vanilla/css/style.css:520-523). */
+.wc-block-components-order-summary-item {
+	border-bottom: 1px solid var(--line-soft);
+	padding-top: 11px;
+	padding-bottom: 11px;
+}
+.wc-block-components-order-summary-item__image img {
+	border-radius: 9px;
+	border: 1px solid var(--line);
+	background: var(--panel);
+}
+/* Odznaki (D-12.G2) wstrzyknięte do `.wc-block-components-product-metadata`
+   — pusty węzeł już przygotowany przez WC Blocks na metadane pozycji (patrz
+   assets/js/checkout-block-filters.js), tylko odstęp od ceny nad nim. */
+.wc-block-components-product-metadata:not(:empty) { margin-top: 6px; }
+.wc-block-components-order-summary-item__description .cart-old-price,
+.wc-block-components-order-summary-item__description .qutlet-item-savings {
+	margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+	.wp-block-woocommerce-checkout { grid-template-columns: 1fr; }
+	/* Ten sam trik specyficzności co Cart Block wyżej (0,2,0) — `position:
+	   sticky` z reguły desktopowej wygrywa mimo media query bez selektora
+	   złożonego. */
+	.wc-block-components-sidebar.wp-block-woocommerce-checkout-totals-block { position: static; }
+}
+
+/* ---------- Potwierdzenie zamówienia (P-8.6b) ----------
+   `templates/order-confirmation.html` (NIE classic `checkout/thankyou.php`
+   — ground-truth runtime obalił pierwotne założenie, patrz nagłówek
+   Checkout.php: WooCommerce Blocks rejestruje własny szablon FSE
+   `order-confirmation`, analogicznie do `page-cart`/`page-checkout`).
+   Natywne bloki `wp:woocommerce/order-confirmation-status`/`-summary`
+   dostają `className:"confirm-box"` wprost w szablonie (zamiast osobnego
+   markupu jak `.confirm-icon`/`.order-box` z pierwszej, martwej wersji tej
+   sekcji) — `.confirm-box` to WYŁĄCZNIE centrowana wąska kolumna (bez
+   ramki/tła), więc dwa bloki z tą samą klasą stackują się wizualnie jak
+   jedna spójna sekcja. Ikonka checkmarku (port `potwierdzenie.html:20`) —
+   `::before` z inline SVG (data URI, kolory HEX zamiast `var(--green-ink)`
+   — CSS custom properties nie działają wewnątrz `url()` data URI), bo blok
+   Status nie ma punktu wstrzyknięcia własnego markupu bez przepisania
+   komponentu PHP. */
+.confirm-box {
+	max-width: 560px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 30px;
+	text-align: center;
+	padding-top: 30px;
+	padding-bottom: 20px;
+}
+.wc-block-order-confirmation-status.confirm-box::before {
+	content: "";
+	display: block;
+	width: 88px;
+	height: 88px;
+	border-radius: 50%;
+	background-color: var(--green-bg);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%233f6212' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: center;
+	margin: 0 auto 26px;
+}
+.wc-block-order-confirmation-status.confirm-box h1 {
+	font-family: var(--font-display);
+	font-size: clamp(28px, 3.4vw, 40px);
+	font-weight: 800;
+	margin-bottom: 14px;
+}
+.wc-block-order-confirmation-status.confirm-box p { color: var(--ink-soft); font-size: 16px; line-height: 1.6; }
+
+/* Lista faktów zamówienia (port `.order-box`, ale jako jedna karta z
+   CZTEREMA faktami zamiast pojedynczej pigułki numeru — blok Summary
+   natywnie niesie numer/datę/razem/e-mail razem, nie da się ich rozbić bez
+   przepisania komponentu; uczciwa adaptacja pod realny kształt danych, nie
+   1:1 port). */
+.wc-block-order-confirmation-summary.confirm-box { margin-top: 22px; }
+.wc-block-order-confirmation-summary-list {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 22px;
+	list-style: none;
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	padding-top: 16px;
+	padding-bottom: 16px;
+	padding-left: 26px;
+	padding-right: 26px;
+	margin: 0;
+}
+.wc-block-order-confirmation-summary-list-item {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.wc-block-order-confirmation-summary-list-item__key {
+	font-family: var(--font-body);
+	font-size: 11px;
+	color: var(--muted);
+	font-weight: 700;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+}
+.wc-block-order-confirmation-summary-list-item__value {
+	font-family: var(--font-display);
+	font-weight: 800;
+	font-size: 16px;
+	color: var(--ink);
+}
+
+.confirm-note { font-size: 14px; color: var(--muted); margin-top: 22px; }
+.confirm-cta {
+	margin-top: 26px;
+	display: inline-flex;
+	align-items: center;
+	gap: 9px;
+	background: var(--accent);
+	color: #fff;
+	font-family: var(--font-display);
+	font-weight: 800;
+	font-size: 15px;
+	border-radius: 999px;
+	text-decoration: none;
+	padding-top: 14px;
+	padding-bottom: 14px;
+	padding-left: 28px;
+	padding-right: 28px;
+}
+.link-inline { color: var(--accent); font-weight: 700; }
