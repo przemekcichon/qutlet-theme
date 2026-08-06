@@ -2459,6 +2459,24 @@ body.woocommerce-checkout .wp-block-post-title {
 .wc-block-components-main.wp-block-woocommerce-checkout-fields-block {
 	width: auto;
 	padding: 0;
+	order: 0;
+}
+/* WC ustawia WŁASNY `order` na sidebarze/polach formularza pod
+   container-query klasami `.is-mobile`/`.is-medium`/`.is-large`
+   (`order:0` na sidebarze, `order:1` na polach pod `.is-mobile`) —
+   pokazuje podsumowanie PRZED formularzem na wąskich ekranach (zamierzony
+   wzorzec WC, niezwiązany z naszą zmianą). Po przeniesieniu przycisku
+   „Kupuję i płacę"/zgody na regulamin DO karty podsumowania
+   (`relocateActionsIntoSummary()`, assets/js/checkout-block-filters.js —
+   ciągłość wizualna z koszykiem, decyzja użytkownika) ten natywny porządek
+   przestał mieć sens: przycisk złożenia zamówienia renderował się PRZED
+   polami adresu/płatności (zgłoszone przez użytkownika, zrzut mobile,
+   sesja 2026-08-06) — użytkownik mógłby kliknąć „Kupuję i płacę", zanim
+   jeszcze cokolwiek wypełnił. Wymuszamy formularz ZAWSZE przed
+   podsumowaniem (`order` niezależny od container-query klasy — nadpisuje
+   WSZYSTKIE warianty WC na raz, ta sama wartość na obu breakpointach). */
+.wc-block-components-sidebar.wp-block-woocommerce-checkout-totals-block {
+	order: 1;
 }
 
 /* Kroki formularza jako karty (port `.form-card`/`.step-title`/`.step-num`,
@@ -2555,7 +2573,14 @@ body.woocommerce-checkout .wp-block-post-title {
 /* Regulamin (port `.agree-row`, design/vanilla/css/style.css:516-519) —
    tekst natywny WC („Kontynuując zamówienie…"), NIE literalny tekst
    prototypu o 14-dniowym prawie zwrotu (ten wymaga edycji treści bloku w
-   Site Editorze/DB, nie kodu motywu — poza zakresem tej poprawki, patrz PR). */
+   Site Editorze/DB, nie kodu motywu — poza zakresem tej poprawki, patrz PR).
+   Przeniesiony do karty podsumowania (`relocateActionsIntoSummary()`,
+   assets/js/checkout-block-filters.js) — `margin-top` liczy się teraz od
+   „Razem" (ostatni wiersz sum), nie od poprzedniego kroku formularza.
+   Modyfikator `--with-separator` (natywna klasa WC) rysował WŁASNY
+   `border-top` myślany jako odstęp od kroku notatki zamówienia — w nowym
+   miejscu (bezpośrednio po „Razem") to zbędna, dodatkowa linia, zerowana
+   niżej. */
 .wc-block-checkout__terms {
 	font-size: 13px;
 	color: var(--ink-soft);
@@ -2563,10 +2588,14 @@ body.woocommerce-checkout .wp-block-post-title {
 	line-height: 1.5;
 }
 .wc-block-checkout__terms a { color: var(--accent); font-weight: 700; }
+.wc-block-checkout__terms--with-separator { border-top: none !important; padding-top: 0 !important; }
 
 /* Przycisk złożenia zamówienia — port `.btn-primary`/`.btn-lg`/`.btn-block`
    (design/vanilla/css/style.css:69-70,75,111 — radius 12px, NIE pill), ten
-   sam wzorzec co `.wc-block-cart__submit-button` wyżej. */
+   sam wzorzec co `.wc-block-cart__submit-button` wyżej. `margin-top` — port
+   `.summary-card .btn-lg{margin-top:18px}` — dochodzi dopiero po
+   przeniesieniu do karty (w formularzu odstęp szedł z gapu między krokami,
+   patrz `relocateActionsIntoSummary()`). */
 .wc-block-components-checkout-place-order-button {
 	background: var(--accent) !important;
 	color: #fff !important;
@@ -2576,6 +2605,7 @@ body.woocommerce-checkout .wp-block-post-title {
 	padding-top: 16px !important;
 	padding-bottom: 16px !important;
 	width: 100%;
+	margin-top: 18px;
 }
 .wc-block-components-checkout-place-order-button:hover {
 	background: var(--accent-deep) !important;
@@ -2614,6 +2644,18 @@ body.woocommerce-checkout .wp-block-post-title {
    prototyp nie ma żadnego takiego podziału w tym miejscu. */
 .wp-block-woocommerce-checkout-order-summary-block { border: none !important; }
 .wp-block-woocommerce-checkout-order-summary-totals-block { border-top: none !important; }
+/* Padding karty niespójny z koszykiem (zgłoszenie użytkownika, sesja
+   2026-08-06) — obie karty mają TĘ SAMĄ regułę `padding:24px`
+   (`.wc-block-components-sidebar...totals-block` wyżej), ale w kasie
+   nagłówek „Podsumowanie zamówienia" ląduje 16px NIŻEJ niż w koszyku:
+   `.wc-block-components-checkout-order-summary__title` ma WŁASNY
+   `margin-top:16px`, który — bez paddingu/bordera na jego bezpośrednim
+   rodzicu (`...-order-summary-block`, `border:none` wyżej) — KOLABSUJE
+   przez rodzica i przesuwa całą sekcję w dół względem karty
+   (zweryfikowane runtime, `getBoundingClientRect`). Koszyk nie ma tego
+   elementu w ogóle (inny, prostszy nagłówek), stąd rozjazd widoczny
+   tylko tutaj. */
+.wc-block-components-checkout-order-summary__title { margin-top: 0; }
 
 /* Wiersz pozycji w podsumowaniu — port `.co-item`/`.co-item-title`/
    `.co-item-price` (design/vanilla/css/style.css:520-523,

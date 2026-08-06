@@ -1,6 +1,10 @@
 /**
  * Qutlet — podpis pozycji (klasa/gwarancja/ilość) w podsumowaniu zamówienia
- * bloku Checkout (D-8.6b.1).
+ * bloku Checkout (D-8.6b.1) + przeniesienie zgody na regulamin/przycisku
+ * złożenia zamówienia do karty podsumowania (`relocateActionsIntoSummary()`
+ * niżej — ciągłość wizualna z koszykiem, decyzja użytkownika, sesja
+ * 2026-08-06, ryzyko rozważone i zweryfikowane runtime, patrz komentarz
+ * przy tej funkcji).
  *
  * Czyta TE SAME dane Store API co koszyk (`item.extensions['qutlet-klasa']`,
  * zarejestrowane raz w inc/features/Cart/Cart.php — D-12.G2, potwierdzone
@@ -136,9 +140,48 @@
 		});
 	}
 
+	/**
+	 * Przenosi zgodę na regulamin + przycisk „Kupuję i płacę" z głównej
+	 * kolumny formularza do karty podsumowania po prawej (decyzja
+	 * użytkownika, sesja 2026-08-06 — ciągłość wizualna z koszykiem, gdzie
+	 * przycisk „Przejdź do płatności" mieszka W KARCIE podsumowania, nie
+	 * pod formularzem; port `.summary-card .btn-lg`/`.agree-row` z
+	 * prototypu, `kasa.html`).
+	 *
+	 * RYZYKO ROZWAŻONE ŚWIADOMIE: to PRZENIESIENIE realnych węzłów DOM
+	 * (`appendChild` przenosi, nie klonuje) zarządzanych przez Reacta —
+	 * DOKŁADNIE ten sam wzorzec, który w koszyku (P-8.6a) spowodował crash
+	 * „Unexpected error in: woocommerce/cart-line-items-block" (React przy
+	 * re-renderze próbował `removeChild` węzła, który nie był już dzieckiem
+	 * oczekiwanego rodzica). ZWERYFIKOWANE RUNTIME jako bezpieczne w TYM
+	 * konkretnym przypadku (Playwright, sesja 2026-08-06) — seria re-renderów
+	 * (wpisywanie w pole email znak po znaku, blur, kliknięcie „Kupuję i
+	 * płacę" wywołujące walidację 6 pól na raz) NIE powodowała błędów w
+	 * konsoli, węzły zostawały na miejscu. Różnica względem koszyka:
+	 * `.wc-block-checkout__terms`/`.wp-block-woocommerce-checkout-actions-block`
+	 * to POJEDYNCZE, nie-listowe komponenty (Checkout nie musi ich
+	 * rekoncyliować względem listy rodzeństwa po kluczu, jak przy
+	 * usuwaniu/dodawaniu pozycji koszyka) — mimo to, jeśli przyszła zmiana
+	 * w WC Blocks kiedykolwiek zacznie tu crashować, to pierwsze miejsce do
+	 * podejrzenia.
+	 */
+	function relocateActionsIntoSummary() {
+		var card = document.querySelector('.wc-block-checkout__sidebar');
+		var terms = document.querySelector('.wp-block-woocommerce-checkout-terms-block');
+		var actions = document.querySelector('.wp-block-woocommerce-checkout-actions-block');
+
+		if (!card || !terms || !actions || card.contains(terms)) {
+			return;
+		}
+
+		card.appendChild(terms);
+		card.appendChild(actions);
+	}
+
 	function inject() {
 		injectItemMeta();
 		renameSummaryLabels();
+		relocateActionsIntoSummary();
 	}
 
 	function scheduleInject() {
