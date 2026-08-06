@@ -153,8 +153,14 @@ final class Cart {
 		$sale_price     = (float) $product->get_price();
 
 		return array(
-			'klasa_stanu'         => $condition_code,
-			'old_price_formatted' => $market_price > $sale_price ? wp_kses_post( wc_price( $market_price ) ) : '',
+			'klasa_stanu'            => $condition_code,
+			'old_price_formatted'    => $market_price > $sale_price ? wp_kses_post( wc_price( $market_price ) ) : '',
+			// Oszczędność PER SZTUKĘ (jak `old_price_formatted`, NIE razy ilość) —
+			// ten sam punkt odniesienia co cena sprzedaży w wierszu, która też jest
+			// jednostkowa, nie linią razem. Suma całego koszyka (razy ilość) już
+			// istnieje w `cart_totals_data()` (`total_savings_formatted`) — osobne pole,
+			// osobny cel (wiersz produktu vs. podsumowanie).
+			'item_savings_formatted' => $market_price > $sale_price ? wp_kses_post( wc_price( $market_price - $sale_price ) ) : '',
 		);
 	}
 
@@ -165,14 +171,20 @@ final class Cart {
 	 */
 	public static function cart_item_schema(): array {
 		return array(
-			'klasa_stanu'         => array(
+			'klasa_stanu'            => array(
 				'description' => __( 'Kod klasy stanu (A-D).', 'qutlet-theme' ),
 				'type'        => array( 'string', 'null' ),
 				'context'     => array( 'view', 'edit' ),
 				'readonly'    => true,
 			),
-			'old_price_formatted' => array(
+			'old_price_formatted'    => array(
 				'description' => __( 'Sformatowana cena rynkowa nowego (tylko gdy wyższa od ceny sprzedaży).', 'qutlet-theme' ),
+				'type'        => array( 'string', 'null' ),
+				'context'     => array( 'view', 'edit' ),
+				'readonly'    => true,
+			),
+			'item_savings_formatted' => array(
+				'description' => __( 'Sformatowana oszczędność per sztuka vs. cena rynkowa nowego (tylko gdy > 0).', 'qutlet-theme' ),
 				'type'        => array( 'string', 'null' ),
 				'context'     => array( 'view', 'edit' ),
 				'readonly'    => true,

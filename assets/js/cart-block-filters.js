@@ -131,6 +131,19 @@
 					'<span class="cart-old-price-value">' + ext.old_price_formatted + '</span>';
 				wrap.appendChild(oldPrice);
 			}
+
+			// "Oszczędzasz X" per wiersz (na wyraźną prośbę użytkownika, sesja
+			// 2026-08-06) — TEN SAM limonkowy kolor co `.qutlet-cart-savings-note`
+			// w podsumowaniu, ale własna, mniejsza klasa: to pigułka w wierszu
+			// produktu, nie pełnoszerokościowy box podsumowania. Brak
+			// `cena_rynkowa_nowego` → `item_savings_formatted` puste (PHP,
+			// Cart::cart_item_data()) → nic się nie wstawia, zgodnie z prośbą.
+			if (ext.item_savings_formatted && !row.querySelector('.qutlet-item-savings')) {
+				var savings = document.createElement('small');
+				savings.className = 'qutlet-item-savings';
+				savings.innerHTML = 'Oszczędzasz ' + ext.item_savings_formatted;
+				wrap.appendChild(savings);
+			}
 		});
 
 		updateNameTruncation();

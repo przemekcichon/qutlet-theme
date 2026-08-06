@@ -1945,13 +1945,43 @@ body.woocommerce-cart .nlband { display: none; }
    tylko połączone w jeden wspólny wiersz zamiast dwóch niezależnych komórek —
    DOM bloku Cart nie rozdziela stepera i „Usuń" na dwa osobne węzły, więc
    nie da się ich umieścić w dwóch kolumnach gridu bez przepisania komponentu. */
+/* Stepper + usuń PO LEWEJ, spakowane razem (na wyraźną prośbę użytkownika,
+   sesja 2026-08-06 — poprzednio `justify-content:space-between` rozpychało
+   usuń na sam prawy kraniec wiersza). Prawa strona wiersza zwolniona dla
+   `.qutlet-item-savings` (osobny, RÓWNOLEGŁY grid item w TEJ SAMEJ komórce
+   — `grid-column:2;grid-row:3` niżej — a nie dziecko tego diva; ten sam
+   trik co `.wc-block-cart-item__prices`/`.cart-old-price` współdzielące
+   wiersz 1/2 wyżej). `gap` WŁASNY (nie tylko WC-owy `12px` z cart.css) —
+   ta wartość jest teraz częścią naszego układu (odstęp stepper↔usuń), nie
+   przypadkowym dziedziczeniem z cudzej reguły. */
 .wc-block-cart-item__quantity {
 	grid-column: 1 / -1 !important;
 	grid-row: 3 !important;
 	display: flex !important;
 	flex-direction: row !important;
 	align-items: center !important;
-	justify-content: space-between;
+	justify-content: flex-start;
+	gap: 12px;
+}
+/* "Oszczędzasz X" per wiersz — limonkowy kolor z podsumowania koszyka
+   (`--green-bg`/`--green-ink`, patrz `.qutlet-cart-savings-note` niżej),
+   własna mniejsza pigułka (nie pełnoszerokościowy box). Współdzieli wiersz
+   3 z `.wc-block-cart-item__quantity` (kolumna 2, ten sam trik co
+   ceny/stara cena wyżej) — wstawiane przez JS WYŁĄCZNIE gdy produkt ma
+   `cena_rynkowa_nowego` wyższą od ceny sprzedaży (Cart::cart_item_data()),
+   inaczej węzeł się nie pojawia. */
+.qutlet-item-savings {
+	grid-column: 2;
+	grid-row: 3;
+	justify-self: end;
+	align-self: center;
+	background: var(--green-bg);
+	color: var(--green-ink);
+	font-weight: 700;
+	font-size: 12px;
+	border-radius: 8px;
+	padding: 5px 10px;
+	white-space: nowrap;
 }
 
 /* Stepper ilości — prototyp go nie ma (tam to statyczny tekst "Ilość: 1 szt."),
@@ -2298,11 +2328,16 @@ body.woocommerce-cart .wp-block-post-title {
 	}
 	.qutlet-name-tooltip { display: none !important; }
 
-	/* Cena (główna + „Nowy za") — WŁASNY wiersz na pełną szerokość (obie
-	   kolumny, `1/-1`, spod miniaturki też), NIE pod nazwą jak miniaturka.
-	   Dzielą TEN SAM wiersz gridu (para justify-self:start/end, jak już
-	   robią kolumny 1/2 na desktopie wyżej — tu w jednej wspólnej komórce
-	   zamiast dwóch), więc nie zachodzą na siebie mimo wspólnego `grid-row`. */
+	/* Runda 4 (sesja 2026-08-06): przegrupowanie wierszy pod spodem —
+	   „Oszczędzasz X" (nowość, patrz `.qutlet-item-savings` przy regule
+	   desktopowej wyżej) potrzebowała miejsca, więc cena główna dostaje
+	   WŁASNY wiersz (2), a „Nowy za"/oszczędzasz przechodzą razem NA
+	   NASTĘPNY (3, para justify-self:start/end w jednej komórce, jak już
+	   ceny/stara cena robiły wcześniej) — grupuje info „ile płacisz teraz"
+	   osobno od „ile odnosisz względem nowego", zamiast jednej zbitej linii
+	   z trzema liczbami. Odznaki i akcje (ilość+usuń) schodzą o wiersz niżej
+	   (4, 5) niż w rundzie 3. Wiersz najwyższego poziomu (miniaturka+nazwa,
+	   1) NIETKNIĘTY. */
 	.wc-block-cart-item__prices {
 		grid-column: 1 / -1 !important;
 		grid-row: 2 !important;
@@ -2311,16 +2346,24 @@ body.woocommerce-cart .wp-block-post-title {
 	.wc-block-cart-item__prices .wc-block-components-product-price__value {
 		font-size: 16px !important;
 	}
-	.cart-old-price { grid-column: 1 / -1 !important; grid-row: 2 !important; }
+	/* Stara cena — na mobile PO LEWEJ (odwrotnie niż desktop, gdzie dzieli
+	   kolumnę 2 z ceną główną) — na tym wierszu jest teraz sama, „Oszczędzasz"
+	   bierze prawą stronę. */
+	.cart-old-price {
+		grid-column: 1 / -1 !important;
+		grid-row: 3 !important;
+		justify-self: start;
+	}
+	.qutlet-item-savings { grid-column: 1 / -1 !important; grid-row: 3 !important; }
 
-	/* Odznaki (klasa + gwarancja) — pełna szerokość, wiersz 3. */
-	.qutlet-cart-badges { grid-column: 1 / -1 !important; grid-row: 3 !important; }
+	/* Odznaki (klasa + gwarancja) — pełna szerokość, wiersz 4. */
+	.qutlet-cart-badges { grid-column: 1 / -1 !important; grid-row: 4 !important; }
 
-	/* Ilość + usuń — pełna szerokość, ostatni wiersz. Stepper (+/-) i
-	   kontrolka usuń Z IKONKĄ I ETYKIETĄ „Usuń" WRACAJĄ do pełnej,
-	   nieokrojonej wersji z desktopu (na wyraźną prośbę użytkownika —
-	   odwraca zawężenia z poprzedniej rundy: tam usuwanie było tylko ikonką,
-	   a stepper zamieniony na gołą informację „Ilość: N szt."). Kolumna już
-	   `1/-1` z reguły bazowej (grid-row 3 tam, więc tylko wiersz nadpisany). */
-	.wc-block-cart-item__quantity { grid-row: 4 !important; }
+	/* Ilość + usuń — pełna szerokość, ostatni wiersz (5). Stepper (+/-) i
+	   kontrolka usuń Z IKONKĄ I ETYKIETĄ „Usuń" zostają w pełnej,
+	   nieokrojonej wersji z desktopu (runda 3 to odwróciła z jeszcze
+	   wcześniejszego zawężenia). Spakowane razem po lewej (`justify-content:
+	   flex-start` z reguły bazowej, runda 4) — kolumna już `1/-1` z reguły
+	   bazowej, tu tylko wiersz nadpisany. */
+	.wc-block-cart-item__quantity { grid-row: 5 !important; }
 }
