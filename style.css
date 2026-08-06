@@ -2676,6 +2676,25 @@ body.woocommerce-checkout .wp-block-post-title {
 	margin: 0 0 8px !important;
 }
 
+/* Reszta natywnych poziomych paddingów WC w karcie podsumowania (panel
+   kuponu, wiersze sum) — pod tym samym `@container (min-width: 700px)`
+   co poprzednie naprawy tej sekcji (kontener `.wp-block-woocommerce-checkout`
+   ma `container-type:inline-size`). Zidentyfikowane i naprawione przez
+   użytkownika bezpośrednio w DevTools, sesja 2026-08-06 — dopełnienie serii
+   poprawek `padding:0 !important` na `.wc-block-components-order-summary`
+   wyżej, ta sama przyczyna (natywne `padding-left`/`-right` niespójne z
+   paddingiem 24px samej karty). */
+@container (min-width: 700px) {
+    .wc-block-components-sidebar .slot-wrapper .wc-block-components-panel,.wc-block-components-sidebar .wc-block-components-panel,.wc-block-components-sidebar .wc-block-components-totals-coupon,.wc-block-components-sidebar .wc-block-components-totals-item {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .wc-block-components-sidebar .wc-block-components-panel .wc-block-components-totals-item,.wc-block-components-sidebar .wc-block-components-totals-item .wc-block-components-panel {
+        padding: 0
+    }
+}
+
 /* Wiersz pozycji w podsumowaniu — port `.co-item`/`.co-item-title`/
    `.co-item-price` (design/vanilla/css/style.css:520-523,
    `QT.tpl.checkoutItem`, templates.js:116-123) — WERSJA ZWĘŻONA (decyzja
@@ -2683,19 +2702,19 @@ body.woocommerce-checkout .wp-block-post-title {
    prototypem): bez kolorowych chipów klasy/gwarancji, bez starej ceny/
    pigułki oszczędności per pozycja (usunięte razem z `injectSavingsRow`
    w assets/js/checkout-block-filters.js — poprzednia wersja tej sekcji).
-   Miniaturka: SZEROKOŚĆ jak koszyk (`.wc-block-cart-item__image img` wyżej,
-   88px), WYSOKOŚĆ zostaje natywna WC 48px — na wyraźną prośbę użytkownika
-   (gęstszy wiersz w kompaktowym podsumowaniu kasy niż w pełnej liście
-   koszyka; `object-fit:contain` nie zniekształca zdjęcia w niekwadratowej
-   ramce, tylko kadruje dostępną wysokość). */
+   Miniaturka: natywny kwadrat WC 48×48 (NIE 88px jak koszyk — pierwsza
+   wersja tej reguły próbowała dociągnąć szerokość do koszyka, ale
+   użytkownik po podglądzie zdecydował zostać przy natywnym rozmiarze,
+   sesja 2026-08-06 — gęstszy wiersz w kompaktowym podsumowaniu kasy niż
+   w pełnej liście koszyka). */
 .wc-block-components-order-summary-item {
 	border-bottom: 1px solid var(--line-soft);
 	padding-top: 11px;
 	padding-bottom: 11px;
 }
 .wc-block-components-order-summary-item__image img {
-	width: 88px !important;
-	max-width: 88px !important;
+	width: 48px;
+	max-width: 48px;
 	height: 48px;
 	box-sizing: border-box;
 	object-fit: contain;
