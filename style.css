@@ -2489,7 +2489,7 @@ body.woocommerce-checkout .wp-block-post-title {
 .wp-block-woocommerce-checkout-fields-block form {
 	counter-reset: qutlet-checkout-step;
 }
-.wc-block-components-checkout-step {
+.wc-block-components-form .wc-block-components-checkout-step {
 	background: #fff !important;
 	border: 1px solid var(--line);
 	border-radius: var(--radius);
@@ -2555,7 +2555,7 @@ body.woocommerce-checkout .wp-block-post-title {
    niżej) na etykiecie, żeby zrobić dla niego miejsce — bez większego
    `padding-left` niż `padding-right`/`-top`/`-bottom` tekst nachodził na
    kontrolkę (zweryfikowane runtime/zrzut ekranu, sesja 2026-08-06). */
-.wc-block-components-radio-control__option {
+.wc-block-components-radio-control__option  {
 	border: 1.5px solid var(--line);
 	border-radius: 12px;
 	padding-top: 15px;
@@ -2563,8 +2563,26 @@ body.woocommerce-checkout .wp-block-post-title {
 	padding-left: 50px;
 	padding-right: 16px;
 }
-.wc-block-components-radio-control__option-checked {
+.wc-block-components-radio-control-accordion-option {
+	border: 1.5px solid var(--line);
+	border-radius: 12px;
+}
+.wc-block-components-radio-control--highlight-checked, .wc-block-components-radio-control-accordion-option--checked-option-highlighted, .wc-block-components-radio-control .wc-block-components-radio-control__input:checked, .wc-block-components-radio-control__option-checked {
 	border-color: var(--accent);
+}
+
+.wc-block-components-radio-control--highlight-checked .wc-block-components-radio-control-accordion-option--checked-option-highlighted, .wc-block-components-radio-control--highlight-checked label.wc-block-components-radio-control__option--checked-option-highlighted {
+	border-radius: 12px;
+	box-shadow: none;
+}
+.wc-block-components-radio-control .wc-block-components-radio-control__input:checked:before {
+	background: var(--accent);
+}
+.wc-block-components-form .wc-block-components-text-input label, .wc-block-components-text-input label, .wc-blocks-components-select .wc-blocks-components-select__label {
+	color: var(--muted);
+}
+.wc-block-components-form .wc-block-components-text-input input[type=email], .wc-block-components-form .wc-block-components-text-input input[type=number], .wc-block-components-form .wc-block-components-text-input input[type=password], .wc-block-components-form .wc-block-components-text-input input[type=tel], .wc-block-components-form .wc-block-components-text-input input[type=text], .wc-block-components-form .wc-block-components-text-input input[type=url], .wc-block-components-text-input input[type=email], .wc-block-components-text-input input[type=number], .wc-block-components-text-input input[type=password], .wc-block-components-text-input input[type=tel], .wc-block-components-text-input input[type=text], .wc-block-components-text-input input[type=url] {
+	color: var(--ink);
 }
 .wc-block-components-radio-control__input { accent-color: var(--accent); }
 .wc-block-components-radio-control__label { font-weight: 700; font-size: 14.5px; }
