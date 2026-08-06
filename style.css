@@ -2599,25 +2599,69 @@ body.woocommerce-checkout .wp-block-post-title {
 	font-weight: 800;
 }
 
-/* Wiersz pozycji w podsumowaniu (port `.co-item`,
-   design/vanilla/css/style.css:520-523). */
+/* Wiersz pozycji w podsumowaniu — port `.co-item`/`.co-item-title`/
+   `.co-item-price` (design/vanilla/css/style.css:520-523,
+   `QT.tpl.checkoutItem`, templates.js:116-123) — WERSJA ZWĘŻONA (decyzja
+   użytkownika, sesja 2026-08-06, PO ground-truth porównaniu z realnym
+   prototypem): bez kolorowych chipów klasy/gwarancji, bez starej ceny/
+   pigułki oszczędności per pozycja (usunięte razem z `injectSavingsRow`
+   w assets/js/checkout-block-filters.js — poprzednia wersja tej sekcji).
+   Miniaturka przestylowana na wygląd koszyka (`.wc-block-cart-item__image img`
+   wyżej, 88px) zamiast natywnego 48px WC. */
 .wc-block-components-order-summary-item {
 	border-bottom: 1px solid var(--line-soft);
 	padding-top: 11px;
 	padding-bottom: 11px;
 }
 .wc-block-components-order-summary-item__image img {
-	border-radius: 9px;
+	width: 88px;
+	height: 88px;
+	box-sizing: border-box;
+	object-fit: contain;
+	border-radius: 12px;
 	border: 1px solid var(--line);
 	background: var(--panel);
+	padding: 8px;
 }
-/* Odznaki (D-12.G2) wstrzyknięte do `.wc-block-components-product-metadata`
-   — pusty węzeł już przygotowany przez WC Blocks na metadane pozycji (patrz
-   assets/js/checkout-block-filters.js), tylko odstęp od ceny nad nim. */
-.wc-block-components-product-metadata:not(:empty) { margin-top: 6px; }
-.wc-block-components-order-summary-item__description .cart-old-price,
-.wc-block-components-order-summary-item__description .qutlet-item-savings {
-	margin-top: 4px;
+.wc-block-components-order-summary-item__description .wc-block-components-product-name {
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1.3;
+}
+/* Cena jednostkowa (`.wc-block-cart-item__prices`, WEWNĄTRZ opisu, między
+   nazwą a podpisem klasy/gwarancji) — prototyp pokazuje JEDNĄ cenę na
+   końcu wiersza (`.co-item-price`), nie dwie (jednostkową POD nazwą +
+   „total-price" po prawej — WC renderuje obie naraz, `aria-hidden` na
+   total-price dotyczy WYŁĄCZNIE czytników ekranu, nie widoczności; ten
+   sam bare-selector-bleed z koszyka, patrz nota przy `.wc-block-cart-item__prices`
+   wyżej, sprawiał, że jednostkowa cena tu w ogóle była wytłuszczona/widoczna).
+   Chowamy jednostkową, total-price zostaje jedyną widoczną ceną wiersza. */
+.wc-block-components-order-summary-item__description .wc-block-cart-item__prices {
+	display: none;
+}
+.wc-block-components-order-summary-item__total-price .wc-block-components-product-price__value {
+	font-family: var(--font-display);
+	font-weight: 800;
+	font-size: 14px;
+}
+/* Podpis „Klasa X · Gwarancja 1 rok · N szt." (port `.co-item-title small`)
+   — wstrzyknięty do `.wc-block-components-product-metadata`, pusty węzeł
+   już przygotowany przez WC Blocks na metadane pozycji (patrz
+   assets/js/checkout-block-filters.js). */
+.qutlet-summary-meta {
+	display: block;
+	font-weight: 600;
+	color: var(--muted);
+	font-size: 11.5px;
+	margin-top: 2px;
+}
+/* Panel kuponu — WC-owy `border-top` domyślny (0,8px, czarny 20% alpha)
+   wygląda jak dodatkowa ramka WEWNĄTRZ białej karty podsumowania, której
+   prototyp nie ma (zgłoszenie użytkownika) — ten sam fix co koszyk
+   (`.wp-block-woocommerce-cart-order-summary-coupon-form-block.wc-block-components-totals-wrapper`
+   wyżej), tylko pod checkoutową klasą bloku. */
+.wp-block-woocommerce-checkout-order-summary-coupon-form-block.wc-block-components-totals-wrapper {
+	border-top: none !important;
 }
 
 @media (max-width: 900px) {

@@ -1,13 +1,25 @@
 /**
- * Qutlet — odznaki/oszczędności w podsumowaniu zamówienia bloku Checkout
- * (D-8.6b.1, ten sam wzorzec co assets/js/cart-block-filters.js — P-8.6a).
+ * Qutlet — podpis pozycji (klasa/gwarancja/ilość) w podsumowaniu zamówienia
+ * bloku Checkout (D-8.6b.1).
  *
- * Czyta TE SAME dane Store API co koszyk (`item.extensions['qutlet-klasa']`/
- * `cart.extensions['qutlet-klasa']`, zarejestrowane raz w
- * inc/features/Cart/Cart.php — D-12.G2, potwierdzone runtime: blok Checkout
- * czyta z tego samego zasobu `wc/store/cart` co blok Cart). Bez build stepu —
- * global `window.wp.data` (dependency script handles `wc-blocks-data-store`/
- * `wp-data`, patrz CheckoutBlocksIntegration::initialize()).
+ * Czyta TE SAME dane Store API co koszyk (`item.extensions['qutlet-klasa']`,
+ * zarejestrowane raz w inc/features/Cart/Cart.php — D-12.G2, potwierdzone
+ * runtime: blok Checkout czyta z tego samego zasobu `wc/store/cart` co blok
+ * Cart). Bez build stepu — global `window.wp.data` (dependency script
+ * handles `wc-blocks-data-store`/`wp-data`, patrz
+ * CheckoutBlocksIntegration::initialize()).
+ *
+ * ZAKRES ZWĘŻONY (decyzja użytkownika, sesja 2026-08-06, PO ground-truth
+ * porównaniu z prototypem `kasa.html`/`QT.tpl.checkoutItem` —
+ * design/vanilla/js/templates.js:116-123): prototyp pokazuje w wierszu
+ * pozycji WYŁĄCZNIE miniaturkę/nazwę/cenę + zwykły tekstowy podpis
+ * „Klasa X · N szt." — BEZ kolorowych chipów, BEZ starej ceny („Nowy za"),
+ * BEZ osobnej pigułki „Oszczędzasz" per pozycja. Użytkownik rozszerzył
+ * podpis o gwarancję (trzeci fakt z D-12.G2) i ZREZYGNOWAŁ ze starej
+ * ceny/oszczędności — zarówno per pozycja, JAK I w zbiorczym podsumowaniu
+ * (`total_savings_formatted`, wcześniej `.qutlet-cart-savings-note` —
+ * usunięte razem z całym mechanizmem `injectSavingsRow`, poprzednia wersja
+ * tego pliku). Miniaturka przestylowana na wygląd koszyka (style.css).
  *
  * DOM bloku Checkout różni się od bloku Cart: wiersz podsumowania
  * (`.wc-block-components-order-summary-item`) NIE niesie
@@ -31,9 +43,11 @@
  * kasy, zgodnie z tym, jak WC Blocks samo traktuje ten widok (brak natywnej
  * kontrolki ilości w podsumowaniu checkoutu).
  *
- * Wszystko wstrzykiwane jako WĘZŁY DOM (`wp.data.subscribe()`), z tego samego
- * powodu co w koszyku: `registerCheckoutFilters` zanieczyszczał aria-label
- * surowym HTML (zweryfikowane w P-8.6a).
+ * Wstrzykiwane jako WĘZEŁ DOM (`wp.data.subscribe()`), z tego samego powodu
+ * co w koszyku: `registerCheckoutFilters` zanieczyszczał aria-label surowym
+ * HTML (zweryfikowane w P-8.6a). Tekst wstawiany przez `textContent`
+ * (NIE `innerHTML`) — bez ręcznego escapowania, przeglądarka sama traktuje
+ * wartość jako zwykły tekst.
  */
 (function () {
 	'use strict';
@@ -57,70 +71,39 @@
 	}
 
 	/**
-	 * `klasa_stanu` to zamknięty słownik ACF (A-D, kontrakt §2) — escapowanie
-	 * i tak przed wklejeniem do innerHTML (obrona w głąb, patrz cart-block-filters.js).
+	 * Podpis pozycji „Klasa {X} · Gwarancja 1 rok · {N} szt." (D-12.G2 —
+	 * te same fakty co w koszyku, gwarancja dziś nadal statyczny literał
+	 * „1 rok" — byt klas z FAZY 12 jeszcze niezbudowany; „szt." to
+	 * niedomienny skrót, port `QT.tpl.checkoutItem`, nie odmienia się przez
+	 * liczbę, patrz nagłówek pliku). Wstrzykiwane do
+	 * `.wc-block-components-product-metadata` — pusty węzeł już
+	 * przygotowany przez WC Blocks na dokładnie ten cel (metadane pozycji).
 	 */
-	function escHtml(value) {
-		return String(value).replace(/[&<>"']/g, function (c) {
-			return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-		});
-	}
-
-	/**
-	 * Odznaka klasy stanu + gwarancja (D-12.G2 — te same trzy fakty co w
-	 * koszyku, reklamacja dochodzi dopiero z bytem P-12.1a/b, dziś jak w
-	 * koszyku PRZED FAZĄ 12: gwarancja to nadal statyczny literał „1 rok").
-	 * Wstrzykiwane do `.wc-block-components-product-metadata` — pusty węzeł
-	 * już przygotowany przez WC Blocks na dokładnie ten cel (metadane
-	 * pozycji), więc bez potrzeby dopisywania własnego kontenera jak w koszyku
-	 * (`.wc-block-cart-item__wrap` tam nie ma odpowiednika tutaj).
-	 */
-	function injectItemBadgesInto(container, items) {
+	function injectItemMetaInto(container, items) {
 		var rows = container.querySelectorAll('.wc-block-components-order-summary-item');
 
 		items.forEach(function (item, index) {
 			var ext = item.extensions && item.extensions[NAMESPACE];
 			var row = rows[index];
 
-			if (!ext || !row) {
+			if (!ext || !ext.klasa_stanu || !row) {
 				return;
 			}
 
 			var metadata = row.querySelector('.wc-block-components-product-metadata');
-			var description = row.querySelector('.wc-block-components-order-summary-item__description');
-			var prices = row.querySelector('.wc-block-cart-item__prices');
 
-			if (metadata && ext.klasa_stanu && !metadata.querySelector('.qutlet-cart-badges')) {
-				var dot = escHtml(String(ext.klasa_stanu).toLowerCase());
-				var badges = document.createElement('div');
-				badges.className = 'qutlet-cart-badges';
-				badges.innerHTML =
-					'<span class="pill"><span class="dot dot-' + dot + '"></span>Klasa ' + escHtml(ext.klasa_stanu) + '</span>' +
-					'<span class="pill">Gwarancja 1 rok</span>';
-				metadata.appendChild(badges);
+			if (!metadata || metadata.querySelector('.qutlet-summary-meta')) {
+				return;
 			}
 
-			if (description && prices) {
-				if (ext.old_price_formatted && !description.querySelector('.cart-old-price')) {
-					var oldPrice = document.createElement('small');
-					oldPrice.className = 'cart-old-price';
-					oldPrice.innerHTML =
-						'<span class="cart-old-price-label">Nowy za</span>' +
-						'<span class="cart-old-price-value">' + ext.old_price_formatted + '</span>';
-					prices.insertAdjacentElement('afterend', oldPrice);
-				}
-
-				if (ext.item_savings_formatted && !description.querySelector('.qutlet-item-savings')) {
-					var savings = document.createElement('small');
-					savings.className = 'qutlet-item-savings';
-					savings.innerHTML = 'Oszczędzasz ' + ext.item_savings_formatted;
-					description.appendChild(savings);
-				}
-			}
+			var meta = document.createElement('small');
+			meta.className = 'qutlet-summary-meta';
+			meta.textContent = 'Klasa ' + ext.klasa_stanu + ' · Gwarancja 1 rok · ' + item.quantity + ' szt.';
+			metadata.appendChild(meta);
 		});
 	}
 
-	function injectItemBadges() {
+	function injectItemMeta() {
 		var data = getCartData();
 
 		if (!data) {
@@ -130,19 +113,9 @@
 		var containers = document.querySelectorAll('.wc-block-components-order-summary__content');
 
 		containers.forEach(function (container) {
-			injectItemBadgesInto(container, data.items || []);
+			injectItemMetaInto(container, data.items || []);
 		});
 	}
-
-	/**
-	 * Punkt wspólny obu instancji (podgląd Slot/Fill + prawdziwy sidebar) —
-	 * jedyny element, który jest PRZODKIEM zarówno listy pozycji
-	 * (`.wc-block-components-order-summary__content`, patrz
-	 * `injectItemBadgesInto`), jak i bloku sum (`…-totals-block`, patrz
-	 * `injectSavingsRowInto` niżej), w OBU instancjach jednocześnie —
-	 * zweryfikowane w DOM-ie runtime (Playwright, sesja 2026-08-06).
-	 */
-	var SUMMARY_INSTANCE_SELECTOR = '.wp-block-woocommerce-checkout-order-summary-block';
 
 	/**
 	 * Etykiety natywnych wierszy podsumowania — port terminologii prototypu
@@ -163,79 +136,9 @@
 		});
 	}
 
-	/**
-	 * Zielony box „Oszczędzasz vs. nowe" (port `data-co-savings-row`,
-	 * `kasa.html:105`) — ten sam Store API `cart.extensions.total_savings_formatted`
-	 * co w koszyku (Cart::cart_totals_data()), TA SAMA klasa
-	 * `.qutlet-cart-savings-note` co cart-block-filters.js (jedna reguła CSS,
-	 * dwa miejsca wstrzyknięcia — identyczny box w obu blokach, D-12.G2).
-	 *
-	 * POPRAWKA (niezależna recenzja, sesja 2026-08-06) — pierwsza wersja
-	 * miała DWA błędy, oba potwierdzone runtime:
-	 * 1. Pojedynczy, płaski `document.querySelector(...)` (zamiast iteracji
-	 *    PO INSTANCJI, jak `injectItemBadgesInto`) trafiał zawsze w
-	 *    PIERWSZY pasujący węzeł w dokumencie — na mobile jest to instancja
-	 *    UKRYTEGO sidebara, nie widocznego podglądu Slot/Fill, więc box
-	 *    realnie nie był widoczny dla użytkownika mimo obecności w DOM.
-	 * 2. Bezwarunkowe `innerHTML = ...` (nawet gdy wartość się nie zmieniła)
-	 *    generowało mutację DOM przy KAŻDYM wywołaniu, które budziła
-	 *    `MutationObserver` (niżej) → nowe wywołanie → nowa mutacja →
-	 *    nieskończona pętla (zmierzone: >8000 mutacji/s).
-	 *
-	 *    Pierwsza próba naprawy (`savings.lastElementChild.innerHTML !== …`)
-	 *    NIE WYSTARCZYŁA — zmierzone runtime, dalej pętla (>17000
-	 *    mutacji/s): Store API zwraca `wc_price()` z nie-ASCII znakami
-	 *    („zł") jako NUMERYCZNE encje HTML (`&#122;&#322;`, efekt
-	 *    `htmlentities()` po stronie PHP), ale PO wstawieniu `innerHTML = …`
-	 *    przeglądarka PARSUJE encje na realne znaki i przy odczycie
-	 *    `element.innerHTML` z powrotem SERIALIZUJE je jako literalne „zł"
-	 *    (encje numeryczne nie są potrzebne dla tych znaków w wyjściu) —
-	 *    porównanie zserializowanego DOM-u z surowym stringiem z PHP więc
-	 *    NIGDY nie jest równe, mimo identycznej wartości semantycznej.
-	 *    Naprawione porównaniem SUROWY-DO-SUROWEGO: `dataset.value` pamięta
-	 *    ostatni string, który SAMI wstawiliśmy (nie to, co DOM zwraca po
-	 *    normalizacji), więc porównanie jest stabilne niezależnie od tego,
-	 *    jak przeglądarka serializuje encje.
-	 */
-	function injectSavingsRowInto(root, cartExt) {
-		var totalsBlock = root.querySelector('.wp-block-woocommerce-checkout-order-summary-totals-block');
-
-		if (!totalsBlock) {
-			return;
-		}
-
-		var savings = root.querySelector('.qutlet-cart-savings-note');
-
-		if (cartExt && cartExt.total_savings_formatted) {
-			if (!savings) {
-				savings = document.createElement('div');
-				savings.className = 'savings-note qutlet-cart-savings-note';
-				savings.innerHTML = '<span>Oszczędzasz vs. nowe</span><span></span>';
-				totalsBlock.insertAdjacentElement('afterend', savings);
-			}
-
-			if (savings.dataset.value !== cartExt.total_savings_formatted) {
-				savings.lastElementChild.innerHTML = cartExt.total_savings_formatted;
-				savings.dataset.value = cartExt.total_savings_formatted;
-			}
-		} else if (savings) {
-			savings.remove();
-		}
-	}
-
-	function injectSavingsRow() {
-		var data = getCartData();
-		var cartExt = data && data.extensions && data.extensions[NAMESPACE];
-
-		document.querySelectorAll(SUMMARY_INSTANCE_SELECTOR).forEach(function (root) {
-			injectSavingsRowInto(root, cartExt);
-		});
-	}
-
 	function inject() {
-		injectItemBadges();
+		injectItemMeta();
 		renameSummaryLabels();
-		injectSavingsRow();
 	}
 
 	function scheduleInject() {
@@ -255,7 +158,7 @@
 	/**
 	 * `wp.data.subscribe()` (wyżej) NIE WYSTARCZA na tej stronie — zweryfikowane
 	 * runtime, Playwright, sesja 2026-08-06: mobilny podgląd „Slot/Fill"
-	 * podsumowania (patrz nagłówek pliku) montuje się WŁASnym, opóźnionym
+	 * podsumowania (patrz nagłówek pliku) montuje się WŁASNYM, opóźnionym
 	 * cyklem Reacta, niezależnym od zmian sklepu `wc/store/cart` — pierwszy
 	 * `inject()` (na `DOMContentLoaded`) trafiał na jeszcze niezamontowane
 	 * `.wc-block-components-order-summary-item`, a kolejne wywołania sklepu
@@ -264,18 +167,13 @@
 	 * `<body>` to niezawodny fallback niezależny od tego, CO dokładnie
 	 * wywołuje re-render (sklep, lokalny stan, Suspense).
 	 *
-	 * KRYTYCZNE (niezależna recenzja, sesja 2026-08-06): ten obserwator
-	 * reaguje na WŁASNE mutacje `inject()`, więc `inject()` MUSI być
-	 * NAPRAWDĘ idempotentny — jeśli którakolwiek z jego funkcji wykona
-	 * mutację DOM (np. `innerHTML = …`) bez sprawdzenia, że wartość
-	 * faktycznie się zmieniła, powstaje nieskończona pętla (obserwator budzi
-	 * `inject()`, `inject()` mutuje, mutacja budzi obserwator…). Złapane
-	 * empirycznie w tej sesji: `injectSavingsRowInto()` nadpisywała
-	 * `innerHTML` bezwarunkowo przy KAŻDYM wywołaniu — zmierzone >8000
-	 * mutacji/s na stronie bezczynnej. Naprawione guardem `!== wartość`
-	 * (patrz komentarz przy `injectSavingsRowInto`) — wszystkie funkcje
-	 * `inject()` muszą zachować tę własność (mutacja WYŁĄCZNIE przy realnej
-	 * zmianie), inaczej ten `MutationObserver` zamienia się w busy-loop.
+	 * KRYTYCZNE (niezależna recenzja, sesja 2026-08-06, dotyczyło USUNIĘTEJ
+	 * już `injectSavingsRow`, ale zasada zostaje udokumentowana): ten
+	 * obserwator reaguje na WŁASNE mutacje `inject()`, więc `inject()` MUSI
+	 * być NAPRAWDĘ idempotentny — mutacja WYŁĄCZNIE przy realnej zmianie
+	 * (guardy `!metadata.querySelector(...)` / porównanie `textContent`
+	 * przed nadpisaniem w `renameSummaryLabels`), inaczej ten
+	 * `MutationObserver` zamienia się w busy-loop mutacji.
 	 */
 	if (window.MutationObserver) {
 		new MutationObserver(scheduleInject).observe(document.body, { childList: true, subtree: true });
