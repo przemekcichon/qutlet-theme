@@ -2593,11 +2593,27 @@ body.woocommerce-checkout .wp-block-post-title {
 	position: sticky;
 	top: 96px;
 }
+/* Port `.summary-card h3` (design/vanilla/css/style.css:462) — BEZ
+   `font-family`, dziedziczy krój body (Manrope), NIE display (Sora) — ta
+   sama zasada co reszta prototypu (nagłówki kart używają zwykłego kroju,
+   Sora zarezerwowana dla dużych, samodzielnych tytułów jak `.confirm-box h1`).
+   `!important` konieczne — WC ma WŁASNY `font-size`/`font-weight` na tym
+   elemencie o wyższej specyficzności (zweryfikowane runtime: bez tego
+   nasze 17px/800 przegrywały z natywnym 20px/500, zgłoszone przez
+   użytkownika jako „zła czcionka"). */
 .wc-block-components-checkout-order-summary__title-text {
-	font-family: var(--font-display);
-	font-size: 17px;
-	font-weight: 800;
+	font-size: 17px !important;
+	font-weight: 800 !important;
 }
+/* Ramka wokół całej sekcji podsumowania (nagłówek+pozycje+kupon+sumy) —
+   natywny WC default (0,8px, czarny 20% alpha) wygląda jak dodatkowa
+   ramka WEWNĄTRZ białej karty `.wc-block-components-sidebar...totals-block`
+   (zgłoszenie użytkownika, sesja 2026-08-06) — karta ma już swoją jedną
+   ramkę (reguła wyżej), ta wewnętrzna jest zbędna. Podobnie linia dzieląca
+   sekcję kuponu/pozycji od wierszy sum (`...totals-block`, border-top) —
+   prototyp nie ma żadnego takiego podziału w tym miejscu. */
+.wp-block-woocommerce-checkout-order-summary-block { border: none !important; }
+.wp-block-woocommerce-checkout-order-summary-totals-block { border-top: none !important; }
 
 /* Wiersz pozycji w podsumowaniu — port `.co-item`/`.co-item-title`/
    `.co-item-price` (design/vanilla/css/style.css:520-523,
