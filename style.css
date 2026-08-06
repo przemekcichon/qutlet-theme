@@ -248,6 +248,18 @@ a { color: inherit; }
 .logo-footer .logo-name { color: var(--ink); }
 .site-footer .logo-sub { display: block; color: var(--muted); margin-top: 10px; }
 
+/* Link powrotu w nagłówku minimalnym koszyka (parts/header-cart.html,
+   P-8.6a.2) — reużywa `.continue-link` (design/vanilla/css/style.css:459),
+   tylko bez jego `margin-top:22px` (myślany do treści strony, nie do wiersza
+   nagłówka) i dosunięty do prawej krawędzi, jak `.header-nav` gdzie indziej
+   w tym samym `.header-row` (`margin-left:auto`). Selektor złożony
+   `.continue-link.header-back-link` (0,2,0) — sam `.header-back-link` (0,1,0)
+   przegrywał z `.continue-link` (też 0,1,0, ale zdefiniowany PÓŹNIEJ w pliku —
+   przy remisie specyficzności wygrywa kolejność w źródle, nie kolejność klas
+   w HTML-u; złapane w niezależnej recenzji, zweryfikowane `getComputedStyle`
+   na `/koszyk/`: `margin-top` realnie zostawało 22px). */
+.continue-link.header-back-link { margin-top: 0; margin-left: auto; }
+
 .search { flex: 1; max-width: 520px; position: relative; }
 .search svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); }
 .search input {
@@ -256,9 +268,24 @@ a { color: inherit; }
 	font-family: inherit; font-size: 14.5px; background: #fff; color: var(--ink);
 }
 
-.header-nav { display: flex; align-items: center; gap: 26px; margin-left: auto; }
+/* `position:relative` na `.header-nav`, NIE na `.header-menu-wrap` (jak
+   wcześniej) — `.dropdown` (niżej) zakotwicza się `right:0` względem
+   NAJBLIŻSZEGO positioned ancestora. Gdy tym ancestorem był sam
+   `.header-menu-wrap` (wąski, ~46px, tyle co ikona), `right:0` działało
+   poprawnie TYLKO dla ikony, która faktycznie leży na samym prawym krańcu
+   `.header-nav` — na mobile ikona koszyka NIE jest już ostatnia (po niej
+   jest ikona konta i hamburger, `.nav-link`e chowają się w tej samej
+   media query), więc rozwijany panel (do 360px szerokości) wystawał daleko
+   w lewo poza viewport (zgłoszone przez użytkownika, zrzut ekranu).
+   `.header-nav` ma `margin-left:auto` i jest ostatnim elementem
+   `.header-row` — jego WŁASNA prawa krawędź zawsze styka się z prawym
+   krańcem wiersza, niezależnie od tego, ile ikon w nim jest i która z nich
+   otworzyła dropdown, więc `right:0` względem NIEGO jest bezpieczne przy
+   każdej szerokości ekranu. Na desktopie bez zmiany widocznej — ikona konta
+   (ostatnia widoczna wtedy) i tak stykała się z prawą krawędzią `.header-nav`. */
+.header-nav { display: flex; align-items: center; gap: 26px; margin-left: auto; position: relative; }
 .nav-link { font-size: 14px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; text-decoration: none; }
-.header-menu-wrap { position: relative; }
+.header-menu-wrap { position: static; }
 .icon-btn {
 	position: relative; width: 46px; height: 46px; border-radius: 12px;
 	display: grid; place-items: center; background: var(--panel); border: 0; cursor: pointer; color: var(--ink);
@@ -281,8 +308,22 @@ a { color: inherit; }
 .cart-menu-head { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
 .cart-menu-list { display: flex; flex-direction: column; gap: 13px; max-height: 280px; overflow-y: auto; }
 .cart-menu-item { display: flex; gap: 12px; align-items: center; }
+/* P-8.6a: brakowało bazowej definicji — .cart-thumb/-sm żyły w prototypie
+   (design/vanilla/css/style.css:443-448), tu nigdy nie zostały doportowane,
+   więc miniaturka renderowała się jako 0×0 mimo poprawnego background-image
+   z PHP (Cart::render_cart_menu()). */
+.cart-thumb {
+	border-radius: 9px; background-color: var(--panel); background-size: contain; background-position: center;
+	background-repeat: no-repeat; border: 1px solid var(--line); flex-shrink: 0; overflow: hidden;
+	background-origin: content-box;
+}
+.cart-thumb-sm { width: 48px; height: 48px; padding: 5px; }
+.cart-menu .cart-thumb-sm { width: 50px; height: 50px; }
 .cart-menu-item-info { flex: 1; min-width: 0; }
-.cart-menu-item-title { font-size: 13px; font-weight: 700; line-height: 1.3; }
+.cart-menu-item-title {
+	font-size: 13px; font-weight: 700; line-height: 1.3;
+	display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
 .cart-menu-item-meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
 .cart-menu-item-price { font-family: var(--font-display); font-weight: 800; font-size: 14px; white-space: nowrap; }
 .cart-menu-item-remove { width: 26px; height: 26px; border-radius: 7px; background: var(--panel); border: 0; cursor: pointer; display: grid; place-items: center; color: var(--muted); flex-shrink: 0; }
@@ -1509,6 +1550,12 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
    `body_class` (Help::filter_body_class(), D-8.G1: bez atrybutu
    data-page, którego block template canvas nie ma jak przyjąć). */
 body.qt-hide-nlband .nlband { display: none; }
+/* Ten sam banner ukryty na koszyku (P-8.6a.2) — bez zajeżdżania o
+   `Help::filter_body_class()`: `body.woocommerce-cart` to natywna klasa WC
+   (WC dogrywa ją przez własny `body_class` filtr, potwierdzona runtime na
+   `/koszyk/`), więc nie trzeba PHP w motywie na osobną klasę — konsekwentnie
+   z regułą wyżej (ten sam selektor `.nlband`), tylko inny hak w body. */
+body.woocommerce-cart .nlband { display: none; }
 
 /* ---------- „Jak to działa" (page-jak-to-dziala.php, port <style>) ---------- */
 .hero-cta {
@@ -1679,4 +1726,661 @@ body.qt-hide-nlband .nlband { display: none; }
    (jak-to-dziala.html:43-44). */
 @media (max-width: 560px) {
 	.how-steps { grid-template-columns: 1fr; }
+}
+
+/* ---------- Koszyk (P-8.6a) ----------
+   Cart Block (`wp:woocommerce/cart`, D-8.6a.1) — motyw NIE kontroluje jego
+   DOM-u (React/Interactivity API), więc to reskin natywnych klas WC
+   (`wc-block-*`), nie dosłowny port `.cart-layout`/`.cart-row`/`.summary-card`
+   z prototypu — te selektory tu NIE ISTNIEJĄ, ale strukturę DOM-u dało się
+   dociągnąć do niej na tyle blisko (2 kolumny, wiersz produktu jako
+   flex/grid, jedna karta podsumowania), że większość reguł niżej to
+   bezpośrednie porty wartości z `design/vanilla/css/style.css:436-473`,
+   tylko pod natywnymi selektorami WC. `.qutlet-cart-badges`/`.cart-old-price`/
+   `.qutlet-cart-subtotal-row`/`.qutlet-cart-savings-note` wstrzykuje
+   `assets/js/cart-block-filters.js` jako osobne węzły DOM (nie modyfikacje
+   istniejących stringów — `registerCheckoutFilters` z filtrem `itemName`
+   zanieczyszczał aria-label przycisków ilości/usuwania surowym HTML,
+   zweryfikowane runtime). `.pill`/`.dot`/`.dot-a…d` to już istniejące klasy
+   globalne (patrz sekcja kart produktu). */
+
+/* Układ 2-kolumnowy strony (`.cart-layout`, koszyk pełny). */
+.wp-block-woocommerce-filled-cart-block {
+	display: grid;
+	grid-template-columns: 1fr 380px;
+	gap: 40px;
+	align-items: start;
+}
+/* WC-owe `.wc-block-components-main`/`-sidebar` niosą własne `width: 65%`/`35%`
+   + padding-left/right (procentowe) z macierzystego layoutu flex-wrap
+   (`assets/client/blocks/cart.css`) — w kontekście grida procent liczy się
+   od szerokości TRACKA, nie całego rzędu, więc sidebar kurczył się do 35%
+   z 380px (133px) zamiast wypełniać kolumnę. `gap` na rodzicu zastępuje
+   procentowy padding WC (stąd zerowanie), karta podsumowania dostaje swój
+   padding niżej razem z resztą wyglądu `.summary-card`, w TEJ SAMEJ regule
+   (żeby nie przegrywać specyficznością z zerowaniem tu). */
+.wc-block-components-main.wp-block-woocommerce-cart-items-block {
+	width: auto;
+	padding: 0;
+}
+
+/* Nagłówek tabeli (PRODUKT/ŁĄCZNIE) nie ma odpowiednika w prototypie —
+   ukryty wizualnie; tabela i tak jest odblokowana przez display:flex na
+   wierszach niżej (blokifikacja komórek tabeli w kontekście flex to
+   zachowanie specyfikacji CSS, nie hack). */
+.wc-block-cart-items__header { display: none; }
+
+/* Wiersz produktu — port `.cart-row` (design/vanilla/css/style.css:438-442). */
+.wc-block-cart-items__row {
+	display: flex;
+	gap: 18px;
+	align-items: center;
+	border-top: 1px solid var(--line);
+	border-bottom: 1px solid var(--line);
+	margin-top: -1px;
+}
+/* WC stawia border-top na KAŻDYM <td> z osobna (`.wc-block-cart-items td`,
+   cart.css), nie na wierszu — z display:flex na wierszu (wyżej) te dwa
+   bordery przestały się stykać z borderem wiersza (mają swój, przy własnej,
+   inaczej wyrównanej wysokości komórki), więc wychodziły jako DWA odrębne,
+   przesunięte segmenty nad miniaturką i opisem, zamiast jednej spójnej linii
+   (zgłoszone przez użytkownika). Pierwsza poprawka (selektor potomny, 2 klasy,
+   0,2,0) NIE WYSTARCZYŁA — WC ma jeszcze WĘŻSZY wariant w `@container
+   (min-width:700px)`: `.wc-block-cart__main .wc-block-cart-items td` (2 klasy
+   + typ, 0,2,1), który bije 0,2,0 (zweryfikowane w DevTools). Trzecia klasa
+   w łańcuchu (0,3,0) bije obie warianty niezależnie od szerokości kontenera. */
+.wc-block-cart-items .wc-block-cart-items__row .wc-block-cart-item__image,
+.wc-block-cart-items .wc-block-cart-items__row .wc-block-cart-item__product,
+.wc-block-cart-items .wc-block-cart-items__row .wc-block-cart-item__total {
+	border-top: 0;
+}
+.wc-block-cart-item__image { padding: 0; }
+.wc-block-cart-item__image img {
+	width: 88px;
+	height: 88px;
+	box-sizing: border-box;
+	object-fit: contain;
+	border-radius: 12px;
+	border: 1px solid var(--line);
+	background: var(--panel);
+	padding: 8px;
+}
+.wc-block-cart-item__product { flex: 1; min-width: 0; padding: 0; }
+/* Kolumna "Łącznie" (ilość × cena) nie ma odpowiednika w prototypie — jeden
+   wiersz koszyka pokazuje WYŁĄCZNIE cenę jednostkową (`.cart-row-price`), bez
+   osobnego przeliczenia ilości. */
+.wc-block-cart-item__total { display: none; }
+
+/* Wewnątrz `.wc-block-cart-item__wrap` WC trzyma nazwę/ceny/metadane/ilość/
+   usuń jako płaskie rodzeństwo (jeden div) — siatka z jawnym umiejscowieniem
+   per klasa odtwarza dwie kolumny prototypu (`.cart-row-info`/`.cart-row-side`)
+   bez przepisywania DOM-u bloku.
+   UWAGA: `!important` na WŁAŚCIWOŚCIACH UKŁADU (display/grid-column/grid-row/
+   flex-direction) w całej tej sekcji jest ŚWIADOMY, nie lenistwo — WC ma
+   WŁASNY, dwutorowy system (grid w jednym kontekście, flex-column w drugim,
+   re-deklarowany w kilku `@container` breakpointach) na TYCH SAMYCH
+   elementach, każdy pod selektorem `table.wc-block-cart-items
+   .wc-block-cart-items__row .wc-block-cart-item__X` (3 klasy + typ, 0,3,1).
+   Dwie kolejne rundy podnoszenia specyficzności selektora (do 0,4,0) i tak
+   przegrały z jeszcze inną odmianą tej samej reguły WC gdzie indziej w tym
+   pliku (zweryfikowane w DevTools, dwukrotnie) — `!important` kończy tę
+   pogoń raz na zawsze, zamiast czekać na trzecią odmianę. */
+.wc-block-cart-item__wrap {
+	display: grid !important;
+	grid-template-columns: 1fr auto;
+	column-gap: 16px;
+	align-items: start;
+}
+.wc-block-components-product-name {
+	/* Kolumna 1, wiersz 1 — DIREKTNIE na `nameEl` (nie na osobnym
+	   kontenerze!). Wcześniejsza wersja owijała nazwę we wspólny `<span>`
+	   z ikonką „?" — czyli PRZENOSIŁA węzeł DOM Reacta (`nameRow.appendChild(nameEl)`)
+	   do nowego rodzica. Cart Block jest komponentem Reacta: React śledzi
+	   WŁASNE referencje do węzłów, a przeniesienie jednego z nich do innego
+	   rodzica psuje to śledzenie — przy najbliższym re-renderze (usunięcie
+	   INNEJ pozycji z koszyka, przeliczenie sumy) React próbuje
+	   `removeChild` węzła, który już nie jest dzieckiem oczekiwanego
+	   rodzica → crash "Unexpected error in: woocommerce/cart-line-items-block"
+	   (zgłoszone przez użytkownika — mimo że dane w koszyku były
+	   poprawne, sam re-render Reacta wywalał wyjątek). Poprawka: `nameEl`
+	   NIGDY nie zmienia rodzica, ikonka to OSOBNY węzeł dopisany do
+	   `wrap` (patrz `injectItemBadges()`), w TEJ SAMEJ komórce gridu
+	   (`justify-self:start` na obu, więc się nie stretchują) —
+	   pozycjonowanie „za nazwą" liczone w JS przez `margin-left`
+	   (`updateNameTruncation()`), nie przez wspólny flex-kontener.
+
+	   Grid items dostają domyślnie min-width:auto (szerokość liczona
+	   z treści) — bez zerowania długie nazwy NIE przycinały się elipsą,
+	   tylko rozpychały wiersz. `max-width:80%` (nie 100%) — na wyraźną
+	   prośbę użytkownika: elipsa ma się pojawiać TYLKO, gdy nazwa
+	   przekroczy 80% szerokości wiersza. Widoczność `.qutlet-name-tooltip`
+	   (klasa `.is-truncated`, JS) idzie za TYM SAMYM pomiarem realnego
+	   przycięcia (`scrollWidth > clientWidth`), nie za samą obecnością
+	   elipsy w CSS. WC ma tu WŁASNY `max-width:max-content`
+	   (`table.wc-block-cart-items .wc-block-cart-items__row
+	   .wc-block-components-product-name`, 0,2,1 — bije nasze 0,1,0), stąd
+	   `!important` (zweryfikowane computed style, nie tylko zrzut ekranu —
+	   ten sam trik dziedziczenia co reszta tej sekcji). */
+	grid-column: 1 !important;
+	grid-row: 1 !important;
+	justify-self: start;
+	max-width: 80% !important;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap !important;
+	font-size: 16px !important;
+	font-weight: 700 !important;
+	line-height: 1.3;
+	color: var(--ink) !important;
+	text-decoration: none;
+}
+/* Ikonka "?" — domyślnie schowana, JS pokazuje ją (`.is-truncated`)
+   WYŁĄCZNIE gdy nazwa faktycznie się przycięła (patrz komentarz wyżej);
+   pełna nazwa w atrybucie `title`. Ta sama komórka gridu co nazwa
+   (`grid-column:1; grid-row:1`) — `margin-left` (JS, `updateNameTruncation()`)
+   ją przesuwa za renderowaną (możliwe, że przyciętą) szerokość nazwy,
+   `justify-self:start` na obu zapobiega rozciągnięciu na całą kolumnę. */
+.qutlet-name-tooltip {
+	display: none;
+	grid-column: 1 !important;
+	grid-row: 1 !important;
+	justify-self: start;
+	align-self: center;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: var(--ink-soft);
+	color: var(--line);
+	font-size: 11px;
+	font-weight: 700;
+	align-items: center;
+	justify-content: center;
+	cursor: help;
+}
+.qutlet-name-tooltip.is-truncated { display: inline-flex; }
+.qutlet-cart-badges { grid-column: 1; grid-row: 2; display: flex; gap: 8px; flex-wrap: wrap; }
+.wc-block-components-product-metadata:empty { display: none; }
+.wc-block-cart-item__prices {
+	grid-column: 2 !important;
+	grid-row: 1 !important;
+	justify-self: end;
+	text-align: right;
+}
+.wc-block-cart-item__prices .wc-block-components-product-price__value {
+	font-family: var(--font-display) !important;
+	font-weight: 800 !important;
+	font-size: 19px !important;
+	white-space: nowrap;
+}
+/* Stara cena — teraz OSOBNY grid item (wstrzykiwany jako rodzeństwo w
+   `.wc-block-cart-item__wrap`, nie zagnieżdżony w `.wc-block-cart-item__prices`),
+   w TYM SAMYM wierszu co odznaki (druga kolumna) — "Klasa, gwarancja i cena
+   nowego w jednej linii", na wyraźną prośbę użytkownika. Port
+   `.cart-row-price small` prototypu (waga 600 — „lekko pogrubiona"). */
+.cart-old-price {
+	grid-column: 2 !important;
+	grid-row: 2 !important;
+	justify-self: end;
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+	font-family: var(--font-body) !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	color: var(--muted) !important;
+}
+/* Etykieta "Nowy za" — poza prototypem (tam sama przekreślona cena, bez
+   opisu), na wyraźną prośbę użytkownika: BEZ przekreślenia, samą kwotę
+   przekreśla `.cart-old-price-value`. */
+.cart-old-price-label { text-decoration: none; }
+.cart-old-price-value { text-decoration: line-through; }
+.cart-old-price .woocommerce-Price-amount { color: inherit; }
+/* `.wc-block-cart-item__remove-link` (przycisk „Usuń") jest DZIECKIEM tego
+   diva w DOM-ie bloku, nie osobnym rodzeństwem w `.wc-block-cart-item__wrap`
+   (zweryfikowane runtime) — całość rozciągnięta na PEŁNĄ szerokość wiersza
+   (obie kolumny), stepper wyrównany do lewej, „Usuń" do prawej — ilość pod
+   odznakami (lewa kolumna), usuń pod starą ceną (prawa kolumna), oba na tym
+   samym poziomie, jak w prototypie (`.cart-row-qty` / `.cart-row-remove"),
+   tylko połączone w jeden wspólny wiersz zamiast dwóch niezależnych komórek —
+   DOM bloku Cart nie rozdziela stepera i „Usuń" na dwa osobne węzły, więc
+   nie da się ich umieścić w dwóch kolumnach gridu bez przepisania komponentu. */
+/* Stepper + usuń PO LEWEJ, spakowane razem (na wyraźną prośbę użytkownika,
+   sesja 2026-08-06 — poprzednio `justify-content:space-between` rozpychało
+   usuń na sam prawy kraniec wiersza). Prawa strona wiersza zwolniona dla
+   `.qutlet-item-savings` (osobny, RÓWNOLEGŁY grid item w TEJ SAMEJ komórce
+   — `grid-column:2;grid-row:3` niżej — a nie dziecko tego diva; ten sam
+   trik co `.wc-block-cart-item__prices`/`.cart-old-price` współdzielące
+   wiersz 1/2 wyżej). `gap` WŁASNY (nie tylko WC-owy `12px` z cart.css) —
+   ta wartość jest teraz częścią naszego układu (odstęp stepper↔usuń), nie
+   przypadkowym dziedziczeniem z cudzej reguły. */
+.wc-block-cart-item__quantity {
+	grid-column: 1 / -1 !important;
+	grid-row: 3 !important;
+	display: flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	justify-content: flex-start;
+	gap: 12px;
+}
+/* "Oszczędzasz X" per wiersz — limonkowy kolor z podsumowania koszyka
+   (`--green-bg`/`--green-ink`, patrz `.qutlet-cart-savings-note` niżej),
+   własna mniejsza pigułka (nie pełnoszerokościowy box). Współdzieli wiersz
+   3 z `.wc-block-cart-item__quantity` (kolumna 2, ten sam trik co
+   ceny/stara cena wyżej) — wstawiane przez JS WYŁĄCZNIE gdy produkt ma
+   `cena_rynkowa_nowego` wyższą od ceny sprzedaży (Cart::cart_item_data()),
+   inaczej węzeł się nie pojawia. */
+.qutlet-item-savings {
+	grid-column: 2;
+	grid-row: 3;
+	justify-self: end;
+	align-self: center;
+	background: var(--green-bg);
+	color: var(--green-ink);
+	font-weight: 700;
+	font-size: 12px;
+	border-radius: 8px;
+	padding: 5px 10px;
+	white-space: nowrap;
+}
+
+/* Stepper natywny (+/-/input) — ZASTĄPIONY dropdownem (na wyraźną prośbę
+   użytkownika, sesja 2026-08-06, inspiracja koszykiem Back Market: „idea
+   sklepu jest taka, że najwięcej będzie pojedynczych sztuk", wybór z listy
+   pasuje lepiej niż klikanie +/-). Chowany CSS-em, NIE usuwany z DOM —
+   `assets/js/cart-block-filters.js` (`injectQuantityDropdown()`) czyta z
+   jego `<input>` (nadal w drzewie, tylko niewidoczny) `min`/`max`/
+   `aria-label`, żeby zbudować opcje własnego `<select>`. */
+.wc-block-components-quantity-selector { display: none; }
+/* Nasz dropdown — port wizualnej wagi usuniętego steppera (ta sama wysokość
+   32px), ale jako zwykłe pole formularza z natywną strzałką przeglądarki,
+   nie własnym SVG (mniej JS/markupu, spójne z resztą pól w motywie —
+   `border-radius:10px`/`border-color:var(--line)` to te same tokeny co
+   pole kuponu niżej w tym pliku). */
+.qutlet-qty-select {
+	height: 32px;
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	padding: 0 8px;
+	color: var(--ink);
+	font-family: var(--font-body);
+	font-weight: 700;
+	font-size: 14px;
+	background: #fff;
+	cursor: pointer;
+}
+.qutlet-qty-select:disabled { opacity: .5; cursor: default; }
+/* Etykieta „Pojedyncza sztuka"/„2 sztuki" — czysto wizualna (`aria-hidden`,
+   patrz JS), więc bez własnego znaczenia dla czytnika ekranu. */
+.qutlet-qty-label { font-size: 13px; font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
+/* Kolejność DESKTOP: etykieta, dropdown, usuń — wszystko spakowane po
+   lewej (na wyraźną prośbę użytkownika: „nie jak na screenshocie z innego
+   sklepu", gdzie dropdown jest po lewej, a etykieta+usuń rozjechane na
+   prawo). Prawa strona wiersza zostaje dla `.qutlet-item-savings`
+   (niezależny grid item, patrz wyżej). */
+.qutlet-qty-label { order: 1; }
+.qutlet-qty-select { order: 2; }
+.wc-block-cart-item__remove-link { order: 3; }
+/* WC ma `.wc-block-cart-item__quantity .wc-block-cart-item__remove-link`
+   (2 klasy, bije 1 klasę niżej) z `display:inline`, `width`/`height:24px`,
+   `font-*:inherit` (koniec końców trafia na domyślną czcionkę/rozmiar
+   przeglądarki — w Chrome szeryfowa "system font" 16px, stąd "Usuń"
+   wyglądało jak z innej strony, zgłoszone przez użytkownika). Zweryfikowane
+   computed style (nie tylko zrzut ekranu) — przegrywały WSZYSTKIE
+   właściwości poniżej, nie tylko te wizualnie oczywiste, więc `!important`
+   na całym zestawie na raz, konsekwentnie z resztą tej sekcji. */
+.wc-block-cart-item__remove-link {
+	display: inline-flex !important;
+	align-items: center !important;
+	width: auto !important;
+	height: auto !important;
+	gap: 6px;
+	font-family: var(--font-body) !important;
+	color: var(--muted) !important;
+	background: none;
+	border: 0;
+	padding: 0;
+	cursor: pointer;
+	font-size: 12.5px !important;
+	font-weight: 700 !important;
+}
+/* Blok Cart renderuje przycisk usunięcia jako sam SVG (bez tekstu, 24×24) —
+   dopisek "Usuń" jak w `.cart-row-remove" prototypu, bez ingerencji w sam
+   komponent. Ikona nie zjeżdża 1:1 na `QT.SVG.trash` prototypu (15×15) —
+   to WYPEŁNIONY kształt WC (nie kontur jak w prototypie), przy 15px wyglądał
+   znacząco drobniej niż w prototypie mimo identycznego wymiaru, stąd większy
+   rozmiar na wyraźną prośbę użytkownika po porównaniu wizualnym. */
+.wc-block-cart-item__remove-link::after { content: "Usuń"; }
+.wc-block-cart-item__remove-link svg { width: 19px; height: 19px; }
+
+/* Link powrotu — port `.continue-link` (design/vanilla/css/style.css:459),
+   markup wstawiony jako custom HTML w treści Strony (nie block button — w
+   prototypie to zwykły link z ikoną, nie przycisk). */
+.continue-link {
+	margin-top: 22px;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 700;
+	color: var(--accent);
+	font-size: 14.5px;
+	text-decoration: none;
+}
+
+/* Karta podsumowania — jedna karta na CAŁY `.wp-block-woocommerce-cart-totals-block`
+   (port `.summary-card`), nie osobne karty na summary-block/payment-methods —
+   w prototypie przycisk „Przejdź do kasy" i metody płatności żyją WEWNĄTRZ
+   tej samej białej karty, nie pod nią. */
+.wc-block-components-sidebar.wp-block-woocommerce-cart-totals-block {
+	width: auto;
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	padding: 24px;
+	position: sticky;
+	top: 96px;
+}
+/* Selektor złożony — WC-owa `.wc-block-cart__totals-title` (`cart.css`) niesie
+   własny `text-transform:uppercase`/`font-weight:500`/`font-size:13px` na tej
+   samej specyficzności (0,1,0); ten element ma też klasę bloku
+   (`wp-block-woocommerce-cart-order-summary-heading-block`), więc złożenie
+   obu wygrywa (0,2,0) — zweryfikowane runtime, sama pojedyncza klasa
+   przegrywała z WC. */
+.wp-block-woocommerce-cart-order-summary-heading-block.wc-block-cart__totals-title {
+	font-family: var(--font-display);
+	font-size: 17px;
+	font-weight: 800;
+	text-transform: none;
+	margin: 0 0 16px;
+	padding: 0;
+}
+/* Panel kuponu — poza prototypem (tam brak formularza kuponów), ale mieszka
+   w tej samej karcie, więc dostaje ten sam język wizualny (radius/border
+   pól z resztą motywu). Border-top znika: `packages-style.css` ma
+   `.wc-block-components-totals-wrapper{border-top:...}` (0,1,0) ORAZ
+   `:first-child` (0,2,0) na TYM SAMYM elemencie (jest pierwszym dzieckiem
+   `.wp-block-woocommerce-cart-order-summary-block") — `cart.css` resetuje
+   `border:0`, ale TYLKO potomkom `.wp-block-woocommerce-cart-order-summary-totals-block`
+   (inny rodzic, nie trafia w panel kuponu), więc bez własnej reguły border
+   zostaje. `!important` na wszelki wypadek przeciw `:first-child` (ten sam
+   0,2,0 co nasz selektor — bez `!important` byłaby to zwykła loteria kolejności
+   w arkuszu, nie gwarantowane zwycięstwo). */
+.wp-block-woocommerce-cart-order-summary-coupon-form-block.wc-block-components-totals-wrapper {
+	border-top: none !important;
+}
+/* Wiersz „Szacowana łączna kwota" — TEN SAM base+`:first-child" para z
+   `packages-style.css` co wyżej, ale ten wrapper nie ma własnej klasy bloku
+   (goły `.wc-block-components-totals-wrapper`) i NIE jest potomkiem
+   `...-totals-block` (jest rodzeństwem, dzieckiem `...-summary-block`
+   bezpośrednio, ostatnim w kolejności) — ani nasza reguła wyżej (inna klasa
+   bloku), ani reset `cart.css` (złej rodzic) go nie łapią. Selektor przez
+   `:has()` (zamiast dodawać klasę w JS/PHP), bo to jedyny sposób odróżnić
+   GO od innych gołych `.wc-block-components-totals-wrapper` bez własnej
+   klasy — po dziecku, które faktycznie ma tylko ten jeden wrapper
+   (`.wc-block-components-totals-footer-item`). */
+.wp-block-woocommerce-cart-order-summary-block > .wc-block-components-totals-wrapper:has(> .wc-block-components-totals-footer-item) {
+	border-top: none !important;
+}
+.wc-block-components-totals-coupon .wc-block-components-panel__button {
+	font-size: 14.5px;
+	font-weight: 700;
+	color: var(--ink);
+}
+.wc-block-components-totals-coupon__input input[type="text"] {
+	border-radius: 10px !important;
+	border-color: var(--line) !important;
+}
+.wc-block-components-totals-coupon__input input[type="text"]:focus {
+	border-color: var(--accent) !important;
+}
+/* Przycisk „Zastosuj" — domyślnie ciemny, wypełniony `.wp-element-button`
+   (globalny styl przycisku WP-core, brak nadpisania w theme.json) konkurował
+   wizualnie z głównym CTA „Przejdź do płatności" (fioletowy, wypełniony) —
+   ten dostaje wygląd CTA drugiego poziomu: obrys, białe tło, jak
+   `.btn-outline` gdzie indziej w motywie, zamiast drugiego wypełnionego
+   przycisku obok. */
+.wc-block-components-totals-coupon__button.wp-element-button {
+	background: #fff !important;
+	color: var(--ink) !important;
+	border: 1.5px solid var(--line) !important;
+	border-radius: 10px !important;
+	font-family: var(--font-body);
+	font-weight: 700;
+	font-size: 14px;
+	box-shadow: none !important;
+}
+.wc-block-components-totals-coupon__button.wp-element-button:hover:not(:disabled) {
+	background: var(--panel) !important;
+	border-color: var(--ink-soft) !important;
+}
+.wc-block-components-totals-item__label { color: var(--ink-soft); font-size: 14.5px; }
+.qutlet-cart-subtotal-row .wc-block-components-totals-item,
+.wp-block-woocommerce-cart-order-summary-shipping-block .wc-block-components-totals-item {
+	font-size: 14.5px;
+	padding-top: 7px;
+	padding-bottom: 7px;
+}
+/* Zielony box oszczędności — port `.savings-note` (design/vanilla/css/style.css:464-468). */
+.qutlet-cart-savings-note {
+	background: var(--green-bg);
+	color: var(--green-ink);
+	font-weight: 700;
+	font-size: 13px;
+	border-radius: 10px;
+	display: flex;
+	justify-content: space-between;
+	margin-top: 6px;
+	margin-bottom: 2px;
+	padding: 9px 13px;
+}
+/* Selektor złożony — WC-owa reguła `.wc-block-components-totals-footer-item{margin:0}`
+   (`cart.css`) kasowała nasz `margin-top`, więc obramowanie „Razem" siedziało
+   tuż pod zielonym boxem oszczędności bez odstępu (wyglądało jak krzywa,
+   dodatkowa linia zamiast czytelnego separatora — zgłoszone przez
+   użytkownika). Ten element ma też klasę `.wc-block-components-totals-item`
+   (dwie klasy razem, jak wyżej). */
+.wc-block-components-totals-item.wc-block-components-totals-footer-item {
+	border-top: 1px solid var(--line);
+	margin-top: 10px;
+	padding-top: 15px;
+}
+/* Font „Razem"/kwoty — WC deklaruje WŁASNY font-weight/font-size DIREKTNIE
+   na labelu i wartości (`.wc-block-components-totals-footer-item
+   .wc-block-components-totals-item__label`/`__value`, cart.css, 0,2,0) —
+   ustawienie fontu na RODZICU (reguła wyżej) nic tu nie dawało, dziecko ma
+   własną, bardziej specyficzną deklarację, która wygrywa niezależnie od
+   stylu odziedziczonego z rodzica (zweryfikowane computed style). Port
+   `.summary-total` prototypu (design/vanilla/css/style.css:469-472) —
+   ten sam selektor co WC, żeby trafić w oba naraz. */
+.wc-block-components-totals-footer-item .wc-block-components-totals-item__label,
+.wc-block-components-totals-footer-item .wc-block-components-totals-item__value {
+	font-family: var(--font-display) !important;
+	font-weight: 800 !important;
+	font-size: 22px !important;
+	color: var(--ink) !important;
+}
+.wp-block-woocommerce-proceed-to-checkout-block { margin-top: 18px; }
+/* Prawdziwa klasa przycisku (`.wc-block-cart__submit-button`) — WCowy
+   `.wp-block-button__link`/selektor generyczny `a` w kontenerze nigdy nie
+   trafiał w kolor (zweryfikowane runtime: tło zostawało domyślnym ciemnym
+   `wp-element-button` z theme.json), tylko przypadkiem w promień/szerokość
+   przez zbyt ogólny `.wc-block-cart__submit-container a`. Port `.btn-primary`
+   + `.btn-lg` (design/vanilla/css/style.css:69-70,75 — radius 12px, NIE pill). */
+.wc-block-cart__submit-button {
+	background: var(--accent);
+	color: #fff;
+	border-radius: 12px;
+	width: 100%;
+	text-align: center;
+	font-family: var(--font-display);
+}
+.wc-block-cart__submit-button:hover { background: var(--accent-deep); }
+.wp-block-woocommerce-cart-accepted-payment-methods-block { margin-top: 12px; }
+
+/* Pusty koszyk — port `.empty-state` (design/vanilla/css/style.css:390-391,929).
+   `.empty-icon` to własny SVG w treści (wp:html), nie natywna ikona WC
+   (`.with-empty-cart-icon::before`, maska buźki) — klasa świadomie pominięta
+   w post_content Strony. */
+.wp-block-woocommerce-empty-cart-block {
+	text-align: center;
+	color: var(--muted);
+	padding-top: 70px;
+	padding-bottom: 70px;
+}
+.empty-icon { color: var(--line); margin-bottom: 16px; }
+.wc-block-cart__empty-cart__title {
+	font-family: var(--font-display);
+	font-size: 20px;
+	font-weight: 700;
+	color: var(--ink);
+	margin-bottom: 8px;
+}
+.wp-block-woocommerce-empty-cart-block .wp-block-button__link { border-radius: 999px; margin-top: 10px; }
+
+/* Tytuł strony — blok `page-cart` WooCommerce (CartTemplate.php) wygrywa
+   priorytetem nad `templates/page.html` motywu, więc h1 to `wp:post-title`
+   bez klasy `.page-title`; dociągnięty tu do tej samej typografii zamiast
+   duplikować regułę pod nowym selektorem. Breadcrumb „Home / Koszyk" z
+   prototypu POZOSTAJE nieadresowany — wymagałby własnego
+   `templates/page-koszyk.html` (ten sam wzorzec co `page-{slug}.php` w
+   D-8.5.1), poza zakresem tej poprawki. */
+body.woocommerce-cart .wp-block-post-title {
+	font-family: var(--font-display);
+	font-size: clamp(28px, 3.2vw, 40px);
+	font-weight: 800;
+}
+
+@media (max-width: 900px) {
+	.wp-block-woocommerce-filled-cart-block { grid-template-columns: 1fr; }
+	/* Selektor złożony, jak w regule desktopowej wyżej (ta sama specyficzność,
+	   0,2,0) — inaczej `position: sticky` z tamtej reguły wygrywa mimo media
+	   query (kaskada rozstrzyga po specyficzności, nie po kolejności/zakresie
+	   viewportu), złapane w niezależnej recenzji. */
+	.wc-block-components-sidebar.wp-block-woocommerce-cart-totals-block { position: static; }
+}
+@media (max-width: 560px) {
+	/* Runda 3 (sesja 2026-08-05, feedback po realnym klikaniu): miniaturka
+	   przenosi się z osobnej kolumny na wysokość nazwy, cena/odznaki/ilość
+	   schodzą pod spód na pełną szerokość — jedna kolumna treści zamiast
+	   dwóch (miniaturka + reszta). DOM bloku Cart to `<tr>` z DWOMA `<td>`
+	   (`.wc-block-cart-item__image`, `.wc-block-cart-item__product` — w tym
+	   drugim `.wc-block-cart-item__wrap` z nazwą/ceną/odznakami/ilością jako
+	   płaskie rodzeństwo, patrz komentarz przy bazowej regule `.wc-block-
+	   cart-item__wrap` wyżej). `display:contents` na OBU `<td>`/`.wrap`
+	   zdejmuje ich własne pudełka z layoutu i PROMUJE ich dzieci na
+	   bezpośrednie dzieci `.wc-block-cart-items__row` — bez tego nie dałoby
+	   się rozdzielić „nazwa w wierszu 1 obok miniaturki" od „cena/odznaki/
+	   ilość pod spodem na pełną szerokość", bo cała zawartość drugiego `<td>`
+	   siedzi w JEDNYM pudełku. Zero ruszania węzłów DOM przez JS (`display:
+	   contents` nie przenosi nic, tylko zmienia generowanie boksu) — właśnie
+	   przenoszenie węzłów Reacta było źródłem crasha naprawionego wcześniej
+	   na tym branchu (patrz `wc-block-cart-item__wrap` wyżej i historia
+	   commitów), więc ta technika świadomie go omija.
+	   `!important` na `display`/`grid-template-columns` — WC ma WŁASNY
+	   layout na tej samej klasie pod `.is-mobile`/`.is-small`/`.is-medium`
+	   (`table.wc-block-cart-items .wc-block-cart-items__row`, cart.css,
+	   selektor `.is-mobile table.wc-block-cart-items .wc-block-cart-items__row`
+	   = 3 klasy + typ, 0,3,1 — bije nasz prosty `.wc-block-cart-items__row`,
+	   0,1,0; zweryfikowane w DevTools/`document.styleSheets`: bez tego
+	   kolumny wychodziły WC-owe `80px 132px` zamiast naszych `88px 1fr`).
+	   Te kontenerowe klasy WC dogrywa przez WŁASNE container queries,
+	   niezależnie od viewportowej media query tego bloku — stąd fight
+	   dopiero tutaj, nie przy pierwszym overridzie `display:flex` na
+	   bazowej regule (tam WC nie miał konkurencyjnej reguły o wyższej
+	   specyficzności, więc zwykłe zastąpienie wystarczyło). */
+	.wc-block-cart-items__row {
+		display: grid !important;
+		grid-template-columns: 88px 1fr !important;
+		column-gap: 14px;
+		row-gap: 10px;
+		align-items: start;
+	}
+	.wc-block-cart-item__product,
+	.wc-block-cart-item__wrap {
+		display: contents !important;
+	}
+	/* WC pod tym samym `.is-mobile` (container query, patrz wyżej) dokłada
+	   WŁASNY `padding-right:16px` na tym `<td>` (0,3,1, bije nasz `padding:0`
+	   bazowy 0,1,0) i `width:100%` na samym `<img>` (0,3,2, bije nasz
+	   `width:88px` bazowy 0,2,1) — bez `!important` obraz wychodził 64px i
+	   NIEKWADRATOWY (100% z węższej niż 88px komórki minus obcy padding,
+	   przy STAŁEJ wysokości 88px z naszej reguły; zweryfikowane
+	   `getComputedStyle`/`document.styleSheets`). Zerujemy obcy padding i
+	   wymuszamy z powrotem stały kwadrat. */
+	.wc-block-cart-item__image {
+		grid-column: 1;
+		grid-row: 1;
+		align-self: start;
+		padding-right: 0 !important;
+	}
+	.wc-block-cart-item__image img { width: 88px !important; }
+
+	/* Nazwa — kolumna 2, wiersz 1 (obok miniaturki). Zawijanie zamiast elipsy
+	   + mniejsza czcionka (P-8.6a.2, na wyraźną prośbę użytkownika) zostają —
+	   `!important` konieczne na white-space/max-width, baza (linia ~1846)
+	   też ich używa. Ikonka „?" znika RAZEM z mechanizmem przycinania (nie
+	   osobny wyłącznik) — bez ellipsy nie ma czego tłumaczyć w tooltipie. */
+	.wc-block-components-product-name {
+		grid-column: 2 !important;
+		grid-row: 1 !important;
+		max-width: 100% !important;
+		white-space: normal !important;
+		overflow: visible;
+		text-overflow: clip;
+		font-size: 14px !important;
+	}
+	.qutlet-name-tooltip { display: none !important; }
+
+	/* Runda 4 (sesja 2026-08-06): przegrupowanie wierszy pod spodem —
+	   „Oszczędzasz X" (nowość, patrz `.qutlet-item-savings` przy regule
+	   desktopowej wyżej) potrzebowała miejsca, więc cena główna dostaje
+	   WŁASNY wiersz (2), a „Nowy za"/oszczędzasz przechodzą razem NA
+	   NASTĘPNY (3, para justify-self:start/end w jednej komórce, jak już
+	   ceny/stara cena robiły wcześniej) — grupuje info „ile płacisz teraz"
+	   osobno od „ile odnosisz względem nowego", zamiast jednej zbitej linii
+	   z trzema liczbami. Odznaki i akcje (ilość+usuń) schodzą o wiersz niżej
+	   (4, 5) niż w rundzie 3. Wiersz najwyższego poziomu (miniaturka+nazwa,
+	   1) NIETKNIĘTY. */
+	.wc-block-cart-item__prices {
+		grid-column: 1 / -1 !important;
+		grid-row: 2 !important;
+		justify-self: start;
+	}
+	.wc-block-cart-item__prices .wc-block-components-product-price__value {
+		font-size: 16px !important;
+	}
+	/* Stara cena — na mobile PO LEWEJ (odwrotnie niż desktop, gdzie dzieli
+	   kolumnę 2 z ceną główną) — na tym wierszu jest teraz sama, „Oszczędzasz"
+	   bierze prawą stronę. */
+	.cart-old-price {
+		grid-column: 1 / -1 !important;
+		grid-row: 3 !important;
+		justify-self: start;
+	}
+	.qutlet-item-savings { grid-column: 1 / -1 !important; grid-row: 3 !important; }
+
+	/* Odznaki (klasa + gwarancja) — pełna szerokość, wiersz 4. */
+	.qutlet-cart-badges { grid-column: 1 / -1 !important; grid-row: 4 !important; }
+
+	/* Ilość + usuń — pełna szerokość, ostatni wiersz (5). Kolumna już `1/-1`
+	   z reguły bazowej, tu tylko wiersz nadpisany. Kontrolka usuń Z IKONKĄ I
+	   ETYKIETĄ „Usuń" zostaje w pełnej wersji z desktopu (runda 3 to
+	   odwróciła z wcześniejszego zawężenia). */
+	.wc-block-cart-item__quantity { grid-row: 5 !important; }
+	/* Kolejność MOBILE — odwrotna niż desktop, na wyraźną prośbę
+	   użytkownika (sesja 2026-08-06, wzorzec z koszyka Back Market):
+	   dropdown, potem etykieta „Pojedyncza sztuka"/„2 sztuki" TUŻ PRZY
+	   dropdownie, a „Usuń" osobno na PRAWYM krańcu wiersza (`margin-left:
+	   auto` na fleksie — ten sam trik co `.header-back-link` w headerze
+	   koszyka). Desktop trzyma wszystko spakowane po lewej (reguła bazowa,
+	   nie ruszana tutaj) — to świadome zróżnicowanie per breakpoint, nie
+	   przeoczenie. */
+	.qutlet-qty-select { order: 1; }
+	.qutlet-qty-label { order: 2; }
+	/* `!important` na `margin-left` — WC ma WŁASNY `margin-left:0` na tym
+	   samym elemencie pod dłuższym łańcuchem klas (4 klasy, 0,4,0 — bije
+	   nasz prosty `.wc-block-cart-item__remove-link`, 0,1,0; zweryfikowane
+	   `document.styleSheets`: bez tego `margin-left:auto` było ignorowane,
+	   „Usuń" zostawał tuż przy etykiecie, nie na prawym krańcu wiersza). */
+	.wc-block-cart-item__remove-link { order: 3; margin-left: auto !important; }
 }

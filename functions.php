@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * dostawały `style.css?ver=0.1.0` i serwowały stary, scache'owany plik mimo
  * realnych zmian w CSS na dysku. Bumpować OBIE wartości razem.
  */
-const VERSION = '0.1.19';
+const VERSION = '0.1.51';
 
 /*
  * Autoloader Composera (D-G1): ładowany z guardem. Brak `vendor/autoload.php`
@@ -53,6 +53,7 @@ if ( is_readable( $qutlet_theme_autoload ) ) {
 	\Qutlet\Theme\features\Help\Help::boot();
 	\Qutlet\Theme\features\Home\Blocks::boot();
 	\Qutlet\Theme\features\Patterns\Patterns::boot();
+	\Qutlet\Theme\features\Cart\Cart::boot();
 } else {
 	add_action( 'admin_notices', __NAMESPACE__ . '\\render_missing_autoloader_notice' );
 }
@@ -148,12 +149,14 @@ function enqueue_assets(): void {
 function add_woocommerce_theme_support(): void {
 	add_theme_support( 'woocommerce' );
 
-	// Motyw dostarcza własny wrapper (.wrap w woocommerce/content-single-product.php
-	// i analogicznie w P-8.6a/b/c) oraz własny breadcrumb portowany z prototypu —
-	// domyślne hooki Woo (na `wc-template-hooks.php`) dublowałyby oba: otwierałyby
-	// nieużywany <div id="primary"><main id="main"> i drukowały nieostylowany
+	// Motyw dostarcza własny wrapper (.wrap w woocommerce/content-single-product.php)
+	// oraz własny breadcrumb portowany z prototypu — domyślne hooki Woo (na
+	// `wc-template-hooks.php`) dublowałyby oba: otwierałyby nieużywany
+	// <div id="primary"><main id="main"> i drukowały nieostylowany
 	// .woocommerce-breadcrumb OBOK naszego. Standardowa integracja motywu z Woo
 	// (identyczna do tej w motywach domyślnych WP, np. class-wc-twenty*.php).
+	// P-8.6a (koszyk) NIE korzysta z tego wrappera — Strona „Koszyk" renderuje
+	// się blokiem `wp:woocommerce/cart`, nie klasycznym szablonem (D-8.6a.1).
 	remove_action( 'woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10 );
 	remove_action( 'woocommerce_before_main_content', 'woocommerce_breadcrumb', 20 );
 	remove_action( 'woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10 );
