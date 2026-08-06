@@ -18,6 +18,13 @@
  * wiersza „Wartość produktów"/„Oszczędzasz" w podsumowaniu, których natywny
  * blok Cart w ogóle nie renderuje w tym układzie (Subtotal-block chowa się,
  * gdy wartość równa się Total — brak dostawy/rabatu do rozróżnienia).
+ *
+ * Jeden wyjątek od „tylko odczyt/wklejanie stringów": dropdown ilości
+ * (`injectQuantityDropdown()`) DYSPATCHUJE do store'a
+ * (`dispatch('wc/store/cart').changeCartItemQuantity()`) — zamienia ilość
+ * w koszyku, nie tylko ją wyświetla. Sam mechanizm wstrzykiwania (nowy
+ * węzeł DOM, natywny stepper schowany CSS-em, nie usunięty) jest
+ * identyczny z resztą pliku.
  */
 (function () {
 	'use strict';
@@ -147,6 +154,125 @@
 		});
 
 		updateNameTruncation();
+	}
+
+	/**
+	 * Polska odmiana liczby sztuk — PORT `QT.qtyLabel`/`QT.plural`
+	 * (design/vanilla/js/data.js:66-78, kontrakt §6 „Etykieta liczby sztuk").
+	 * Literały ("Pojedyncza sztuka"/"sztuka"/"sztuki"/"sztuk") skopiowane
+	 * 1:1 ze źródła prawdy, nie wymyślone na nowo.
+	 */
+	function plPlural(n, one, few, many) {
+		if (n === 1) {
+			return one;
+		}
+
+		var m10 = n % 10;
+		var m100 = n % 100;
+
+		if (m10 >= 2 && m10 <= 4 && !(m100 >= 12 && m100 <= 14)) {
+			return few;
+		}
+
+		return many;
+	}
+
+	function qtyLabel(q) {
+		if (q === 1) {
+			return 'Pojedyncza sztuka';
+		}
+
+		return q + ' ' + plPlural(q, 'sztuka', 'sztuki', 'sztuk');
+	}
+
+	/**
+	 * Dropdown ilości ZAMIAST steppera +/- (na wyraźną prośbę użytkownika,
+	 * sesja 2026-08-06 — inspiracja zrzutami z koszyka Back Market: "idea
+	 * sklepu jest taka, że najwięcej będzie pojedynczych sztuk", więc wybór
+	 * z listy pasuje lepiej niż klikanie +/-). Natywny stepper Cart Blocka
+	 * (`.wc-block-components-quantity-selector`, React) NIE jest usuwany z
+	 * DOM — tylko chowany CSS-em (`display:none`, style.css) i pozostaje
+	 * jedynym prawdziwym źródłem `min`/`max`/`value` (atrybuty na jego
+	 * `<input>`, ustawiane przez WC ze stanu magazynowego). Nasz `<select>`
+	 * to OSOBNY węzeł DOM dopisany do `.wc-block-cart-item__quantity` (ten
+	 * sam wzorzec DOM-injection co reszta pliku — zero ruszania węzłów
+	 * Reacta), zbudowany RAZ z opcji `min..max` odczytanych z natywnego
+	 * inputu, zmiana wybiera nową ilość przez
+	 * `wp.data.dispatch('wc/store/cart').changeCartItemQuantity(key, qty)`
+	 * (zweryfikowane runtime — ten sam Store API, który już napędza
+	 * odznaki/ceny/podsumowanie w tym pliku, więc re-render po zmianie
+	 * ilości aktualizuje WSZYSTKO — sumy, „Oszczędzasz", mini-koszyk
+	 * headera — bez dodatkowego kodu). Etykieta „Pojedyncza sztuka"/„2
+	 * sztuki" (`qtyLabel()`) w osobnym, `aria-hidden` spanie — czysto
+	 * wizualna, `<select>` ma już własny `aria-label` (skopiowany z
+	 * natywnego inputu), więc czytnik ekranu nie usłyszy tego samego dwa
+	 * razy.
+	 */
+	function injectQuantityDropdown() {
+		var data = getCartData();
+
+		if (!data) {
+			return;
+		}
+
+		(data.items || []).forEach(function (item) {
+			var row = document.querySelector('.wc-block-cart-items__row[data-cart-item-key="' + item.key + '"]');
+
+			if (!row) {
+				return;
+			}
+
+			var qtyContainer = row.querySelector('.wc-block-cart-item__quantity');
+			var nativeInput = row.querySelector('.wc-block-components-quantity-selector__input');
+
+			if (!qtyContainer || !nativeInput) {
+				return;
+			}
+
+			var select = qtyContainer.querySelector('.qutlet-qty-select');
+
+			if (!select) {
+				var min = parseInt(nativeInput.min, 10) || 1;
+				var max = parseInt(nativeInput.max, 10) || min;
+
+				select = document.createElement('select');
+				select.className = 'qutlet-qty-select';
+				select.setAttribute('aria-label', nativeInput.getAttribute('aria-label') || '');
+				select.disabled = max <= min;
+
+				for (var q = min; q <= max; q++) {
+					var option = document.createElement('option');
+					option.value = String(q);
+					option.textContent = String(q);
+					select.appendChild(option);
+				}
+
+				select.addEventListener('change', function () {
+					var dispatch = window.wp && window.wp.data && window.wp.data.dispatch;
+
+					if (dispatch) {
+						dispatch('wc/store/cart').changeCartItemQuantity(item.key, parseInt(select.value, 10));
+					}
+				});
+
+				qtyContainer.appendChild(select);
+			}
+
+			if (select.value !== String(item.quantity)) {
+				select.value = String(item.quantity);
+			}
+
+			var label = qtyContainer.querySelector('.qutlet-qty-label');
+
+			if (!label) {
+				label = document.createElement('span');
+				label.className = 'qutlet-qty-label';
+				label.setAttribute('aria-hidden', 'true');
+				qtyContainer.appendChild(label);
+			}
+
+			label.textContent = qtyLabel(item.quantity);
+		});
 	}
 
 	/**
@@ -284,6 +410,7 @@
 
 	function inject() {
 		injectItemBadges();
+		injectQuantityDropdown();
 		injectSummaryRows();
 		renameFooterTotalLabel();
 		refreshHeaderFragmentsOnChange();

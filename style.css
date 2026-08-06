@@ -1984,40 +1984,43 @@ body.woocommerce-cart .nlband { display: none; }
 	white-space: nowrap;
 }
 
-/* Stepper ilości — prototyp go nie ma (tam to statyczny tekst "Ilość: 1 szt."),
-   ale koszyk realnie potrzebuje działającej zmiany ilości. Bez własnej
-   ramki/tła (na wyraźną prośbę użytkownika) — same znaki „−"/„+"/liczba w
-   linii z resztą wiersza, zamiast domyślnego przezroczystego pudełka WC. */
-.wc-block-components-quantity-selector {
-	border: none;
-	border-radius: 10px;
-	width: auto;
+/* Stepper natywny (+/-/input) — ZASTĄPIONY dropdownem (na wyraźną prośbę
+   użytkownika, sesja 2026-08-06, inspiracja koszykiem Back Market: „idea
+   sklepu jest taka, że najwięcej będzie pojedynczych sztuk", wybór z listy
+   pasuje lepiej niż klikanie +/-). Chowany CSS-em, NIE usuwany z DOM —
+   `assets/js/cart-block-filters.js` (`injectQuantityDropdown()`) czyta z
+   jego `<input>` (nadal w drzewie, tylko niewidoczny) `min`/`max`/
+   `aria-label`, żeby zbudować opcje własnego `<select>`. */
+.wc-block-components-quantity-selector { display: none; }
+/* Nasz dropdown — port wizualnej wagi usuniętego steppera (ta sama wysokość
+   32px), ale jako zwykłe pole formularza z natywną strzałką przeglądarki,
+   nie własnym SVG (mniej JS/markupu, spójne z resztą pól w motywie —
+   `border-radius:10px`/`border-color:var(--line)` to te same tokeny co
+   pole kuponu niżej w tym pliku). */
+.qutlet-qty-select {
 	height: 32px;
-}
-.wc-block-components-quantity-selector__input {
-	width: 34px;
-	min-width: 0;
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	padding: 0 8px;
 	color: var(--ink);
 	font-family: var(--font-body);
 	font-weight: 700;
 	font-size: 14px;
+	background: #fff;
+	cursor: pointer;
 }
-.wc-block-components-quantity-selector__button {
-	width: 32px;
-	min-width: 32px;
-	color: var(--ink);
-	opacity: 1;
-	font-size: 15px;
-}
-/* Hover jako mała kropka (nie pełny kwadrat przycisku 32×32) — twardy
-   promień w `radial-gradient` (kolor do 12px, potem od razu przezroczyste,
-   bez rozmycia) daje kółko ~24px wyśrodkowane w przycisku, zamiast
-   wypełniania całego kwadratowego obszaru kliku. */
-.wc-block-components-quantity-selector__button:hover:not(:disabled) {
-	background: radial-gradient(circle 12px, var(--panel) 12px, transparent 12px);
-	border-radius: 50%;
-}
-.wc-block-components-quantity-selector__button:disabled { opacity: .3; cursor: default; }
+.qutlet-qty-select:disabled { opacity: .5; cursor: default; }
+/* Etykieta „Pojedyncza sztuka"/„2 sztuki" — czysto wizualna (`aria-hidden`,
+   patrz JS), więc bez własnego znaczenia dla czytnika ekranu. */
+.qutlet-qty-label { font-size: 13px; font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
+/* Kolejność DESKTOP: etykieta, dropdown, usuń — wszystko spakowane po
+   lewej (na wyraźną prośbę użytkownika: „nie jak na screenshocie z innego
+   sklepu", gdzie dropdown jest po lewej, a etykieta+usuń rozjechane na
+   prawo). Prawa strona wiersza zostaje dla `.qutlet-item-savings`
+   (niezależny grid item, patrz wyżej). */
+.qutlet-qty-label { order: 1; }
+.qutlet-qty-select { order: 2; }
+.wc-block-cart-item__remove-link { order: 3; }
 /* WC ma `.wc-block-cart-item__quantity .wc-block-cart-item__remove-link`
    (2 klasy, bije 1 klasę niżej) z `display:inline`, `width`/`height:24px`,
    `font-*:inherit` (koniec końców trafia na domyślną czcionkę/rozmiar
@@ -2359,11 +2362,25 @@ body.woocommerce-cart .wp-block-post-title {
 	/* Odznaki (klasa + gwarancja) — pełna szerokość, wiersz 4. */
 	.qutlet-cart-badges { grid-column: 1 / -1 !important; grid-row: 4 !important; }
 
-	/* Ilość + usuń — pełna szerokość, ostatni wiersz (5). Stepper (+/-) i
-	   kontrolka usuń Z IKONKĄ I ETYKIETĄ „Usuń" zostają w pełnej,
-	   nieokrojonej wersji z desktopu (runda 3 to odwróciła z jeszcze
-	   wcześniejszego zawężenia). Spakowane razem po lewej (`justify-content:
-	   flex-start` z reguły bazowej, runda 4) — kolumna już `1/-1` z reguły
-	   bazowej, tu tylko wiersz nadpisany. */
+	/* Ilość + usuń — pełna szerokość, ostatni wiersz (5). Kolumna już `1/-1`
+	   z reguły bazowej, tu tylko wiersz nadpisany. Kontrolka usuń Z IKONKĄ I
+	   ETYKIETĄ „Usuń" zostaje w pełnej wersji z desktopu (runda 3 to
+	   odwróciła z wcześniejszego zawężenia). */
 	.wc-block-cart-item__quantity { grid-row: 5 !important; }
+	/* Kolejność MOBILE — odwrotna niż desktop, na wyraźną prośbę
+	   użytkownika (sesja 2026-08-06, wzorzec z koszyka Back Market):
+	   dropdown, potem etykieta „Pojedyncza sztuka"/„2 sztuki" TUŻ PRZY
+	   dropdownie, a „Usuń" osobno na PRAWYM krańcu wiersza (`margin-left:
+	   auto` na fleksie — ten sam trik co `.header-back-link` w headerze
+	   koszyka). Desktop trzyma wszystko spakowane po lewej (reguła bazowa,
+	   nie ruszana tutaj) — to świadome zróżnicowanie per breakpoint, nie
+	   przeoczenie. */
+	.qutlet-qty-select { order: 1; }
+	.qutlet-qty-label { order: 2; }
+	/* `!important` na `margin-left` — WC ma WŁASNY `margin-left:0` na tym
+	   samym elemencie pod dłuższym łańcuchem klas (4 klasy, 0,4,0 — bije
+	   nasz prosty `.wc-block-cart-item__remove-link`, 0,1,0; zweryfikowane
+	   `document.styleSheets`: bez tego `margin-left:auto` było ignorowane,
+	   „Usuń" zostawał tuż przy etykiecie, nie na prawym krańcu wiersza). */
+	.wc-block-cart-item__remove-link { order: 3; margin-left: auto !important; }
 }
