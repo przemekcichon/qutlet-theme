@@ -135,6 +135,16 @@
 	}
 
 	/**
+	 * Punkt wspólny obu instancji (podgląd Slot/Fill + prawdziwy sidebar) —
+	 * jedyny element, który jest PRZODKIEM zarówno listy pozycji
+	 * (`.wc-block-components-order-summary__content`, patrz
+	 * `injectItemBadgesInto`), jak i bloku sum (`…-totals-block`, patrz
+	 * `injectSavingsRowInto` niżej), w OBU instancjach jednocześnie —
+	 * zweryfikowane w DOM-ie runtime (Playwright, sesja 2026-08-06).
+	 */
+	var SUMMARY_INSTANCE_SELECTOR = '.wp-block-woocommerce-checkout-order-summary-block';
+
+	/**
 	 * Etykiety natywnych wierszy podsumowania — port terminologii prototypu
 	 * (`kasa.html:103,106` — „Wartość produktów"/„Razem"), DOM injection (nie
 	 * filtr tłumaczeń — string leci z bundla bloku, jak w koszyku, patrz
@@ -159,29 +169,67 @@
 	 * co w koszyku (Cart::cart_totals_data()), TA SAMA klasa
 	 * `.qutlet-cart-savings-note` co cart-block-filters.js (jedna reguła CSS,
 	 * dwa miejsca wstrzyknięcia — identyczny box w obu blokach, D-12.G2).
+	 *
+	 * POPRAWKA (niezależna recenzja, sesja 2026-08-06) — pierwsza wersja
+	 * miała DWA błędy, oba potwierdzone runtime:
+	 * 1. Pojedynczy, płaski `document.querySelector(...)` (zamiast iteracji
+	 *    PO INSTANCJI, jak `injectItemBadgesInto`) trafiał zawsze w
+	 *    PIERWSZY pasujący węzeł w dokumencie — na mobile jest to instancja
+	 *    UKRYTEGO sidebara, nie widocznego podglądu Slot/Fill, więc box
+	 *    realnie nie był widoczny dla użytkownika mimo obecności w DOM.
+	 * 2. Bezwarunkowe `innerHTML = ...` (nawet gdy wartość się nie zmieniła)
+	 *    generowało mutację DOM przy KAŻDYM wywołaniu, które budziła
+	 *    `MutationObserver` (niżej) → nowe wywołanie → nowa mutacja →
+	 *    nieskończona pętla (zmierzone: >8000 mutacji/s).
+	 *
+	 *    Pierwsza próba naprawy (`savings.lastElementChild.innerHTML !== …`)
+	 *    NIE WYSTARCZYŁA — zmierzone runtime, dalej pętla (>17000
+	 *    mutacji/s): Store API zwraca `wc_price()` z nie-ASCII znakami
+	 *    („zł") jako NUMERYCZNE encje HTML (`&#122;&#322;`, efekt
+	 *    `htmlentities()` po stronie PHP), ale PO wstawieniu `innerHTML = …`
+	 *    przeglądarka PARSUJE encje na realne znaki i przy odczycie
+	 *    `element.innerHTML` z powrotem SERIALIZUJE je jako literalne „zł"
+	 *    (encje numeryczne nie są potrzebne dla tych znaków w wyjściu) —
+	 *    porównanie zserializowanego DOM-u z surowym stringiem z PHP więc
+	 *    NIGDY nie jest równe, mimo identycznej wartości semantycznej.
+	 *    Naprawione porównaniem SUROWY-DO-SUROWEGO: `dataset.value` pamięta
+	 *    ostatni string, który SAMI wstawiliśmy (nie to, co DOM zwraca po
+	 *    normalizacji), więc porównanie jest stabilne niezależnie od tego,
+	 *    jak przeglądarka serializuje encje.
 	 */
-	function injectSavingsRow() {
-		var data = getCartData();
-		var ext = data && data.extensions && data.extensions[NAMESPACE];
-		var totalsBlock = document.querySelector('.wp-block-woocommerce-checkout-order-summary-totals-block');
+	function injectSavingsRowInto(root, cartExt) {
+		var totalsBlock = root.querySelector('.wp-block-woocommerce-checkout-order-summary-totals-block');
 
 		if (!totalsBlock) {
 			return;
 		}
 
-		var savings = document.querySelector('.qutlet-cart-savings-note');
+		var savings = root.querySelector('.qutlet-cart-savings-note');
 
-		if (ext && ext.total_savings_formatted) {
+		if (cartExt && cartExt.total_savings_formatted) {
 			if (!savings) {
 				savings = document.createElement('div');
 				savings.className = 'savings-note qutlet-cart-savings-note';
 				savings.innerHTML = '<span>Oszczędzasz vs. nowe</span><span></span>';
 				totalsBlock.insertAdjacentElement('afterend', savings);
 			}
-			savings.lastElementChild.innerHTML = ext.total_savings_formatted;
+
+			if (savings.dataset.value !== cartExt.total_savings_formatted) {
+				savings.lastElementChild.innerHTML = cartExt.total_savings_formatted;
+				savings.dataset.value = cartExt.total_savings_formatted;
+			}
 		} else if (savings) {
 			savings.remove();
 		}
+	}
+
+	function injectSavingsRow() {
+		var data = getCartData();
+		var cartExt = data && data.extensions && data.extensions[NAMESPACE];
+
+		document.querySelectorAll(SUMMARY_INSTANCE_SELECTOR).forEach(function (root) {
+			injectSavingsRowInto(root, cartExt);
+		});
 	}
 
 	function inject() {
@@ -214,9 +262,20 @@
 	 * (dane koszyka już gotowe wcześniej) nie odpalały się ponownie PO
 	 * faktycznym zamontowaniu tych węzłów. `MutationObserver` na całym
 	 * `<body>` to niezawodny fallback niezależny od tego, CO dokładnie
-	 * wywołuje re-render (sklep, lokalny stan, Suspense) — `inject()` i tak
-	 * jest idempotentny (`!el.querySelector(...)` guardy w każdej funkcji),
-	 * więc częste, nadmiarowe wywołania są tanie i bezpieczne.
+	 * wywołuje re-render (sklep, lokalny stan, Suspense).
+	 *
+	 * KRYTYCZNE (niezależna recenzja, sesja 2026-08-06): ten obserwator
+	 * reaguje na WŁASNE mutacje `inject()`, więc `inject()` MUSI być
+	 * NAPRAWDĘ idempotentny — jeśli którakolwiek z jego funkcji wykona
+	 * mutację DOM (np. `innerHTML = …`) bez sprawdzenia, że wartość
+	 * faktycznie się zmieniła, powstaje nieskończona pętla (obserwator budzi
+	 * `inject()`, `inject()` mutuje, mutacja budzi obserwator…). Złapane
+	 * empirycznie w tej sesji: `injectSavingsRowInto()` nadpisywała
+	 * `innerHTML` bezwarunkowo przy KAŻDYM wywołaniu — zmierzone >8000
+	 * mutacji/s na stronie bezczynnej. Naprawione guardem `!== wartość`
+	 * (patrz komentarz przy `injectSavingsRowInto`) — wszystkie funkcje
+	 * `inject()` muszą zachować tę własność (mutacja WYŁĄCZNIE przy realnej
+	 * zmianie), inaczej ten `MutationObserver` zamienia się w busy-loop.
 	 */
 	if (window.MutationObserver) {
 		new MutationObserver(scheduleInject).observe(document.body, { childList: true, subtree: true });
