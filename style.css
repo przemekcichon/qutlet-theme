@@ -2728,6 +2728,17 @@ body.woocommerce-checkout .wp-block-post-title {
     }
 }
 
+@container (max-width: 699px) {
+	    .wp-block-woocommerce-checkout-order-summary-block .wc-block-components-checkout-order-summary__title {
+        border-bottom: none;
+        border-top: none; 
+        cursor: pointer;
+        padding: 0;
+    }
+	.wp-block-woocommerce-checkout-order-summary-block .wc-block-components-checkout-order-summary__content.is-open {
+		border-bottom: none;
+	}
+}
 /* Wiersz pozycji w podsumowaniu — port `.co-item`/`.co-item-title`/
    `.co-item-price` (design/vanilla/css/style.css:520-523,
    `QT.tpl.checkoutItem`, templates.js:116-123) — WERSJA ZWĘŻONA (decyzja
@@ -2821,6 +2832,19 @@ body.woocommerce-checkout .wp-block-post-title {
 	   sticky` z reguły desktopowej wygrywa mimo media query bez selektora
 	   złożonego. */
 	.wc-block-components-sidebar.wp-block-woocommerce-checkout-totals-block { position: static; }
+	/* Kolejność na mobile — decyzja użytkownika (sesja 2026-08-07):
+	   ODWRÓCONA względem reguły `order` desktopowej (formularz:0/
+	   podsumowanie:1, wyżej) — tu podsumowanie ma być NAJPIERW, formularz
+	   PO NIM, żeby użytkownik mógł najpierw potwierdzić co kupuje (rozwijalna
+	   karta ze zwiniętą kwotą + chevronem, natywny akordeon WC), zanim zacznie
+	   wypełniać dane. Bezpieczne teraz (nie było wcześniej, sesja 2026-08-06)
+	   — przycisk „Kupuję i płacę" wrócił do formularza (osobny commit), więc
+	   pokazanie podsumowania jako pierwszego nie stawia już przycisku złożenia
+	   zamówienia przed nieuzupełnionymi polami. Ten sam selektor co reguła
+	   desktopowa (0,2,0 vs 0,2,0) — wygrywa przez kolejność w pliku (media
+	   query niżej), bez potrzeby `!important`. */
+	.wc-block-components-main.wp-block-woocommerce-checkout-fields-block { order: 1; }
+	.wc-block-components-sidebar.wp-block-woocommerce-checkout-totals-block { order: 0; }
 }
 
 /* ---------- Potwierdzenie zamówienia (P-8.6b) ----------
