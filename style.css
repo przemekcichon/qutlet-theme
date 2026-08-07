@@ -2899,44 +2899,63 @@ body.woocommerce-checkout .wp-block-post-title {
 .wc-block-order-confirmation-status.confirm-box p { color: var(--ink-soft); font-size: 16px; line-height: 1.6; }
 
 /* Lista faktów zamówienia (port `.order-box`, ale jako jedna karta z
-   CZTEREMA faktami zamiast pojedynczej pigułki numeru — blok Summary
-   natywnie niesie numer/datę/razem/e-mail razem, nie da się ich rozbić bez
-   przepisania komponentu; uczciwa adaptacja pod realny kształt danych, nie
-   1:1 port). */
+   CZTEREMA/PIĘCIOMA faktami zamiast pojedynczej pigułki numeru — blok
+   Summary natywnie niesie numer/datę/razem/e-mail/płatność razem, nie da
+   się ich rozbić bez przepisania komponentu; uczciwa adaptacja pod realny
+   kształt danych, nie 1:1 port).
+   POPRAWKA (zgłoszenie użytkownika, sesja 2026-08-07, zrzut z realnego
+   urządzenia): pierwsza wersja (`display:flex;flex-wrap:wrap;justify-content:center`)
+   pakowała itemy jak popadnie — przy szerszym kontenerze 4 zmieściły się w
+   jednym rzędzie a piąty (Płatność) lądował sam, osierocony, długi e-mail
+   dotykał krawędzi karty, brak jakiegokolwiek podziału między faktami.
+   Przebudowane na wzorzec „paragonu" — TEN SAM co wiersze podsumowania w
+   koszyku/kasie (`.wc-block-components-totals-item`: etykieta po lewej,
+   wartość po prawej, jeden fakt na wiersz, cienki `border-bottom` między
+   nimi) — spójne z resztą motywu zamiast osobno wymyślonego układu, i bez
+   problemu z zawijaniem długich wartości (email, nazwa metody płatności). */
 .wc-block-order-confirmation-summary.confirm-box { margin-top: 22px; }
+/* `display:block` z `!important` — WC ma WŁASNY `display:flex;flex-wrap:wrap`
+   na tej liście (zweryfikowane runtime, `getComputedStyle`), który bez
+   nadpisania pakował fakty po kilka w rzędzie zamiast jeden-fakt-na-wiersz
+   (patrz nota wyżej). */
 .wc-block-order-confirmation-summary-list {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-	gap: 22px;
+	display: block !important;
 	list-style: none;
 	background: #fff;
 	border: 1px solid var(--line);
 	border-radius: 12px;
-	padding-top: 16px;
-	padding-bottom: 16px;
 	padding-left: 26px;
 	padding-right: 26px;
 	margin: 0;
+	text-align: left;
 }
 .wc-block-order-confirmation-summary-list-item {
 	display: flex;
-	flex-direction: column;
-	gap: 4px;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 16px;
+	padding-top: 14px;
+	padding-bottom: 14px;
+	border-bottom: 1px solid var(--line-soft);
+}
+.wc-block-order-confirmation-summary-list-item:last-child {
+	border-bottom: none;
 }
 .wc-block-order-confirmation-summary-list-item__key {
 	font-family: var(--font-body);
-	font-size: 11px;
+	font-size: 13px;
 	color: var(--muted);
 	font-weight: 700;
-	letter-spacing: .05em;
-	text-transform: uppercase;
+	flex-shrink: 0;
 }
 .wc-block-order-confirmation-summary-list-item__value {
 	font-family: var(--font-display);
 	font-weight: 800;
 	font-size: 16px;
 	color: var(--ink);
+	text-align: right;
+	overflow-wrap: break-word;
+	min-width: 0;
 }
 
 .confirm-note { font-size: 14px; color: var(--muted); margin-top: 22px; }
