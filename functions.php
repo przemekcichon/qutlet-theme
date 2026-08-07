@@ -85,6 +85,23 @@ add_action( 'after_setup_theme', __NAMESPACE__ . '\\add_classic_template_support
 // theme.json, bez custom CSS z P-8.5.
 add_action( 'after_setup_theme', __NAMESPACE__ . '\\add_editor_style_support' );
 
+// P-9.6: motyw NIE korzysta z domyślnego CSS WooCommerce — każda strona
+// dotykająca Woo (produkt, archiwum, koszyk, kasa, potwierdzenie, konto) ma
+// własny, portowany 1:1 z prototypu markup/CSS. Domyślne arkusze WC (klasyczny
+// 2-kolumnowy layout z ery motywów NIE-blokowych, ciągle ładowany RÓWNOLEGLE z
+// jego własnym „blocktheme" kompatem, patrz `dequeue_woocommerce_blocktheme_style()`
+// niżej) więcej psuły niż dawały — dwa realne bugi w P-8.6c
+// (`.woocommerce{max-width:1000px}` bez centrowania, `.woocommerce-MyAccount-navigation{float:left;width:30%}`
+// gniotące całą nawigację konta) złapane DOPIERO przez porównanie zrzutów
+// ekranu z prototypem, bo to pierwsza strona z classic shortcode'em WC w
+// projekcie. Filtr `woocommerce_enqueue_styles` (WC_Frontend_Scripts::get_styles())
+// zdejmuje trzy klasyczne arkusze (`woocommerce-layout`/`-smallscreen`/`-general`)
+// — te NIE dotykają markupu blokowego Koszyka/Kasy (zweryfikowane: grep `.wc-block`
+// w tych trzech plikach — praktycznie zero trafień), więc zdjęcie ich nie rusza
+// już zbudowanych/zmergowanych stron P-8.6a/P-8.6b.
+add_filter( 'woocommerce_enqueue_styles', '__return_empty_array' );
+add_action( 'enqueue_block_assets', __NAMESPACE__ . '\\dequeue_woocommerce_blocktheme_style', 20 );
+
 // Placeholder enqueue: rejestrujemy arkusz motywu (na razie pusty — FAZA 8).
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_assets' );
 
@@ -184,6 +201,23 @@ function add_woocommerce_theme_support(): void {
  */
 function add_classic_template_support(): void {
 	add_theme_support( 'title-tag' );
+}
+
+/**
+ * Zdejmuje `woocommerce-blocktheme.css` (P-9.6, patrz komentarz przy
+ * `add_filter('woocommerce_enqueue_styles', ...)` wyżej) — jedyny z czterech
+ * domyślnych arkuszy WC, którego NIE da się zdjąć filtrem
+ * `woocommerce_enqueue_styles` (rejestrowany osobno,
+ * `WC_Frontend_Scripts::enqueue_block_assets()`, WYŁĄCZNIE gdy
+ * `wp_is_block_theme()`). Podpięte na TYM SAMYM hooku (`enqueue_block_assets`)
+ * z priorytetem WYŻSZYM niż domyślny WC (10), więc uruchamia się PO
+ * zarejestrowaniu/enqueue'owaniu stylu przez WC, nie przed.
+ *
+ * @return void
+ */
+function dequeue_woocommerce_blocktheme_style(): void {
+	wp_dequeue_style( 'woocommerce-blocktheme' );
+	wp_deregister_style( 'woocommerce-blocktheme' );
 }
 
 /**
