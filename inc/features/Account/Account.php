@@ -54,6 +54,7 @@ final class Account {
 		add_filter( 'woocommerce_account_menu_items', array( self::class, 'menu_items' ) );
 		add_filter( 'woocommerce_add_to_cart_fragments', array( self::class, 'header_fragments' ) );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'enqueue_auth_tabs' ) );
+		add_action( 'wp_head', array( self::class, 'print_login_state_marker' ) );
 	}
 
 	/**
@@ -63,22 +64,40 @@ final class Account {
 	 * w prototypie — produkty outletowe nie są plikami do pobrania) świadomie
 	 * pominięty przez NIE przepisanie go do wyniku.
 	 *
+	 * Kolejność bazowa to ALLOW-LISTA (`$order`) TYLKO dla znanych endpointów,
+	 * które ten port świadomie przestylowuje/przenazywa — każdy INNY endpoint
+	 * (wtyczka, przyszły punkt planu) doklejany jest na końcu PRZED wylogowaniem,
+	 * nie gubiony (poprawka po niezależnej recenzji PR #24 — pierwsza wersja
+	 * była twardą allow-listą 6 endpointów, więc każdy nowy endpoint znikałby
+	 * z nawigacji po cichu).
+	 *
 	 * @param array<string, string> $items Natywne pozycje WC (`wc_get_account_menu_items()`).
 	 * @return array<string, string>
 	 */
 	public static function menu_items( array $items ): array {
-		$order    = array( 'dashboard', 'orders', 'edit-account', 'edit-address', 'payment-methods', 'customer-logout' );
-		$labels   = array(
+		$order  = array( 'dashboard', 'orders', 'edit-account', 'edit-address', 'payment-methods' );
+		$labels = array(
 			'dashboard'    => __( 'Pulpit', 'qutlet-theme' ),
 			'edit-account' => __( 'Dane konta', 'qutlet-theme' ),
 			'edit-address' => __( 'Adres dostawy', 'qutlet-theme' ),
 		);
+		$known  = array_flip( array_merge( $order, array( 'customer-logout', 'downloads' ) ) );
 		$reordered = array();
 
 		foreach ( $order as $endpoint ) {
 			if ( isset( $items[ $endpoint ] ) ) {
 				$reordered[ $endpoint ] = $labels[ $endpoint ] ?? $items[ $endpoint ];
 			}
+		}
+
+		foreach ( $items as $endpoint => $label ) {
+			if ( ! isset( $known[ $endpoint ] ) ) {
+				$reordered[ $endpoint ] = $label;
+			}
+		}
+
+		if ( isset( $items['customer-logout'] ) ) {
+			$reordered['customer-logout'] = $items['customer-logout'];
 		}
 
 		return $reordered;
@@ -165,10 +184,18 @@ final class Account {
 	 * `parts/header.html:40`) + link mobilny (`[data-mnav-account]`,
 	 * `parts/header.html:115`) — jak `Cart::cart_fragments()` (D-8.6a.3),
 	 * bo `parts/header.html` to statyczny blok `wp:html` (FSE template part)
-	 * bez PHP; jedyny kanał na dynamiczną treść to fragmenty
-	 * `wc-cart-fragments` (już enqueue'owane przez `Cart::enqueue_cart_fragments()`),
-	 * które odświeżają się AJAX-em zaraz po `DOMContentLoaded` — nie tylko po
-	 * zmianie koszyka, WC odpytuje fragmenty na KAŻDYM ładowaniu strony.
+	 * bez PHP; jedyny kanał na dynamiczną treść to fragmenty `wc-cart-fragments`
+	 * (już enqueue'owane przez `Cart::enqueue_cart_fragments()`).
+	 *
+	 * UWAGA (poprawka po niezależnej recenzji PR #24): `wc-cart-fragments.js`
+	 * NIE odpytuje AJAX-em na każdym ładowaniu strony — cache'uje fragmenty w
+	 * `sessionStorage` i pomija sieć, gdy hash koszyka w cache zgadza się z
+	 * ciasteczkiem `woocommerce_cart_hash` (`cart-fragments.js:144`). Ten hash
+	 * NIE zależy od stanu zalogowania, więc przy PUSTYM koszyku (hash się nie
+	 * zmienia) zalogowanie/wylogowanie w tej samej karcie potrafiło zostawić w
+	 * DOM dane poprzedniego klienta (imię, e-mail) z cache'u — zweryfikowane
+	 * runtime w recenzji. `print_login_state_marker()` wymusza odświeżenie
+	 * cache'u przy KAŻDEJ zmianie stanu zalogowania, niezależnie od hasha koszyka.
 	 *
 	 * @param array<string, string> $fragments Fragmenty Woo (selector => HTML).
 	 * @return array<string, string>
@@ -183,6 +210,43 @@ final class Account {
 		$fragments['[data-mnav-account]'] = trim( (string) ob_get_clean() );
 
 		return $fragments;
+	}
+
+	/**
+	 * Wymusza świeże pobranie fragmentów `wc-cart-fragments`, gdy stan
+	 * zalogowania różni się od ostatniego zapamiętanego w `sessionStorage`
+	 * (patrz UWAGA przy `header_fragments()`) — kasuje klucze cache'u
+	 * (`cart_hash_key`/`fragment_name`, TE SAME formuły co
+	 * `WC_Frontend_Scripts::load_scripts()`, więc trafiają dokładnie w klucze,
+	 * których czyta `cart-fragments.js:11,53`), zanim ten skrypt (ładowany w
+	 * stopce) zdąży odczytać stary cache. Musi wykonać się w `wp_head`
+	 * (przed jakimkolwiek skryptem w stopce, niezależnie od jQuery ready) —
+	 * inline, bez zależności od `wc_cart_fragments_params` (ten obiekt
+	 * lokalizuje się dopiero przy samym skrypcie w stopce).
+	 *
+	 * @return void
+	 */
+	public static function print_login_state_marker(): void {
+		$blog_id      = get_current_blog_id();
+		$default_seed = $blog_id . '_' . get_site_url( $blog_id, '/' ) . get_template();
+		$cart_hash_key = apply_filters( 'woocommerce_cart_hash_key', 'wc_cart_hash_' . md5( $default_seed ) );
+		$fragment_name = apply_filters( 'woocommerce_cart_fragment_name', 'wc_fragments_' . md5( $default_seed ) );
+		$logged_in     = is_user_logged_in() ? '1' : '0';
+		?>
+		<script>
+		( function () {
+			try {
+				var marker = 'qutlet_account_logged_in';
+				var current = '<?php echo esc_js( $logged_in ); ?>';
+				if ( sessionStorage.getItem( marker ) !== current ) {
+					sessionStorage.removeItem( '<?php echo esc_js( $cart_hash_key ); ?>' );
+					sessionStorage.removeItem( '<?php echo esc_js( $fragment_name ); ?>' );
+					sessionStorage.setItem( marker, current );
+				}
+			} catch ( e ) {}
+		} )();
+		</script>
+		<?php
 	}
 
 	/**

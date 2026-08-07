@@ -11,7 +11,12 @@
  * zepsułoby walidację wymaganych pól i historię hasła). Zachowany więc JEDEN
  * `<form>`, wizualnie podzielony na dwie karty `.form-card` — świadome
  * odstępstwo od prototypu (znany brak, fast-follow: custom AJAX handler,
- * gdyby dwa niezależne submity były wymagane biznesowo).
+ * gdyby dwa niezależne submity były wymagane biznesowo). `required`/
+ * `aria-required` na czterech polach pierwszej karty PRZYWRÓCONE po
+ * niezależnej recenzji PR #24 (pierwsza wersja je zgubiła przy restylingu
+ * — serwer i tak waliduje, więc to była degradacja UX, nie luka
+ * bezpieczeństwa, ale przeglądarka powinna łapać puste pola przed submitem,
+ * tak jak natywny szablon WC).
  *
  * @package Qutlet\Theme
  */
@@ -21,6 +26,9 @@ defined( 'ABSPATH' ) || exit;
 do_action( 'woocommerce_before_edit_account_form' );
 ?>
 
+<h2><?php esc_html_e( 'Dane konta', 'qutlet-theme' ); ?></h2>
+<p class="pane-lead"><?php esc_html_e( 'Adres e-mail i hasło do logowania.', 'qutlet-theme' ); ?></p>
+
 <form class="woocommerce-EditAccountForm edit-account" action="" method="post" <?php do_action( 'woocommerce_edit_account_form_tag' ); ?>>
 	<?php do_action( 'woocommerce_edit_account_form_start' ); ?>
 
@@ -29,19 +37,19 @@ do_action( 'woocommerce_before_edit_account_form' );
 		<div class="form-grid">
 			<div class="field">
 				<label for="account_first_name"><?php esc_html_e( 'Imię', 'qutlet-theme' ); ?></label>
-				<input type="text" name="account_first_name" id="account_first_name" autocomplete="given-name" value="<?php echo esc_attr( $user->first_name ); ?>" />
+				<input type="text" name="account_first_name" id="account_first_name" autocomplete="given-name" value="<?php echo esc_attr( $user->first_name ); ?>" required aria-required="true" />
 			</div>
 			<div class="field">
 				<label for="account_last_name"><?php esc_html_e( 'Nazwisko', 'qutlet-theme' ); ?></label>
-				<input type="text" name="account_last_name" id="account_last_name" autocomplete="family-name" value="<?php echo esc_attr( $user->last_name ); ?>" />
+				<input type="text" name="account_last_name" id="account_last_name" autocomplete="family-name" value="<?php echo esc_attr( $user->last_name ); ?>" required aria-required="true" />
 			</div>
 			<div class="field field-full">
 				<label for="account_display_name"><?php esc_html_e( 'Nazwa wyświetlana', 'qutlet-theme' ); ?></label>
-				<input type="text" name="account_display_name" id="account_display_name" value="<?php echo esc_attr( $user->display_name ); ?>" />
+				<input type="text" name="account_display_name" id="account_display_name" value="<?php echo esc_attr( $user->display_name ); ?>" required aria-required="true" />
 			</div>
 			<div class="field field-full">
 				<label for="account_email"><?php esc_html_e( 'E-mail', 'qutlet-theme' ); ?></label>
-				<input type="email" name="account_email" id="account_email" autocomplete="email" value="<?php echo esc_attr( $user->user_email ); ?>" />
+				<input type="email" name="account_email" id="account_email" autocomplete="email" value="<?php echo esc_attr( $user->user_email ); ?>" required aria-required="true" />
 			</div>
 		</div>
 

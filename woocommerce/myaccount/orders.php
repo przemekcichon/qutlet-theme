@@ -16,9 +16,12 @@
 defined( 'ABSPATH' ) || exit;
 
 use Qutlet\Theme\features\Account\Account;
-
-do_action( 'woocommerce_before_account_orders', $has_orders );
 ?>
+
+<h2><?php esc_html_e( 'Zamówienia', 'qutlet-theme' ); ?></h2>
+<p class="pane-lead"><?php esc_html_e( 'Historia Twoich zakupów w Qutlet.', 'qutlet-theme' ); ?></p>
+
+<?php do_action( 'woocommerce_before_account_orders', $has_orders ); ?>
 
 <?php if ( $has_orders ) : ?>
 

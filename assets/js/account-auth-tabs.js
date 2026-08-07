@@ -6,27 +6,41 @@
  * skrypt tylko przełącza widoczność, no-op gdy `.auth-tabs` nie istnieje w
  * DOM (czyli klient jest zalogowany i widzi pulpit, nie formularz).
  */
-document.addEventListener( 'click', function ( e ) {
-	var tab = e.target.closest( '[data-auth-tab]' );
+( function () {
+	'use strict';
 
-	if ( ! tab ) {
-		return;
+	function switchTab( pane ) {
+		document.querySelectorAll( '[data-auth-tab]' ).forEach( function ( btn ) {
+			btn.classList.toggle( 'active', btn.getAttribute( 'data-auth-tab' ) === pane );
+		} );
+		document.querySelectorAll( '[data-auth-pane]' ).forEach( function ( form ) {
+			form.hidden = form.getAttribute( 'data-auth-pane' ) !== pane;
+		} );
 	}
 
-	var pane = tab.getAttribute( 'data-auth-tab' );
+	document.addEventListener( 'click', function ( e ) {
+		var tab = e.target.closest( '[data-auth-tab]' );
 
-	document.querySelectorAll( '[data-auth-tab]' ).forEach( function ( btn ) {
-		btn.classList.toggle( 'active', btn === tab );
+		if ( tab ) {
+			switchTab( tab.getAttribute( 'data-auth-tab' ) );
+		}
 	} );
-	document.querySelectorAll( '[data-auth-pane]' ).forEach( function ( form ) {
-		form.hidden = form.getAttribute( 'data-auth-pane' ) !== pane;
-	} );
-} );
 
-if ( 'register' === window.location.hash.replace( '#', '' ) ) {
-	var registerTab = document.querySelector( '[data-auth-tab="register"]' );
-
-	if ( registerTab ) {
-		registerTab.click();
+	/**
+	 * Deep-link `#register` z linku „Zarejestruj się" w dropdownie konta
+	 * (`Account::render_account_menu()`) — nasłuch `hashchange` DOPISANY po
+	 * niezależnej recenzji PR #24: pierwsza wersja czytała `location.hash`
+	 * WYŁĄCZNIE raz przy starcie skryptu, więc klik na link kończący się
+	 * `#register`, gdy klient JEST JUŻ na `/moje-konto/`, zmieniał tylko hash
+	 * (nawigacja tego samego dokumentu — brak przeładowania) i zakładka się
+	 * nie przełączała.
+	 */
+	function applyHash() {
+		if ( 'register' === window.location.hash.replace( '#', '' ) && document.querySelector( '[data-auth-tab="register"]' ) ) {
+			switchTab( 'register' );
+		}
 	}
-}
+
+	window.addEventListener( 'hashchange', applyHash );
+	applyHash();
+} )();

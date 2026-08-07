@@ -16,7 +16,14 @@
  *
  * Pola BEZ przycinania (company/phone/country/state zostają, jeśli
  * `WC()->countries->get_address_fields()` je zwróci) — tylko restyling,
- * żeby nie utracić danych wymaganych do wysyłki/faktury.
+ * żeby nie utracić danych wymaganych do wysyłki/faktury. Kontenery
+ * `.woocommerce-address-fields`/`__field-wrapper` PRZYWRÓCONE po
+ * niezależnej recenzji PR #24 (pierwsza wersja je usunęła) — natywny
+ * `assets/js/frontend/address-i18n.js` sortuje pola wg `data-priority`
+ * WYŁĄCZNIE wewnątrz `__field-wrapper` (bez niego lokalizowana kolejność
+ * pól per kraj przestaje się stosować); klasa `.form-grid` dokładana OBOK
+ * `__field-wrapper` na tym samym węźle (layout motywu + zachowanie WC na
+ * tym samym elemencie, nie dwa zagnieżdżone).
  *
  * @package Qutlet\Theme
  */
@@ -34,26 +41,31 @@ do_action( 'woocommerce_before_edit_account_address_form' );
 
 <?php else : ?>
 
+	<h2><?php echo esc_html( $page_title ); ?></h2>
+	<p class="pane-lead"><?php esc_html_e( 'Adres podpowiadany domyślnie przy zamówieniu.', 'qutlet-theme' ); ?></p>
+
 	<div class="form-card">
 		<form method="post" novalidate>
 			<h3 class="step-title"><?php echo esc_html( apply_filters( 'woocommerce_my_account_edit_address_title', $page_title, $load_address ) ); ?></h3>
 
-			<div class="form-grid">
-				<?php
-				do_action( "woocommerce_before_edit_address_form_{$load_address}" );
+			<div class="woocommerce-address-fields">
+				<?php do_action( "woocommerce_before_edit_address_form_{$load_address}" ); ?>
 
-				$full_width_keys = array( 'company', 'address_1', 'address_2' );
+				<div class="woocommerce-address-fields__field-wrapper form-grid">
+					<?php
+					$full_width_keys = array( 'company', 'address_1', 'address_2' );
 
-				foreach ( $address as $key => $field ) {
-					$suffix           = preg_replace( '/^(billing|shipping)_/', '', $key );
-					$field['class']   = in_array( $suffix, $full_width_keys, true ) ? array( 'field', 'field-full' ) : array( 'field' );
-					$field['label_class'] = array();
+					foreach ( $address as $key => $field ) {
+						$suffix                = preg_replace( '/^(billing|shipping)_/', '', $key );
+						$field['class']        = in_array( $suffix, $full_width_keys, true ) ? array( 'field', 'field-full' ) : array( 'field' );
+						$field['label_class']  = array();
 
-					woocommerce_form_field( $key, $field, wc_get_post_data_by_key( $key, $field['value'] ) );
-				}
+						woocommerce_form_field( $key, $field, wc_get_post_data_by_key( $key, $field['value'] ) );
+					}
+					?>
+				</div>
 
-				do_action( "woocommerce_after_edit_address_form_{$load_address}" );
-				?>
+				<?php do_action( "woocommerce_after_edit_address_form_{$load_address}" ); ?>
 			</div>
 
 			<button type="submit" class="btn btn-dark" name="save_address" value="<?php esc_attr_e( 'Zapisz adres', 'qutlet-theme' ); ?>"><?php esc_html_e( 'Zapisz adres', 'qutlet-theme' ); ?></button>

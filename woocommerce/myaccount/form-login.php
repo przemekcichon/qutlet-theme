@@ -13,13 +13,21 @@
  * świadoma decyzja biznesowa; sklep bez rejestracji odwiedzających byłby
  * niezgodny z prototypem).
  *
- * Rejestracja: natywne pola WC to WYŁĄCZNIE e-mail + hasło
- * (`woocommerce_registration_generate_username=yes` -> username z e-maila,
- * `woocommerce_registration_generate_password=no` -> klient ustawia hasło)
- * — pola Imię/Nazwisko z prototypu (`logowanie.html:38-39`) NIE mają
- * odpowiednika (WC ich nie zbiera przy rejestracji); dopisanie +
- * zapis do usermeta to GLUE, nie szablon (D-8.G1, „Uwaga (P-8.6)") ->
- * OSOBNY punkt w core, poza zakresem tej poprawki (znany brak).
+ * Rejestracja: natywne pola WC to e-mail + hasło
+ * (`woocommerce_registration_generate_username=yes` -> username generowany
+ * z e-maila; `woocommerce_registration_generate_password` -> `no`, D-8.6c.3
+ * — POPRAWKA po niezależnej recenzji PR #24: pierwsza wersja tego docblocka
+ * błędnie twierdziła, że ta opcja już jest `no` i klient ustawia własne
+ * hasło, podczas gdy realny stan bazy (`wp option get`) był `yes`
+ * — czyli gałąź `else` niżej faktycznie się renderowała, WC wysyłał link
+ * mailem, a jedyne widoczne pole to e-mail, NIEZGODNIE z prototypem
+ * (`logowanie.html:42`, pole „Hasło" zawsze widoczne). Opcja przestawiona
+ * na `no`, tym samym wzorcem co pozostałe zmiany stanu bazy w tym punkcie
+ * — dopasowanie do prototypu, nie kod). Pola Imię/Nazwisko z prototypu
+ * (`logowanie.html:38-39`) NIE mają odpowiednika (WC ich nie zbiera przy
+ * rejestracji); dopisanie + zapis do usermeta to GLUE, nie szablon (D-8.G1,
+ * „Uwaga (P-8.6)") -> OSOBNY punkt w core, poza zakresem tej poprawki
+ * (znany brak).
  *
  * @package Qutlet\Theme
  */
