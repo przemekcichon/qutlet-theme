@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * dostawały `style.css?ver=0.1.0` i serwowały stary, scache'owany plik mimo
  * realnych zmian w CSS na dysku. Bumpować OBIE wartości razem.
  */
-const VERSION = '0.1.51';
+const VERSION = '0.1.77';
 
 /*
  * Autoloader Composera (D-G1): ładowany z guardem. Brak `vendor/autoload.php`
@@ -54,6 +54,7 @@ if ( is_readable( $qutlet_theme_autoload ) ) {
 	\Qutlet\Theme\features\Home\Blocks::boot();
 	\Qutlet\Theme\features\Patterns\Patterns::boot();
 	\Qutlet\Theme\features\Cart\Cart::boot();
+	\Qutlet\Theme\features\Checkout\Checkout::boot();
 } else {
 	add_action( 'admin_notices', __NAMESPACE__ . '\\render_missing_autoloader_notice' );
 }
