@@ -2873,9 +2873,9 @@ body.woocommerce-checkout .wp-block-post-title {
 	max-width: 560px;
 	margin-left: auto;
 	margin-right: auto;
-	margin-top: 30px;
+	margin-top: 0;
 	text-align: center;
-	padding-top: 30px;
+	padding-top: 10px;
 	padding-bottom: 20px;
 }
 .wc-block-order-confirmation-status.confirm-box::before {
@@ -2913,11 +2913,14 @@ body.woocommerce-checkout .wp-block-post-title {
    wartość po prawej, jeden fakt na wiersz, cienki `border-bottom` między
    nimi) — spójne z resztą motywu zamiast osobno wymyślonego układu, i bez
    problemu z zawijaniem długich wartości (email, nazwa metody płatności). */
-.wc-block-order-confirmation-summary.confirm-box { margin-top: 22px; }
+/* .wc-block-order-confirmation-summary.confirm-box { margin-top: 22px; } */
 /* `display:block` z `!important` — WC ma WŁASNY `display:flex;flex-wrap:wrap`
    na tej liście (zweryfikowane runtime, `getComputedStyle`), który bez
    nadpisania pakował fakty po kilka w rzędzie zamiast jeden-fakt-na-wiersz
    (patrz nota wyżej). */
+.wc-block-order-confirmation-summary ul {
+	padding:24px;
+}
 .wc-block-order-confirmation-summary-list {
 	display: block !important;
 	list-style: none;
@@ -2960,7 +2963,8 @@ body.woocommerce-checkout .wp-block-post-title {
 
 .confirm-note { font-size: 14px; color: var(--muted); margin-top: 22px; }
 .confirm-cta {
-	margin-top: 26px;
+	margin-top: 10px;
+	margin-bottom: 10px;
 	display: inline-flex;
 	align-items: center;
 	gap: 9px;
