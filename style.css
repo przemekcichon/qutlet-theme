@@ -3024,11 +3024,31 @@ body.woocommerce-checkout .wp-block-post-title {
 .acct-side-user .acct-avatar { width: 48px; height: 48px; font-size: 18px; }
 .acct-side-name { font-weight: 800; font-size: 15px; line-height: 1.2; }
 .acct-side-email { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* `.woocommerce-MyAccount-navigation{float:left;width:30%}` — z KLASYCZNEGO
+   `assets/css/woocommerce-layout.css` (2-kolumnowy layout dla motywów
+   NIE-blokowych; WC ładuje go RÓWNOLEGLE z `woocommerce-blocktheme.css`,
+   nie zamiast niego — potwierdzone `document.styleSheets`). 30% liczone od
+   `.acct-side` (234px po paddingu) dawało ~70px, więc CAŁA nawigacja
+   (Pulpit/Zamówienia/Dane konta/…) była ściśnięta do jednej wąskiej
+   kolumny i zawijała się na dwie linie (złapane z realnego zrzutu ekranu
+   — nasz `.account-layout` to WŁASNY grid dwukolumnowy, ten float WC jest
+   zbędny). `.acct-side .woocommerce-MyAccount-navigation` (0,2,0) bije
+   specyficzność WC (0,1,0) bez `!important`. */
+.acct-side .woocommerce-MyAccount-navigation { float: none; width: 100%; }
+
 /* `<nav><ul><li>` (a11y, przywrócone po niezależnej recenzji PR #24 — patrz
    nagłówek woocommerce/myaccount/navigation.php) — reset domyślnych stylów
    listy, `.acct-nav-btn` na `<a>` wewnątrz `<li>` wygląda identycznie jak
-   poprzednio na gołym `<a>`. */
+   poprzednio na gołym `<a>`. `li` reset OSOBNO (nie tylko `ul`) — WC-owy
+   `assets/css/woocommerce-blocktheme.css` (ten sam plik co centrowanie
+   `.woocommerce` wyżej) dokłada `.woocommerce-account .woocommerce-MyAccount-navigation li{padding:1em 0}`
+   — WŁASNA specyficzność (0,2,1), bez nadpisania każda pozycja nawigacji
+   miała ~32px zbędnego paddingu, rozjeżdżając odstępy względem prototypu
+   (złapane z realnego zrzutu ekranu). `!important` konieczne — `.acct-side
+   nav li` to (0,1,2), NIŻSZA specyficzność niż reguła WC, sama kolejność
+   źródeł nie rozstrzygnie tego przewidywalnie. */
 .acct-side nav ul { list-style: none; margin: 0; padding: 0; }
+.acct-side nav li { padding: 0 !important; margin: 0; }
 .acct-nav-btn {
 	display: flex; align-items: center; gap: 11px; width: 100%; border-radius: 10px; font-weight: 700; font-size: 14px;
 	color: var(--ink-soft); text-align: left; background: none; border: 0; cursor: pointer; text-decoration: none;
