@@ -2465,18 +2465,33 @@ body.woocommerce-checkout .wp-block-post-title {
    container-query klasami `.is-mobile`/`.is-medium`/`.is-large`
    (`order:0` na sidebarze, `order:1` na polach pod `.is-mobile`) —
    pokazuje podsumowanie PRZED formularzem na wąskich ekranach (zamierzony
-   wzorzec WC, niezwiązany z naszą zmianą). Po przeniesieniu przycisku
-   „Kupuję i płacę"/zgody na regulamin DO karty podsumowania
-   (`relocateActionsIntoSummary()`, assets/js/checkout-block-filters.js —
-   ciągłość wizualna z koszykiem, decyzja użytkownika) ten natywny porządek
-   przestał mieć sens: przycisk złożenia zamówienia renderował się PRZED
-   polami adresu/płatności (zgłoszone przez użytkownika, zrzut mobile,
-   sesja 2026-08-06) — użytkownik mógłby kliknąć „Kupuję i płacę", zanim
-   jeszcze cokolwiek wypełnił. Wymuszamy formularz ZAWSZE przed
-   podsumowaniem (`order` niezależny od container-query klasy — nadpisuje
-   WSZYSTKIE warianty WC na raz, ta sama wartość na obu breakpointach). */
+   wzorzec WC). Wymuszamy formularz ZAWSZE przed podsumowaniem (`order`
+   niezależny od container-query klasy — nadpisuje WSZYSTKIE warianty WC
+   na raz, ta sama wartość na obu breakpointach) — dotyczyło to pierwotnie
+   przycisku „Kupuję i płacę" przeniesionego do karty podsumowania (decyzja
+   z sesji 2026-08-06, od tej pory COFNIĘTA — przycisk wrócił do
+   formularza, sesja 2026-08-07); reguła zostaje, bo nawet z przyciskiem z
+   powrotem w formularzu, kolejność „najpierw wypełniasz, potem widzisz
+   podsumowanie" ma sens na mobile niezależnie od tego. */
 .wc-block-components-sidebar.wp-block-woocommerce-checkout-totals-block {
 	order: 1;
+}
+/* Drugie, zbędne „Podsumowanie zamówienia" na mobile (zgłoszenie
+   użytkownika, sesja 2026-08-07, zrzuty z realnego urządzenia) — blok
+   Checkout ma WŁASNY, natywny podgląd podsumowania zagnieżdżony
+   WEWNĄTRZ `.wc-block-checkout__actions` (obok przycisku złożenia
+   zamówienia, rozpoznawalny po klasie `checkout-order-summary-block-fill-wrapper`
+   — mechanizm Slot/Fill, myślany jako „sticky order summary tuż nad
+   przyciskiem" na mobile, gdy PRZYCISK i podsumowanie są w RÓŻNYCH
+   miejscach strony). Po tym, jak przycisk wrócił do formularza (commit
+   poprzedni), a prawdziwa karta podsumowania (`.wc-block-checkout__sidebar`)
+   i tak zawsze renderuje się zaraz PO formularzu (reguła `order` wyżej)
+   — oba w praktyce sąsiadują, więc ten wbudowany podgląd tylko duplikuje
+   prawdziwą kartę, zamiast być jej jedynym widocznym zastępstwem. Chowany
+   bezwarunkowo (nie tylko na desktopie, gdzie WC i tak go już chowa) —
+   zostaje JEDYNIE prawdziwa karta `.wc-block-checkout__sidebar`. */
+.checkout-order-summary-block-fill-wrapper {
+	display: none !important;
 }
 
 /* Kroki formularza jako karty (port `.form-card`/`.step-title`/`.step-num`,
