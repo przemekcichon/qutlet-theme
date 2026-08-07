@@ -55,6 +55,7 @@ if ( is_readable( $qutlet_theme_autoload ) ) {
 	\Qutlet\Theme\features\Patterns\Patterns::boot();
 	\Qutlet\Theme\features\Cart\Cart::boot();
 	\Qutlet\Theme\features\Checkout\Checkout::boot();
+	\Qutlet\Theme\features\Account\Account::boot();
 } else {
 	add_action( 'admin_notices', __NAMESPACE__ . '\\render_missing_autoloader_notice' );
 }
