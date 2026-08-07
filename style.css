@@ -1556,6 +1556,10 @@ body.qt-hide-nlband .nlband { display: none; }
    `/koszyk/`), więc nie trzeba PHP w motywie na osobną klasę — konsekwentnie
    z regułą wyżej (ten sam selektor `.nlband`), tylko inny hak w body. */
 body.woocommerce-cart .nlband { display: none; }
+/* Ten sam banner ukryty w kasie (P-8.6b) — analogicznie do koszyka wyżej,
+   `body.woocommerce-checkout` to również natywna klasa WC (już użyta w
+   tym pliku, `body.woocommerce-checkout .wp-block-post-title`). */
+body.woocommerce-checkout .nlband { display: none; }
 
 /* ---------- „Jak to działa" (page-jak-to-dziala.php, port <style>) ---------- */
 .hero-cta {
@@ -2738,6 +2742,9 @@ body.woocommerce-checkout .wp-block-post-title {
 	.wp-block-woocommerce-checkout-order-summary-block .wc-block-components-checkout-order-summary__content.is-open {
 		border-bottom: none;
 	}
+	.wc-block-checkout__sidebar {
+		margin-bottom: 0;
+	}
 }
 /* Wiersz pozycji w podsumowaniu — port `.co-item`/`.co-item-title`/
    `.co-item-price` (design/vanilla/css/style.css:520-523,
@@ -2827,7 +2834,7 @@ body.woocommerce-checkout .wp-block-post-title {
 }
 
 @media (max-width: 900px) {
-	.wc-block-components-sidebar-layout.wc-block-checkout { grid-template-columns: 1fr; }
+	.wc-block-components-sidebar-layout.wc-block-checkout { grid-template-columns: 1fr; gap:16px; }
 	/* Ten sam trik specyficzności co Cart Block wyżej (0,2,0) — `position:
 	   sticky` z reguły desktopowej wygrywa mimo media query bez selektora
 	   złożonego. */
