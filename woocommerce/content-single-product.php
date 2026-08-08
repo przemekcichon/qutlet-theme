@@ -15,7 +15,10 @@
  * treści/specyfikacji MIĘDZY `.pd-grid` a `.know` niżej — taby „Co w
  * przesyłce" (karuzela + checklista z repeatera ACF `zawartosc_zestawu_pozycje`,
  * P-9.2/D-9.2.1 — zastąpił WYSIWYG z P-1.2) / „Opis i specyfikacja" (`opis`
- * ACF WYSIWYG z P-5.1b + natywne atrybuty WooCommerce, kontrakt §9.2).
+ * ACF WYSIWYG z P-5.1b + natywne atrybuty WooCommerce, kontrakt §9.2). P-13.2d:
+ * podtytuł `.pd-subtitle` pod `h1.pd-title` z ACF `podnazwa` (kontrakt §9.2),
+ * gdy niepuste — celowo NIE w buybarze (`.buybar-title`), który zostaje samym
+ * `post_title` (buybar jest zwięzły z założenia, D-8.G1).
  *
  * @package Qutlet\Theme
  */
@@ -48,6 +51,7 @@ if ( post_password_required() ) {
 }
 
 $product_id       = $product->get_id();
+$podnazwa         = (string) ProductPage::acf_field( 'podnazwa', $product_id );
 $condition_code   = (string) ProductPage::acf_field( 'klasa_stanu', $product_id );
 $condition_label  = '' !== $condition_code ? ProductPage::condition_label( $condition_code ) : '';
 $market_price     = (float) ProductPage::acf_field( 'cena_rynkowa_nowego', $product_id );
@@ -162,6 +166,10 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 			<?php endif; ?>
 
 			<h1 class="pd-title"><?php the_title(); ?></h1>
+
+			<?php if ( '' !== trim( $podnazwa ) ) : ?>
+				<p class="pd-subtitle"><?php echo esc_html( $podnazwa ); ?></p>
+			<?php endif; ?>
 
 			<?php if ( $allegro_enabled ) : ?>
 				<div data-buy-tabs data-allegro-only>
