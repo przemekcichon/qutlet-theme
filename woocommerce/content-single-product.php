@@ -14,11 +14,13 @@
  * prototypie, gdzie te selektory realnie żyją (kontrakt §4). P-8.2c: sekcja
  * treści/specyfikacji MIĘDZY `.pd-grid` a `.know` niżej — taby „Co w
  * przesyłce" (karuzela + checklista z repeatera ACF `zawartosc_zestawu_pozycje`,
- * P-9.2/D-9.2.1 — zastąpił WYSIWYG z P-1.2) / „Opis i specyfikacja" (`opis`
- * ACF WYSIWYG z P-5.1b + natywne atrybuty WooCommerce, kontrakt §9.2). P-13.2d:
- * podtytuł `.pd-subtitle` pod `h1.pd-title` z ACF `podnazwa` (kontrakt §9.2),
- * gdy niepuste — celowo NIE w buybarze (`.buybar-title`), który zostaje samym
- * `post_title` (buybar jest zwięzły z założenia, D-8.G1).
+ * P-9.2/D-9.2.1 — zastąpił WYSIWYG z P-1.2) / „Opis i specyfikacja" (natywny
+ * opis produktu — `post_content`, `$product->get_description()`, P-13.3c —
+ * ACF `opis` z P-5.1b wycofane w P-13.3a — + natywne atrybuty WooCommerce,
+ * kontrakt §9.2). P-13.2d: podtytuł `.pd-subtitle` pod `h1.pd-title` z ACF
+ * `podnazwa` (kontrakt §9.2), gdy niepuste — celowo NIE w buybarze
+ * (`.buybar-title`), który zostaje samym `post_title` (buybar jest zwięzły z
+ * założenia, D-8.G1).
  *
  * @package Qutlet\Theme
  */
@@ -83,7 +85,7 @@ $ship_carousel_items = array_values(
 );
 $has_ship = array() !== $ship_items;
 
-$description_html   = (string) ProductPage::acf_field( 'opis', $product_id );
+$description_html   = (string) $product->get_description(); // natywny post_content (P-13.3c) — ACF `opis` wycofane w P-13.3a.
 $specification_rows = ProductPage::specification_rows( $product, $condition_code, $condition_label );
 $has_desc           = '' !== trim( $description_html ) || array() !== $specification_rows;
 
