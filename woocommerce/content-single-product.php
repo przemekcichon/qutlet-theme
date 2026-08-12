@@ -52,13 +52,15 @@ if ( post_password_required() ) {
 	return;
 }
 
-$product_id       = $product->get_id();
-$podnazwa         = (string) ProductPage::acf_field( 'podnazwa', $product_id );
-$condition_code   = (string) ProductPage::acf_field( 'klasa_stanu', $product_id );
-$condition_label  = '' !== $condition_code ? ProductPage::condition_label( $condition_code ) : '';
-$market_price     = (float) ProductPage::acf_field( 'cena_rynkowa_nowego', $product_id );
-$sale_price       = (float) $product->get_price();
-$has_market_price = $market_price > 0.0;
+$product_id             = $product->get_id();
+$podnazwa               = (string) ProductPage::acf_field( 'podnazwa', $product_id );
+$condition_code         = (string) ProductPage::acf_field( 'klasa_stanu', $product_id );
+$condition_label        = '' !== $condition_code ? ProductPage::condition_label( $condition_code ) : '';
+$condition_definition   = ProductPage::condition_definition( $condition_code );
+$condition_definitions  = ProductPage::all_condition_definitions();
+$market_price           = (float) ProductPage::acf_field( 'cena_rynkowa_nowego', $product_id );
+$sale_price             = (float) $product->get_price();
+$has_market_price       = $market_price > 0.0;
 
 $allegro_enabled = ProductPage::is_allegro_enabled( $product_id );
 $allegro_url     = (string) ProductPage::acf_field( 'allegro_url', $product_id );
@@ -67,6 +69,51 @@ $cena_allegro    = (float) ProductPage::acf_field( 'cena_allegro', $product_id )
 $sale_price_text    = ProductPage::price_text( $sale_price );
 $allegro_price_text = $allegro_enabled ? ProductPage::price_text( $cena_allegro ) : '';
 $allegro_markup_pct = $allegro_enabled ? ProductPage::save_percent( $sale_price, $cena_allegro ) : 0;
+
+/*
+ * Gwarancja + reklamacja (P-12.1b, kontrakt §2.2, D-12.G3 — dwa osobne pola
+ * bytu) — używane w DWÓCH `perk-row` (panel Qutlet/Allegro, ta sama treść w
+ * obu, bo warunki gwarancji nie zależą od kanału zakupu) oraz w `.pd-fine`
+ * niżej. Gdy oba okresy są równe (dziś zawsze — A-D: 12/12), zostaje JEDNA
+ * fraza jak w oryginalnym copy; gdyby admin kiedyś ustawił różne wartości per
+ * klasa (byt to dopuszcza, D-12.G3), rozpada się na dwie osobne frazy —
+ * decyzja DATA-DRIVEN (liczbowe porównanie), nie `if ($condition_code === …)`
+ * (D-12.G1). Gdy tylko JEDNO z pól jest wypełnione (np. `min=>0` na polu ACF
+ * dopuszcza literalnie zero), pokazujemy TEN fakt — nie chowamy całego wiersza
+ * tylko bo drugi jest pusty (recenzja PR#28, sesja 2026-08-12/13).
+ */
+$warranty_months     = $condition_definition['okres_gwarancji_miesiace'] ?? 0;
+$claim_months        = $condition_definition['okres_reklamacji_miesiace'] ?? 0;
+$warranty_claim_text = '';
+
+if ( $warranty_months > 0 && $claim_months > 0 ) {
+	$warranty_claim_text = $warranty_months === $claim_months
+		? sprintf(
+			/* translators: %s: formatted warranty/claim period (e.g. "1 rok"). */
+			__( 'Gwarancja i prawo do reklamacji: %s', 'qutlet-theme' ),
+			ProductPage::period_years_text( $warranty_months )
+		)
+		: sprintf(
+			/* translators: 1: formatted warranty period, 2: formatted claim period. */
+			__( 'Gwarancja: %1$s · Reklamacja: %2$s', 'qutlet-theme' ),
+			ProductPage::period_years_text( $warranty_months ),
+			ProductPage::period_years_text( $claim_months )
+		);
+} elseif ( $warranty_months > 0 ) {
+	$warranty_claim_text = sprintf(
+		/* translators: %s: formatted warranty period (e.g. "1 rok"). */
+		__( 'Gwarancja: %s', 'qutlet-theme' ),
+		ProductPage::period_years_text( $warranty_months )
+	);
+} elseif ( $claim_months > 0 ) {
+	$warranty_claim_text = sprintf(
+		/* translators: %s: formatted claim period (e.g. "1 rok"). */
+		__( 'Reklamacja: %s', 'qutlet-theme' ),
+		ProductPage::period_years_text( $claim_months )
+	);
+}
+
+$claim_period_text = ProductPage::period_years_text( $claim_months );
 
 /*
  * Sekcja treści (P-8.2c): taby „Co w przesyłce" / „Opis i specyfikacja".
@@ -157,12 +204,9 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 		</div>
 
 		<div>
-			<?php if ( '' !== $condition_label ) : ?>
+			<?php if ( null !== $condition_definition ) : ?>
 				<div class="class-row">
-					<span class="class-pill"><b><?php
-						/* translators: %s: condition code (A/B/C/D). */
-						echo esc_html( sprintf( __( 'Klasa %s', 'qutlet-theme' ), $condition_code ) );
-					?></b> · <?php echo esc_html( $condition_label ); ?></span>
+					<span class="class-pill"><?php echo esc_html( $condition_definition['opis_chip'] ); ?></span>
 					<a href="#jak-to-dziala" class="class-link"><?php esc_html_e( 'Co to znaczy?', 'qutlet-theme' ); ?></a>
 				</div>
 			<?php endif; ?>
@@ -212,16 +256,12 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 					<?php endif; ?>
 				</div>
 
+				<?php if ( null !== $condition_definition && '' !== trim( $condition_definition['dlaczego_taniej'] ) ) : ?>
 				<div class="eco-note">
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5a8a14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4M12 8h.01"></path></svg>
-					<span><?php
-						echo ProductPage::bold_text( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							/* translators: %s: bolded phrase. */
-							__( 'Skąd niższa cena? To zwrot konsumencki w stanie „jak nowy”. %s, a kupując używane — ograniczasz e-waste.', 'qutlet-theme' ),
-							__( 'Nie dopłacasz za nieotwierane opakowanie', 'qutlet-theme' )
-						);
-					?></span>
+					<span><?php echo esc_html( $condition_definition['dlaczego_taniej'] ); ?></span>
 				</div>
+				<?php endif; ?>
 
 				<div class="perk-list">
 					<div class="perk-row">
@@ -229,10 +269,12 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 						<?php esc_html_e( '14 dni na zwrot', 'qutlet-theme' ); ?>
 						<span class="perk-tag"><?php esc_html_e( 'Koszt po Twojej stronie', 'qutlet-theme' ); ?></span>
 					</div>
+					<?php if ( '' !== $warranty_claim_text ) : ?>
 					<div class="perk-row">
 						<span class="perk-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5Z"></path><path d="m9 12 2 2 4-4"></path></svg></span>
-						<?php esc_html_e( 'Gwarancja i prawo do reklamacji: 1 rok', 'qutlet-theme' ); ?>
+						<?php echo esc_html( $warranty_claim_text ); ?>
 					</div>
+					<?php endif; ?>
 					<div class="perk-row">
 						<span class="perk-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg></span>
 						<?php esc_html_e( 'Wysyłka w 1 dzień roboczy', 'qutlet-theme' ); ?>
@@ -253,11 +295,21 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 				<?php woocommerce_template_single_add_to_cart(); ?>
 
 				<p class="pd-fine"><?php
-					if ( '' !== $condition_code ) {
-						/* translators: %s: condition code (A/B/C/D). */
-						echo esc_html( sprintf( __( 'Produkt sprzedawany jako używany (Klasa %s) • Reklamacja: 1 rok', 'qutlet-theme' ), $condition_code ) );
+					if ( '' !== $condition_code && '' !== $claim_period_text ) {
+						echo esc_html( sprintf(
+							/* translators: 1: condition code (A/B/C/D), 2: formatted claim period (e.g. "1 rok"). */
+							__( 'Produkt sprzedawany jako używany (Klasa %1$s) • Reklamacja: %2$s', 'qutlet-theme' ),
+							$condition_code,
+							$claim_period_text
+						) );
+					} elseif ( '' !== $claim_period_text ) {
+						echo esc_html( sprintf(
+							/* translators: %s: formatted claim period (e.g. "1 rok"). */
+							__( 'Produkt sprzedawany jako używany • Reklamacja: %s', 'qutlet-theme' ),
+							$claim_period_text
+						) );
 					} else {
-						esc_html_e( 'Produkt sprzedawany jako używany • Reklamacja: 1 rok', 'qutlet-theme' );
+						esc_html_e( 'Produkt sprzedawany jako używany.', 'qutlet-theme' );
 					}
 				?></p>
 			</div>
@@ -281,10 +333,12 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 							<?php esc_html_e( '14 dni na zwrot', 'qutlet-theme' ); ?>
 							<span class="perk-tag perk-tag-green"><?php esc_html_e( 'Możliwy bezpłatny', 'qutlet-theme' ); ?></span>
 						</div>
+						<?php if ( '' !== $warranty_claim_text ) : ?>
 						<div class="perk-row">
 							<span class="perk-icon perk-icon-allegro"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5Z"></path><path d="m9 12 2 2 4-4"></path></svg></span>
-							<?php esc_html_e( 'Gwarancja i prawo do reklamacji: 1 rok', 'qutlet-theme' ); ?>
+							<?php echo esc_html( $warranty_claim_text ); ?>
 						</div>
+						<?php endif; ?>
 						<div class="perk-row">
 							<span class="perk-icon perk-icon-allegro"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg></span>
 							<?php esc_html_e( 'Wysyłka w 1 dzień roboczy', 'qutlet-theme' ); ?>
@@ -410,22 +464,11 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 						<th><?php esc_html_e( 'Charakterystyka', 'qutlet-theme' ); ?></th>
 					</tr></thead>
 					<tbody>
-						<?php
-						$classification_rows = array(
-							'A' => array( __( 'Jak nowy. Mikroryski.', 'qutlet-theme' ), __( 'Zwrot konsumencki. Oryginalne pudełko.', 'qutlet-theme' ) ),
-							'B' => array( __( 'Dobry. Widoczne ryski.', 'qutlet-theme' ), __( 'Używany dłużej. Pudełko zastępcze.', 'qutlet-theme' ) ),
-							'C' => array( __( 'Mocne ślady zużycia.', 'qutlet-theme' ), __( 'Sprawny technicznie, widoczna historia użytkowania.', 'qutlet-theme' ) ),
-							'D' => array( __( 'Na części.', 'qutlet-theme' ), __( 'Niesprawny technicznie.', 'qutlet-theme' ) ),
-						);
-						foreach ( $classification_rows as $row_code => $row ) :
-							?>
+						<?php foreach ( $condition_definitions as $row ) : ?>
 							<tr>
-								<td><span class="class-name"><span class="dot dot-<?php echo esc_attr( strtolower( $row_code ) ); ?>"></span><?php
-									/* translators: %s: condition code (A/B/C/D). */
-									echo esc_html( sprintf( __( 'Klasa %s', 'qutlet-theme' ), $row_code ) );
-								?></span></td>
-								<td><?php echo esc_html( $row[0] ); ?></td>
-								<td><?php echo esc_html( $row[1] ); ?></td>
+								<td><span class="class-name"><span class="dot" style="background:<?php echo esc_attr( $row['kolor'] ); ?>"></span><?php echo esc_html( $row['opis_chip'] ); ?></span></td>
+								<td><?php echo esc_html( $row['stan_wizualny'] ); ?></td>
+								<td><?php echo esc_html( $row['charakterystyka'] ); ?></td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
@@ -480,12 +523,42 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 					<div class="info-card">
 						<span class="info-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5Z"></path></svg></span>
 						<h4><?php esc_html_e( 'Gwarancja sprzedawcy', 'qutlet-theme' ); ?></h4>
-						<p><?php esc_html_e( '12 miesięcy gwarancji na każdy produkt. Reklamacje realizujemy w naszym serwisie — szybko i bezproblemowo.', 'qutlet-theme' ); ?></p>
+						<p><?php
+							$warranty_months_text = ProductPage::period_months_text( $warranty_months );
+
+							if ( '' !== $warranty_months_text ) {
+								echo esc_html( sprintf(
+									/* translators: %s: formatted warranty period (e.g. "12 miesięcy"). */
+									__( '%s gwarancji na każdy produkt. Reklamacje realizujemy w naszym serwisie — szybko i bezproblemowo.', 'qutlet-theme' ),
+									$warranty_months_text
+								) );
+							} else {
+								esc_html_e( 'Okres gwarancji znajdziesz w opisie klasy stanu produktu.', 'qutlet-theme' );
+							}
+						?></p>
 					</div>
 					<div class="info-card">
 						<span class="info-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><path d="M14 2v6h6"></path><path d="m9 15 2 2 4-4"></path></svg></span>
 						<h4><?php esc_html_e( 'Prawo do reklamacji', 'qutlet-theme' ); ?></h4>
-						<p><?php esc_html_e( '1 rok (zamiast ustawowych 2 lat — dopuszczalne dla towarów używanych, gdy kupujący zostanie wyraźnie poinformowany).', 'qutlet-theme' ); ?></p>
+						<p><?php
+							if ( '' === $claim_period_text ) {
+								esc_html_e( 'Okres reklamacji znajdziesz w opisie klasy stanu produktu.', 'qutlet-theme' );
+							} elseif ( $claim_months >= 24 ) {
+								// Rękojmia ustawowa PEŁNA (2 lata) — klasa nie "skraca" niczego (D-12.G1: decyzja
+								// liczbowa, nie `if ($condition_code === 'Nowe')`; patrz docblock SeedClassDefinitionsCommand).
+								echo esc_html( sprintf(
+									/* translators: %s: formatted claim period (e.g. "2 lata"). */
+									__( '%s — zgodnie z ustawowym prawem rękojmi.', 'qutlet-theme' ),
+									$claim_period_text
+								) );
+							} else {
+								echo esc_html( sprintf(
+									/* translators: %s: formatted claim period (e.g. "1 rok"). */
+									__( '%s (zamiast ustawowych 2 lat — dopuszczalne dla towarów używanych, gdy kupujący zostanie wyraźnie poinformowany).', 'qutlet-theme' ),
+									$claim_period_text
+								) );
+							}
+						?></p>
 					</div>
 				</div>
 				<p class="know-fine"><?php

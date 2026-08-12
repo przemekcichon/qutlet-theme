@@ -127,7 +127,16 @@ final class Cart {
 	}
 
 	/**
-	 * Dane per-wiersz koszyka: klasa stanu + stara cena (kontrakt §2).
+	 * Dane per-wiersz koszyka: klasa stanu + kolor + gwarancja/reklamacja +
+	 * stara cena (kontrakt §2/§2.2, P-12.1b — REWIZJA: `klasa_kolor`/
+	 * `gwarancja_text`/`reklamacja_text` czytane z bytu {@see
+	 * \Qutlet\Core\ProductCondition\ClassDefinitionsTaxonomy} przez {@see
+	 * ProductPage::condition_definition()}, dawniej „Gwarancja 1 rok" był
+	 * gołym literałem w `assets/js/cart-block-filters.js`, reklamacja wcale
+	 * nie była pokazywana). TE SAME dane czyta blok Checkout (`assets/js/
+	 * checkout-block-filters.js`) — D-12.G2, endpoint Store API `cart-item`
+	 * jest współdzielony między Cart i Checkout, więc kasa dostaje je bez
+	 * osobnej rejestracji.
 	 *
 	 * Stara cena wróciła po jednej sesji bez niej (usunięta, potem
 	 * przywrócona — decyzje użytkownika, sesja 2026-08-05) — problemem nie
@@ -149,11 +158,23 @@ final class Cart {
 
 		$product_id     = $product->get_id();
 		$condition_code = (string) ProductPage::acf_field( 'klasa_stanu', $product_id );
+		$definition     = ProductPage::condition_definition( $condition_code );
 		$market_price   = (float) ProductPage::acf_field( 'cena_rynkowa_nowego', $product_id );
 		$sale_price     = (float) $product->get_price();
 
 		return array(
 			'klasa_stanu'            => $condition_code,
+			'klasa_kolor'            => $definition['kolor'] ?? '',
+			'gwarancja_text'         => null !== $definition ? sprintf(
+				/* translators: %s: formatted warranty period (e.g. "1 rok"). */
+				__( 'Gwarancja %s', 'qutlet-theme' ),
+				ProductPage::period_years_text( $definition['okres_gwarancji_miesiace'] )
+			) : '',
+			'reklamacja_text'        => null !== $definition ? sprintf(
+				/* translators: %s: formatted claim period (e.g. "1 rok"). */
+				__( 'Reklamacja %s', 'qutlet-theme' ),
+				ProductPage::period_years_text( $definition['okres_reklamacji_miesiace'] )
+			) : '',
 			'old_price_formatted'    => $market_price > $sale_price ? wp_kses_post( wc_price( $market_price ) ) : '',
 			// Oszczędność PER SZTUKĘ (jak `old_price_formatted`, NIE razy ilość) —
 			// ten sam punkt odniesienia co cena sprzedaży w wierszu, która też jest
@@ -172,7 +193,25 @@ final class Cart {
 	public static function cart_item_schema(): array {
 		return array(
 			'klasa_stanu'            => array(
-				'description' => __( 'Kod klasy stanu (A-D).', 'qutlet-theme' ),
+				'description' => __( 'Kod klasy stanu (join key bytu klas stanu, dziś A-D).', 'qutlet-theme' ),
+				'type'        => array( 'string', 'null' ),
+				'context'     => array( 'view', 'edit' ),
+				'readonly'    => true,
+			),
+			'klasa_kolor'            => array(
+				'description' => __( 'Kolor klasy stanu (hex, z bytu klas stanu) — kropka odznaki.', 'qutlet-theme' ),
+				'type'        => array( 'string', 'null' ),
+				'context'     => array( 'view', 'edit' ),
+				'readonly'    => true,
+			),
+			'gwarancja_text'         => array(
+				'description' => __( 'Sformatowany tekst „Gwarancja X" (okres z bytu klas stanu).', 'qutlet-theme' ),
+				'type'        => array( 'string', 'null' ),
+				'context'     => array( 'view', 'edit' ),
+				'readonly'    => true,
+			),
+			'reklamacja_text'        => array(
+				'description' => __( 'Sformatowany tekst „Reklamacja X" (okres z bytu klas stanu).', 'qutlet-theme' ),
 				'type'        => array( 'string', 'null' ),
 				'context'     => array( 'view', 'edit' ),
 				'readonly'    => true,

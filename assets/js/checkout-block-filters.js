@@ -1,6 +1,6 @@
 /**
- * Qutlet — podpis pozycji (klasa/gwarancja/ilość) w podsumowaniu zamówienia
- * bloku Checkout (D-8.6b.1).
+ * Qutlet — podpis pozycji (klasa/gwarancja/reklamacja/ilość) w podsumowaniu
+ * zamówienia bloku Checkout (D-8.6b.1).
  *
  * Czyta TE SAME dane Store API co koszyk (`item.extensions['qutlet-klasa']`,
  * zarejestrowane raz w inc/features/Cart/Cart.php — D-12.G2, potwierdzone
@@ -15,8 +15,10 @@
  * pozycji WYŁĄCZNIE miniaturkę/nazwę/cenę + zwykły tekstowy podpis
  * „Klasa X · N szt." — BEZ kolorowych chipów, BEZ starej ceny („Nowy za"),
  * BEZ osobnej pigułki „Oszczędzasz" per pozycja. Użytkownik rozszerzył
- * podpis o gwarancję (trzeci fakt z D-12.G2) i ZREZYGNOWAŁ ze starej
- * ceny/oszczędności — zarówno per pozycja, JAK I w zbiorczym podsumowaniu
+ * podpis o gwarancję i reklamację (drugi i trzeci fakt z D-12.G2 — reklamacja
+ * dołączona w P-12.1b, gdy byt klas stanu z FAZY 12 był już gotowy) i
+ * ZREZYGNOWAŁ ze starej ceny/oszczędności — zarówno per pozycja, JAK I w
+ * zbiorczym podsumowaniu
  * (`total_savings_formatted`, wcześniej `.qutlet-cart-savings-note` —
  * usunięte razem z całym mechanizmem `injectSavingsRow`, poprzednia wersja
  * tego pliku). Miniaturka przestylowana na wygląd koszyka (style.css).
@@ -71,13 +73,19 @@
 	}
 
 	/**
-	 * Podpis pozycji „Klasa {X} · Gwarancja 1 rok · {N} szt." (D-12.G2 —
-	 * te same fakty co w koszyku, gwarancja dziś nadal statyczny literał
-	 * „1 rok" — byt klas z FAZY 12 jeszcze niezbudowany; „szt." to
-	 * niedomienny skrót, port `QT.tpl.checkoutItem`, nie odmienia się przez
-	 * liczbę, patrz nagłówek pliku). Wstrzykiwane do
+	 * Podpis pozycji „Klasa {X} · Gwarancja {Y} · Reklamacja {Z} · {N} szt."
+	 * (D-12.G2 — te same TRZY fakty co w koszyku; P-12.1b: `gwarancja_text`/
+	 * `reklamacja_text` czytane z bytu klas stanu przez `Cart::cart_item_data()`
+	 * — TEN SAM endpoint Store API `cart-item`, D-12.G2, bez osobnej rejestracji
+	 * dla Checkout. Dawniej gwarancja była statycznym literałem „1 rok" wpisanym
+	 * wprost w ten plik, a reklamacja nie była pokazywana wcale — usunięte w
+	 * P-12.1b. „szt." to niedomienny skrót, port `QT.tpl.checkoutItem`, nie
+	 * odmienia się przez liczbę, patrz nagłówek pliku). Wstrzykiwane do
 	 * `.wc-block-components-product-metadata` — pusty węzeł już
 	 * przygotowany przez WC Blocks na dokładnie ten cel (metadane pozycji).
+	 *
+	 * ZAKRES WCIĄŻ ZWĘŻONY (patrz nagłówek pliku): tekstowy podpis bez
+	 * kolorowych chipów — `klasa_kolor` (P-12.1b) świadomie NIE jest tu użyty.
 	 */
 	function injectItemMetaInto(container, items) {
 		var rows = container.querySelectorAll('.wc-block-components-order-summary-item');
@@ -96,9 +104,21 @@
 				return;
 			}
 
+			var text = 'Klasa ' + ext.klasa_stanu;
+
+			if (ext.gwarancja_text) {
+				text += ' · ' + ext.gwarancja_text;
+			}
+
+			if (ext.reklamacja_text) {
+				text += ' · ' + ext.reklamacja_text;
+			}
+
+			text += ' · ' + item.quantity + ' szt.';
+
 			var meta = document.createElement('small');
 			meta.className = 'qutlet-summary-meta';
-			meta.textContent = 'Klasa ' + ext.klasa_stanu + ' · Gwarancja 1 rok · ' + item.quantity + ' szt.';
+			meta.textContent = text;
 			metadata.appendChild(meta);
 		});
 	}
