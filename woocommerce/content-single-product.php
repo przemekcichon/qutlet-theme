@@ -78,7 +78,9 @@ $allegro_markup_pct = $allegro_enabled ? ProductPage::save_percent( $sale_price,
  * fraza jak w oryginalnym copy; gdyby admin kiedyś ustawił różne wartości per
  * klasa (byt to dopuszcza, D-12.G3), rozpada się na dwie osobne frazy —
  * decyzja DATA-DRIVEN (liczbowe porównanie), nie `if ($condition_code === …)`
- * (D-12.G1).
+ * (D-12.G1). Gdy tylko JEDNO z pól jest wypełnione (np. `min=>0` na polu ACF
+ * dopuszcza literalnie zero), pokazujemy TEN fakt — nie chowamy całego wiersza
+ * tylko bo drugi jest pusty (recenzja PR#28, sesja 2026-08-12/13).
  */
 $warranty_months     = $condition_definition['okres_gwarancji_miesiace'] ?? 0;
 $claim_months        = $condition_definition['okres_reklamacji_miesiace'] ?? 0;
@@ -97,6 +99,18 @@ if ( $warranty_months > 0 && $claim_months > 0 ) {
 			ProductPage::period_years_text( $warranty_months ),
 			ProductPage::period_years_text( $claim_months )
 		);
+} elseif ( $warranty_months > 0 ) {
+	$warranty_claim_text = sprintf(
+		/* translators: %s: formatted warranty period (e.g. "1 rok"). */
+		__( 'Gwarancja: %s', 'qutlet-theme' ),
+		ProductPage::period_years_text( $warranty_months )
+	);
+} elseif ( $claim_months > 0 ) {
+	$warranty_claim_text = sprintf(
+		/* translators: %s: formatted claim period (e.g. "1 rok"). */
+		__( 'Reklamacja: %s', 'qutlet-theme' ),
+		ProductPage::period_years_text( $claim_months )
+	);
 }
 
 $claim_period_text = ProductPage::period_years_text( $claim_months );

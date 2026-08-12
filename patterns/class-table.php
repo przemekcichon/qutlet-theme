@@ -12,6 +12,8 @@
 
 declare( strict_types=1 );
 
+use Qutlet\Core\ProductCondition\ClassDefinitionsTaxonomy;
+
 defined( 'ABSPATH' ) || exit;
 
 ?>
@@ -21,10 +23,9 @@ defined( 'ABSPATH' ) || exit;
 <tr><th><?php esc_html_e( 'Klasa', 'qutlet-theme' ); ?></th><th><?php esc_html_e( 'Stan wizualny', 'qutlet-theme' ); ?></th><th><?php esc_html_e( 'Charakterystyka', 'qutlet-theme' ); ?></th></tr>
 </thead>
 <tbody>
-<tr><td><span class="class-name"><span class="dot dot-a"></span><?php esc_html_e( 'Klasa A', 'qutlet-theme' ); ?></span></td><td><?php esc_html_e( 'Jak nowy. Mikroryski.', 'qutlet-theme' ); ?></td><td><?php esc_html_e( 'Zwrot konsumencki. Oryginalne pudełko.', 'qutlet-theme' ); ?></td></tr>
-<tr><td><span class="class-name"><span class="dot dot-b"></span><?php esc_html_e( 'Klasa B', 'qutlet-theme' ); ?></span></td><td><?php esc_html_e( 'Dobry. Widoczne ryski.', 'qutlet-theme' ); ?></td><td><?php esc_html_e( 'Używany dłużej. Pudełko zastępcze.', 'qutlet-theme' ); ?></td></tr>
-<tr><td><span class="class-name"><span class="dot dot-c"></span><?php esc_html_e( 'Klasa C', 'qutlet-theme' ); ?></span></td><td><?php esc_html_e( 'Mocne ślady zużycia.', 'qutlet-theme' ); ?></td><td><?php esc_html_e( 'Sprawny technicznie, widoczna historia użytkowania.', 'qutlet-theme' ); ?></td></tr>
-<tr><td><span class="class-name"><span class="dot dot-d"></span><?php esc_html_e( 'Klasa D', 'qutlet-theme' ); ?></span></td><td><?php esc_html_e( 'Na części.', 'qutlet-theme' ); ?></td><td><?php esc_html_e( 'Niesprawny technicznie.', 'qutlet-theme' ); ?></td></tr>
+<?php foreach ( ClassDefinitionsTaxonomy::all() as $row ) : ?>
+<tr><td><span class="class-name"><span class="dot" style="background:<?php echo esc_attr( $row['kolor'] ); ?>"></span><?php echo esc_html( $row['opis_chip'] ); ?></span></td><td><?php echo esc_html( $row['stan_wizualny'] ); ?></td><td><?php echo esc_html( $row['charakterystyka'] ); ?></td></tr>
+<?php endforeach; ?>
 </tbody>
 </table></figure>
 <!-- /wp:table -->
