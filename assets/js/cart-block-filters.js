@@ -48,9 +48,10 @@
 	}
 
 	/**
-	 * `klasa_stanu` to zamknięty słownik ACF (A-D, kontrakt §2), więc w praktyce
-	 * nie jest wstrzykiwalny — escapowanie i tak przed wklejeniem do innerHTML
-	 * (obrona w głąb: wartość podróżuje przez Store API/JSON, nie kod motywu).
+	 * `klasa_stanu`/`klasa_kolor`/`gwarancja_text`/`reklamacja_text` pochodzą z
+	 * bytu „klasa stanu" (P-12.1a/b, taksonomia edytowalna w adminie — od
+	 * P-12.1a NIE jest już zamkniętym słownikiem ACF A-D), więc escapowanie
+	 * przed wklejeniem do innerHTML jest realną obroną w głąb, nie formalnością.
 	 */
 	function escHtml(value) {
 		return String(value).replace(/[&<>"']/g, function (c) {
@@ -59,7 +60,8 @@
 	}
 
 	/**
-	 * Odznaka klasy stanu + gwarancja (w jednej linii ze starą ceną — trzy
+	 * Odznaka klasy stanu + gwarancja + reklamacja (P-12.1b — trzeci fakt,
+	 * dawniej nieobecny w koszyku, D-12.G2) w jednej linii ze starą ceną —
 	 * osobne węzły DOM na tym samym wierszu gridu, dwie kolumny), ikonka „?"
 	 * z pełną nazwą w tooltipie obok (możliwe) przyciętej nazwy produktu —
 	 * żadna z tych operacji nie modyfikuje istniejących stringów (patrz
@@ -115,12 +117,24 @@
 			}
 
 			if (ext.klasa_stanu && !wrap.querySelector('.qutlet-cart-badges')) {
-				var dot = escHtml(String(ext.klasa_stanu).toLowerCase());
+				// Kolor odznaki jako inline `style` (nie klasa CSS `dot-<litera>`) —
+				// byt klas stanu (P-12.1a) jest rozszerzalny, nowe klasy (np. "Nowe")
+				// nie mają gotowej reguły `.dot-<kod>` w style.css.
+				var dotStyle = ext.klasa_kolor ? ' style="background:' + escHtml(ext.klasa_kolor) + '"' : '';
+				var html =
+					'<span class="pill"><span class="dot"' + dotStyle + '></span>Klasa ' + escHtml(ext.klasa_stanu) + '</span>';
+
+				if (ext.gwarancja_text) {
+					html += '<span class="pill">' + escHtml(ext.gwarancja_text) + '</span>';
+				}
+
+				if (ext.reklamacja_text) {
+					html += '<span class="pill">' + escHtml(ext.reklamacja_text) + '</span>';
+				}
+
 				var badges = document.createElement('div');
 				badges.className = 'qutlet-cart-badges';
-				badges.innerHTML =
-					'<span class="pill"><span class="dot dot-' + dot + '"></span>Klasa ' + escHtml(ext.klasa_stanu) + '</span>' +
-					'<span class="pill">Gwarancja 1 rok</span>';
+				badges.innerHTML = html;
 				wrap.appendChild(badges);
 			}
 

@@ -17,6 +17,8 @@ declare( strict_types=1 );
 
 namespace Qutlet\Theme\features\ProductPage;
 
+use Qutlet\Core\ProductCondition\ClassDefinitionsTaxonomy;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -157,20 +159,118 @@ final class ProductPage {
 	}
 
 	/**
-	 * Etykieta klasy stanu — słownik A→„Jak nowy" itd. (kontrakt §6, `data.js` QT.COND).
+	 * Etykieta klasy stanu — natywna `nazwa` termu z bytu {@see ClassDefinitionsTaxonomy}
+	 * (P-12.1b, REWIZJA — dawniej hardkodowany słownik A→„Jak nowy" itd., kontrakt §2.2).
 	 *
-	 * @param string $code Literał klasy stanu (`A`, `B`, `C`, `D`).
-	 * @return string Pusty string, gdy kod nieznany.
+	 * @param string $code Literał klasy stanu (join key `kod`, dziś `A`-`D`).
+	 * @return string Pusty string, gdy kod pusty/nieznany (klasa nie istnieje w bycie).
 	 */
 	public static function condition_label( string $code ): string {
-		$labels = array(
-			'A' => __( 'Jak nowy', 'qutlet-theme' ),
-			'B' => __( 'Dobry', 'qutlet-theme' ),
-			'C' => __( 'Mocne ślady', 'qutlet-theme' ),
-			'D' => __( 'Na części', 'qutlet-theme' ),
-		);
+		return self::condition_definition( $code )['nazwa'] ?? '';
+	}
 
-		return $labels[ $code ] ?? '';
+	/**
+	 * Definicja klasy stanu z bytu {@see ClassDefinitionsTaxonomy} (P-12.1b,
+	 * kontrakt §2.2) — `null`, gdy kod pusty albo nieznany (np. taksonomia
+	 * jeszcze niezaseedowana, patrz `ProductConditionFields::render_missing_class_definitions_notice()`).
+	 *
+	 * @param string $code Literał klasy stanu (join key `kod`).
+	 * @return array{term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int}|null
+	 */
+	public static function condition_definition( string $code ): ?array {
+		if ( '' === $code ) {
+			return null;
+		}
+
+		return ClassDefinitionsTaxonomy::get( $code );
+	}
+
+	/**
+	 * Wszystkie zdefiniowane klasy stanu, kluczowane po `kod` (P-12.1b) — akordeon
+	 * „Klasyfikacja produktów" (`.class-table`, kontrakt §2.2), zamiast dawnej
+	 * hardkodowanej tablicy `$classification_rows` w szablonie.
+	 *
+	 * @return array<string, array{term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int}>
+	 */
+	public static function all_condition_definitions(): array {
+		return ClassDefinitionsTaxonomy::all();
+	}
+
+	/**
+	 * Okres w miesiącach jako tekst po polskiej odmianie liczebnika, w LATACH
+	 * („1 rok"/„2 lata"/„5 lat") — jednostka użyta dziś we WSZYSTKICH miejscach
+	 * poza kartą „Gwarancja sprzedawcy" w akordeonie (patrz {@see self::period_months_text()}),
+	 * verbatim port copy `content-single-product.php` sprzed P-12.1b (kontrakt §2.2).
+	 * Degraduje do zapisu w miesiącach, gdy `$months` nie jest wielokrotnością 12
+	 * (dzisiejsze klasy: 12 albo 24) — żeby nie zgadywać niepełnych lat.
+	 *
+	 * @param int $months Liczba miesięcy (`okres_gwarancji_miesiace`/`okres_reklamacji_miesiace`).
+	 * @return string Pusty string, gdy `$months` <= 0.
+	 */
+	public static function period_years_text( int $months ): string {
+		if ( $months <= 0 ) {
+			return '';
+		}
+
+		if ( 0 !== $months % 12 ) {
+			return self::period_months_text( $months );
+		}
+
+		$years = intdiv( $months, 12 );
+
+		return sprintf(
+			'%d %s',
+			$years,
+			self::pl_plural( $years, __( 'rok', 'qutlet-theme' ), __( 'lata', 'qutlet-theme' ), __( 'lat', 'qutlet-theme' ) )
+		);
+	}
+
+	/**
+	 * Okres w miesiącach jako tekst po polskiej odmianie liczebnika, w MIESIĄCACH
+	 * („12 miesięcy") — patrz {@see self::period_years_text()} dla wariantu w latach.
+	 *
+	 * @param int $months Liczba miesięcy.
+	 * @return string Pusty string, gdy `$months` <= 0.
+	 */
+	public static function period_months_text( int $months ): string {
+		if ( $months <= 0 ) {
+			return '';
+		}
+
+		return sprintf(
+			'%d %s',
+			$months,
+			self::pl_plural( $months, __( 'miesiąc', 'qutlet-theme' ), __( 'miesiące', 'qutlet-theme' ), __( 'miesięcy', 'qutlet-theme' ) )
+		);
+	}
+
+	/**
+	 * Polska odmiana liczebnika (1 / 2-4 / pozostałe, z nieregularnym wyjątkiem
+	 * 12-14 wyłączonym z „2-4") — PORT algorytmu `plPlural()`
+	 * (`assets/js/cart-block-filters.js`, P-8.6a), zastosowany do innych słów
+	 * (rok/lata/lat, miesiąc/miesiące/miesięcy zamiast sztuka/sztuki/sztuk).
+	 * Osobny port do PHP, bo strona produktu renderuje się server-side
+	 * (D-12.1a, kontrakt §2.2 — okres gwarancji/reklamacji).
+	 *
+	 * @param int    $count Liczba.
+	 * @param string $one   Forma dla 1.
+	 * @param string $few   Forma dla 2-4 (poza 12-14).
+	 * @param string $many  Forma dla pozostałych.
+	 * @return string
+	 */
+	private static function pl_plural( int $count, string $one, string $few, string $many ): string {
+		if ( 1 === $count ) {
+			return $one;
+		}
+
+		$mod10  = $count % 10;
+		$mod100 = $count % 100;
+
+		if ( $mod10 >= 2 && $mod10 <= 4 && ! ( $mod100 >= 12 && $mod100 <= 14 ) ) {
+			return $few;
+		}
+
+		return $many;
 	}
 
 	/**
