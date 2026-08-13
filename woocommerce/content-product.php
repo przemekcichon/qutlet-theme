@@ -9,8 +9,9 @@
  * P-8.3a: karta (pętla) + etykieta liczby sztuk (`pcard-stock`, przeniesiona
  * z P-8.2a — ground-truth `produkt.html` potwierdził, że QT.qtyLabel renderuje
  * się WYŁĄCZNIE tutaj, kontrakt §1/§6). Reużywa `ProductPage::acf_field()` /
- * `condition_label()` / `save_percent()` (klasa stanu + rabat — te same pola
- * i formuły co strona produktu, P-8.2a).
+ * `save_percent()` (rabat — te same formuły co strona produktu, P-8.2a) oraz
+ * (P-12.2c) `ProductPage::condition_for_product()` (klasa stanu — relacja,
+ * nie literał + join po `kod`).
  *
  * Ground-truth runtime (P-8.3a): dla archiwów renderowanych przez blok
  * `wp:woocommerce/legacy-template {"template":"archive-product"}`
@@ -43,8 +44,9 @@ if ( ! $product instanceof WC_Product || ! $product->is_visible() ) {
 $product_id  = $product->get_id();
 $image_id    = $product->get_image_id();
 
-$condition_code  = (string) ProductPage::acf_field( 'klasa_stanu', $product_id );
-$condition_label = '' !== $condition_code ? ProductPage::condition_label( $condition_code ) : '';
+$condition_definition = ProductPage::condition_for_product( $product_id ); // P-12.2c: relacja, nie literał + join po `kod`.
+$condition_code       = $condition_definition['kod'] ?? '';
+$condition_label      = $condition_definition['nazwa'] ?? '';
 
 $sale_price       = (float) $product->get_price();
 $market_price     = (float) ProductPage::acf_field( 'cena_rynkowa_nowego', $product_id );
