@@ -159,8 +159,14 @@ final class ProductPage {
 	}
 
 	/**
-	 * Etykieta klasy stanu — natywna `nazwa` termu z bytu {@see ClassDefinitionsTaxonomy}
+	 * Etykieta klasy stanu po `kod` — natywna `nazwa` termu z bytu {@see ClassDefinitionsTaxonomy}
 	 * (P-12.1b, REWIZJA — dawniej hardkodowany słownik A→„Jak nowy" itd., kontrakt §2.2).
+	 *
+	 * Join po `kod` (nie po produkcie) — zostaje WYŁĄCZNIE dla konsumentów budujących
+	 * słownik WSZYSTKICH klas (np. `ProductFilters::render_filters_and_sort()`,
+	 * etykiety facetów po kodzie z URL). Odczyt klasy PRZYPISANEJ do konkretnego
+	 * produktu idzie od P-12.2c przez {@see self::condition_for_product()} (realna
+	 * relacja), NIE przez ten join.
 	 *
 	 * @param string $code Literał klasy stanu (join key `kod`, dziś `A`-`D`).
 	 * @return string Pusty string, gdy kod pusty/nieznany (klasa nie istnieje w bycie).
@@ -170,9 +176,12 @@ final class ProductPage {
 	}
 
 	/**
-	 * Definicja klasy stanu z bytu {@see ClassDefinitionsTaxonomy} (P-12.1b,
+	 * Definicja klasy stanu po `kod`, z bytu {@see ClassDefinitionsTaxonomy} (P-12.1b,
 	 * kontrakt §2.2) — `null`, gdy kod pusty albo nieznany (np. taksonomia
 	 * jeszcze niezaseedowana, patrz `ProductConditionFields::render_missing_class_definitions_notice()`).
+	 *
+	 * Join po `kod` — patrz zastrzeżenie w {@see self::condition_label()}: dla
+	 * odczytu klasy KONKRETNEGO produktu użyj {@see self::condition_for_product()}.
 	 *
 	 * @param string $code Literał klasy stanu (join key `kod`).
 	 * @return array{term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int}|null
@@ -183,6 +192,20 @@ final class ProductPage {
 		}
 
 		return ClassDefinitionsTaxonomy::get( $code );
+	}
+
+	/**
+	 * Definicja klasy stanu PRZYPISANEJ do produktu — czyta przez realną relację
+	 * {@see ClassDefinitionsTaxonomy::for_product()} (P-12.2c, D-12.2.1 cutover),
+	 * NIE przez literał + join po `kod` (dawny mechanizm P-12.1b, zostaje jako
+	 * {@see self::condition_definition()} wyłącznie dla słownika WSZYSTKICH klas).
+	 * Jedyny sposób odczytu klasy produktu w tym slice'u od P-12.2c.
+	 *
+	 * @param int $product_id Id produktu.
+	 * @return array{kod: string, term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int}|null
+	 */
+	public static function condition_for_product( int $product_id ): ?array {
+		return ClassDefinitionsTaxonomy::for_product( $product_id );
 	}
 
 	/**

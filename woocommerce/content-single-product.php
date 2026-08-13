@@ -54,9 +54,9 @@ if ( post_password_required() ) {
 
 $product_id             = $product->get_id();
 $podnazwa               = (string) ProductPage::acf_field( 'podnazwa', $product_id );
-$condition_code         = (string) ProductPage::acf_field( 'klasa_stanu', $product_id );
-$condition_label        = '' !== $condition_code ? ProductPage::condition_label( $condition_code ) : '';
-$condition_definition   = ProductPage::condition_definition( $condition_code );
+$condition_definition   = ProductPage::condition_for_product( $product_id ); // P-12.2c: relacja, nie literał + join po `kod`.
+$condition_code         = $condition_definition['kod'] ?? '';
+$condition_label        = $condition_definition['nazwa'] ?? '';
 $condition_definitions  = ProductPage::all_condition_definitions();
 $market_price           = (float) ProductPage::acf_field( 'cena_rynkowa_nowego', $product_id );
 $sale_price             = (float) $product->get_price();
