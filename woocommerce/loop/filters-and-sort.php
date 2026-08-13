@@ -23,6 +23,7 @@
  * @var array<int, array{slug: string, name: string, count: int, checked: bool}> $category_facets  Facety kategorii (z `qutlet-core`, `ProductFilterQuery::category_facets()` — puste poza Shopem, D-8.3c.2).
  * @var array<int, array{code: string, count: int, checked: bool}>              $condition_facets Facety klasy stanu (z `qutlet-core`, `ProductFilterQuery::condition_facets()` — BEZ etykiety, ta żyje w theme).
  * @var array<string, string>                                                   $condition_labels Etykiety klasy stanu wg kodu (`ProductPage::condition_label()`), klucz = kod A-D.
+ * @var array<string, string>                                                   $condition_colors Kolory klasy stanu wg kodu (`ProductPage::condition_color()`, P-12.3 — zamiast statycznej klasy CSS `.dot-<kod>`), klucz = kod A-D.
  * @var array{floor: float, ceil: float}                                        $price_bounds     Granice ceny w bieżącym kontekście.
  * @var array{min: float, max: float}                                           $price_range      Zaznaczony zakres ceny.
  * @var array<int, array{label: string, url: string}>                           $active_chips     Aktywne chipy (z linkiem „usuń").
@@ -120,7 +121,7 @@ $price_max   = (int) round( $price_range['max'] );
 						<?php foreach ( $condition_facets as $facet ) : ?>
 							<label class="facet-row">
 								<input type="checkbox" name="<?php echo esc_attr( $condition_param ); ?>[]" value="<?php echo esc_attr( $facet['code'] ); ?>" <?php checked( $facet['checked'] ); ?>>
-								<span class="dot dot-<?php echo esc_attr( strtolower( $facet['code'] ) ); ?>"></span>
+								<span class="dot" style="background:<?php echo esc_attr( $condition_colors[ $facet['code'] ] ?? '' ); ?>"></span>
 								<span class="facet-label">
 									<?php
 										/* translators: 1: kod klasy stanu (A-D), 2: etykieta klasy stanu. */

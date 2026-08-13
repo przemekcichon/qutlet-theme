@@ -170,6 +170,20 @@ final class ProductPage {
 	}
 
 	/**
+	 * Kolor klasy stanu po `kod` — term meta `kolor` z bytu {@see ClassDefinitionsTaxonomy}
+	 * (kontrakt §2.2). Zamiast statycznych klas CSS `.dot-a`…`.dot-d` (P-12.3 —
+	 * byt jest rozszerzalny, D-12.G1, nowe klasy jak „Nowe" nie mają gotowej reguły
+	 * `.dot-<kod>`), konsumenci wypisują kolor jako inline `style="background:…"`
+	 * (ten sam wzorzec co `patterns/class-table.php`/`assets/js/cart-block-filters.js`).
+	 *
+	 * @param string $code Literał klasy stanu (join key `kod`).
+	 * @return string Pusty string, gdy kod pusty/nieznany.
+	 */
+	public static function condition_color( string $code ): string {
+		return self::condition_definition( $code )['kolor'] ?? '';
+	}
+
+	/**
 	 * Definicja klasy stanu z bytu {@see ClassDefinitionsTaxonomy} (P-12.1b,
 	 * kontrakt §2.2) — `null`, gdy kod pusty albo nieznany (np. taksonomia
 	 * jeszcze niezaseedowana, patrz `ProductConditionFields::render_missing_class_definitions_notice()`).
