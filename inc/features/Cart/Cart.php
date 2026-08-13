@@ -131,7 +131,8 @@ final class Cart {
 	 * stara cena (kontrakt §2/§2.2, P-12.1b — REWIZJA: `klasa_kolor`/
 	 * `gwarancja_text`/`reklamacja_text` czytane z bytu {@see
 	 * \Qutlet\Core\ProductCondition\ClassDefinitionsTaxonomy} przez {@see
-	 * ProductPage::condition_definition()}, dawniej „Gwarancja 1 rok" był
+	 * ProductPage::condition_for_product()} (P-12.2c — REWIZJA: relacja
+	 * per-produkt, nie literał + join po `kod`), dawniej „Gwarancja 1 rok" był
 	 * gołym literałem w `assets/js/cart-block-filters.js`, reklamacja wcale
 	 * nie była pokazywana). TE SAME dane czyta blok Checkout (`assets/js/
 	 * checkout-block-filters.js`) — D-12.G2, endpoint Store API `cart-item`
@@ -157,8 +158,8 @@ final class Cart {
 		}
 
 		$product_id     = $product->get_id();
-		$condition_code = (string) ProductPage::acf_field( 'klasa_stanu', $product_id );
-		$definition     = ProductPage::condition_definition( $condition_code );
+		$definition     = ProductPage::condition_for_product( $product_id ); // P-12.2c: relacja, nie literał + join po `kod`.
+		$condition_code = $definition['kod'] ?? '';
 		$market_price   = (float) ProductPage::acf_field( 'cena_rynkowa_nowego', $product_id );
 		$sale_price     = (float) $product->get_price();
 
@@ -346,7 +347,7 @@ final class Cart {
 							continue;
 						}
 
-						$condition_code = (string) ProductPage::acf_field( 'klasa_stanu', $product->get_id() );
+						$condition_code = ProductPage::condition_for_product( $product->get_id() )['kod'] ?? ''; // P-12.2c: relacja, nie literał.
 						$image_id       = $product->get_image_id();
 						$image_url      = $image_id ? wp_get_attachment_image_url( (int) $image_id, 'thumbnail' ) : '';
 						?>
