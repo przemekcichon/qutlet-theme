@@ -11,7 +11,9 @@
  * się WYŁĄCZNIE tutaj, kontrakt §1/§6). Reużywa `ProductPage::acf_field()` /
  * `save_percent()` (rabat — te same formuły co strona produktu, P-8.2a) oraz
  * (P-12.2c) `ProductPage::condition_for_product()` (klasa stanu — relacja,
- * nie literał + join po `kod`).
+ * nie literał + join po `kod`). Kropka klasy (P-12.3):
+ * `ProductPage::condition_color()` zamiast statycznej klasy CSS `.dot-<kod>`
+ * (byt rozszerzalny, D-12.G1 — klasa „Nowe" nie miała gotowej reguły `.dot-nowe`).
  *
  * Ground-truth runtime (P-8.3a): dla archiwów renderowanych przez blok
  * `wp:woocommerce/legacy-template {"template":"archive-product"}`
@@ -65,7 +67,7 @@ $has_market_price = $market_price > 0.0;
 		<h3 class="pcard-title"><?php echo esc_html( get_the_title( $product_id ) ); ?></h3>
 		<?php if ( '' !== $condition_label ) : ?>
 			<div class="pcard-cond">
-				<span class="dot dot-<?php echo esc_attr( strtolower( $condition_code ) ); ?>"></span><?php
+				<span class="dot" style="background:<?php echo esc_attr( ProductPage::condition_color( $condition_code ) ); ?>"></span><?php
 					/* translators: 1: condition code (A/B/C/D), 2: condition label. */
 					echo esc_html( sprintf( __( 'Klasa %1$s · %2$s', 'qutlet-theme' ), $condition_code, $condition_label ) );
 				?>

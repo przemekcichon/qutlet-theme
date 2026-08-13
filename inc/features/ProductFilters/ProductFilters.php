@@ -314,6 +314,10 @@ final class ProductFilters {
 					ProductFilterQuery::CONDITION_CODES,
 					array_map( array( ProductPage::class, 'condition_label' ), ProductFilterQuery::CONDITION_CODES )
 				),
+				'condition_colors' => array_combine(
+					ProductFilterQuery::CONDITION_CODES,
+					array_map( array( ProductPage::class, 'condition_color' ), ProductFilterQuery::CONDITION_CODES )
+				),
 				'price_bounds'     => $bounds,
 				'price_range'      => $range,
 				'active_chips'     => self::active_chips( $brands, $categories, $conditions, $bounds, $range ),

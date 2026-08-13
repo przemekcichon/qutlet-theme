@@ -826,10 +826,6 @@ table.class-table tr + tr td { border-top: 1px solid var(--line-soft); }
 .class-table td:nth-child(3) { color: var(--ink-soft); }
 .class-name { display: inline-flex; align-items: center; gap: 8px; }
 .class-name .dot { width: 10px; height: 10px; }
-.dot-a { background: #3f9b3f; }
-.dot-b { background: #9bbd2f; }
-.dot-c { background: #e0a32f; }
-.dot-d { background: #b07a7a; }
 .info-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .info-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding-top: 22px; padding-bottom: 22px; padding-left: 24px; padding-right: 24px; }
 .info-card-icon { width: 42px; height: 42px; border-radius: 11px; background: var(--panel); display: grid; place-items: center; color: var(--accent); margin-bottom: 14px; }
@@ -1746,8 +1742,10 @@ body.woocommerce-checkout .nlband { display: none; }
    `assets/js/cart-block-filters.js` jako osobne węzły DOM (nie modyfikacje
    istniejących stringów — `registerCheckoutFilters` z filtrem `itemName`
    zanieczyszczał aria-label przycisków ilości/usuwania surowym HTML,
-   zweryfikowane runtime). `.pill`/`.dot`/`.dot-a…d` to już istniejące klasy
-   globalne (patrz sekcja kart produktu). */
+   zweryfikowane runtime). `.pill`/`.dot` to już istniejące klasy globalne
+   (patrz sekcja kart produktu) — kolor kropki idzie inline `style="background:…"`
+   (P-12.3, `klasa_kolor`), NIE przez klasę `.dot-<kod>` (usunięta, byt
+   rozszerzalny nie miał dla niej stałego zbioru wariantów). */
 
 /* Układ 2-kolumnowy strony (`.cart-layout`, koszyk pełny). */
 .wp-block-woocommerce-filled-cart-block {
