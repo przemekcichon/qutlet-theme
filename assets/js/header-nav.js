@@ -61,12 +61,20 @@
 			var menuOpen = header.querySelector('[data-menu]:not([hidden]), [data-mega]:not([hidden])');
 			if (y < 120 || menuOpen) {
 				header.classList.remove('header-hidden');
+				lastY = y;
 			} else if (delta > 4) {
 				header.classList.add('header-hidden');
+				lastY = y;
 			} else if (delta < -4) {
 				header.classList.remove('header-hidden');
+				lastY = y;
 			}
-			lastY = y;
+			/* w przeciwnym razie (|delta| <= 4) NIE nadpisuj lastY — przy wielu
+			   drobnych przyrostach tego samego znaku (płynny/ciągły scroll,
+			   każda klatka animation frame < 4px) delta musi się kumulować
+			   względem ostatniego punktu odniesienia, inaczej próg nigdy nie
+			   zostanie przekroczony i nagłówek zostaje w błędnym stanie mimo
+			   dużego sumarycznego przesunięcia */
 		}
 		window.addEventListener('scroll', function () {
 			if (!ticking) { ticking = true; window.requestAnimationFrame(update); }
