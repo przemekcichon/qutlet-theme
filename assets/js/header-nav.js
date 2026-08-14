@@ -59,6 +59,12 @@
 			var delta = y - lastY;
 			/* nie chowaj, gdy otwarte jest jakieś menu w headerze */
 			var menuOpen = header.querySelector('[data-menu]:not([hidden]), [data-mega]:not([hidden])');
+			/* lastY nadpisujemy TYLKO gdy któraś gałąź zdecyduje o stanie —
+			   gdy |delta| <= 4 (płynny/ciągły scroll, klatka animation frame
+			   daje mniej niż próg), zostawiamy lastY bez zmian, żeby drobne
+			   przyrosty tego samego znaku kumulowały się względem stabilnego
+			   punktu odniesienia zamiast zerować się co klatkę i nigdy nie
+			   przekroczyć progu mimo dużego sumarycznego przesunięcia */
 			if (y < 120 || menuOpen) {
 				header.classList.remove('header-hidden');
 				lastY = y;
@@ -69,12 +75,6 @@
 				header.classList.remove('header-hidden');
 				lastY = y;
 			}
-			/* w przeciwnym razie (|delta| <= 4) NIE nadpisuj lastY — przy wielu
-			   drobnych przyrostach tego samego znaku (płynny/ciągły scroll,
-			   każda klatka animation frame < 4px) delta musi się kumulować
-			   względem ostatniego punktu odniesienia, inaczej próg nigdy nie
-			   zostanie przekroczony i nagłówek zostaje w błędnym stanie mimo
-			   dużego sumarycznego przesunięcia */
 		}
 		window.addEventListener('scroll', function () {
 			if (!ticking) { ticking = true; window.requestAnimationFrame(update); }
