@@ -59,14 +59,22 @@
 			var delta = y - lastY;
 			/* nie chowaj, gdy otwarte jest jakieś menu w headerze */
 			var menuOpen = header.querySelector('[data-menu]:not([hidden]), [data-mega]:not([hidden])');
+			/* lastY nadpisujemy TYLKO gdy któraś gałąź zdecyduje o stanie —
+			   gdy |delta| <= 4 (płynny/ciągły scroll, klatka animation frame
+			   daje mniej niż próg), zostawiamy lastY bez zmian, żeby drobne
+			   przyrosty tego samego znaku kumulowały się względem stabilnego
+			   punktu odniesienia zamiast zerować się co klatkę i nigdy nie
+			   przekroczyć progu mimo dużego sumarycznego przesunięcia */
 			if (y < 120 || menuOpen) {
 				header.classList.remove('header-hidden');
+				lastY = y;
 			} else if (delta > 4) {
 				header.classList.add('header-hidden');
+				lastY = y;
 			} else if (delta < -4) {
 				header.classList.remove('header-hidden');
+				lastY = y;
 			}
-			lastY = y;
 		}
 		window.addEventListener('scroll', function () {
 			if (!ticking) { ticking = true; window.requestAnimationFrame(update); }
