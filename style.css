@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.23
+Version:           0.1.24
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -365,7 +365,7 @@ a { color: inherit; }
 	padding-top: 8px; padding-bottom: 8px; padding-left: 16px; padding-right: 16px;
 }
 .mega { position: absolute; left: 0; right: 0; background: #fff; border-top: 1px solid var(--line); box-shadow: var(--shadow-pop); z-index: 55; }
-.mega-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; padding-top: 32px; padding-bottom: 36px; }
+.mega-grid { display: grid; grid-template-columns: repeat(var(--mega-cols, 4), 1fr); gap: 30px; padding-top: 32px; padding-bottom: 36px; }
 .mega-col h6 { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
 .mega-col a { display: block; font-size: 14.5px; font-weight: 600; color: var(--ink-soft); padding-top: 8px; padding-bottom: 8px; text-decoration: none; }
 
@@ -1643,7 +1643,7 @@ body.woocommerce-checkout .nlband { display: none; }
 	.hero-visual { display: none; }
 	.nlband-inner { grid-template-columns: 1fr; padding-left: 32px; padding-right: 32px; }
 	.footer-grid { grid-template-columns: 1fr 1fr; }
-	.mega-grid { grid-template-columns: repeat(2, 1fr); }
+	.mega-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
 	.pd-grid, .ship-grid, .desc-grid, .nl-grid { grid-template-columns: 1fr; }
 	.info-2col, .info-3col { grid-template-columns: 1fr; }
 	.eko-grid, .perks3 { grid-template-columns: 1fr; }
