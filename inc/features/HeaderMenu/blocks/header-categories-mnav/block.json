@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/header-categories-mnav",
+	"title": "Qutlet: sekcja kategorii w mobilnym menu",
+	"category": "qutlet-header-menu",
+	"icon": "smartphone",
+	"description": "Sekcja „Kategorie” w .mnav-panel (mobile) — ten sam zestaw co pigułki (widoczna_na_belce=true).",
+	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-header-menu-blocks-editor",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false,
+		"inserter": false
+	},
+	"render": "file:./render.php"
+}

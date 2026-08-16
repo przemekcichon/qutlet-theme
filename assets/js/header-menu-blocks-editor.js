@@ -17,6 +17,9 @@
 
 	var BLOCK_NAMES = [
 		'qutlet/header-nav',
+		'qutlet/header-categories-band',
+		'qutlet/header-mega-grid',
+		'qutlet/header-categories-mnav',
 	];
 
 	BLOCK_NAMES.forEach( function ( name ) {
