@@ -84,7 +84,7 @@ final class ProductFilters {
 	 *
 	 * @return bool
 	 */
-	private static function is_supported_archive(): bool {
+	public static function is_supported_archive(): bool {
 		return function_exists( 'is_product_category' ) && ( is_product_category() || is_shop() );
 	}
 

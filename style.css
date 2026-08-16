@@ -929,6 +929,10 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
    Port `.toolbar`/`.chips-row`/`.drawer` z design/vanilla/css/style.css
    (sekcja „Strefa okazji (archiwum)" + „Drawer filtrów") — markup renderuje
    woocommerce/loop/filters-and-sort.php (Qutlet\Theme\features\ProductFilters). */
+/* AJAX progressive enhancement (P-8.3d) — stan w trakcie fetch()a fragmentu
+   #qutlet-archive-results (assets/js/product-filters-ajax.js). */
+#qutlet-archive-results.is-loading { opacity: .55; pointer-events: none; transition: opacity .15s ease; }
+
 .toolbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 22px; margin-bottom: 16px; }
 .filter-btn {
 	display: inline-flex; align-items: center; gap: 10px; background: var(--ink); color: #fff; font-weight: 700;
