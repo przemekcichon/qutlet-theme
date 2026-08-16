@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/header-nav",
+	"title": "Qutlet: menu nawigacyjne nagłówka",
+	"category": "qutlet-header-menu",
+	"icon": "menu",
+	"description": "4 proste linki menu nawigacyjnego (.header-nav) — lokalizacja `nawigacja`.",
+	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-header-menu-blocks-editor",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false,
+		"inserter": false
+	},
+	"render": "file:./render.php"
+}
