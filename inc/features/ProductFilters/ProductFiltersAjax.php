@@ -20,9 +20,19 @@
  * nigdy się nie renderuje.
  *
  * `<div id="qutlet-archive-results">` (echo na `woocommerce_before_shop_loop`/
- * `_after_shop_loop`, priorytety -10/1000) to TRWAŁY punkt zaczepienia w DOM
- * na OBIE ścieżki (zwykłe przeładowanie i AJAX) — jeden stabilny węzeł do
- * podmiany `outerHTML` po stronie JS (`assets/js/product-filters-ajax.js`).
+ * `_after_shop_loop`, priorytety -10/1000) to punkt zaczepienia w DOM na OBIE
+ * ścieżki (zwykłe przeładowanie i AJAX) — jeden stabilny węzeł do podmiany
+ * `outerHTML` po stronie JS (`assets/js/product-filters-ajax.js`). WYJĄTEK
+ * (odkryty niezależną recenzją PR-a, sesja 2026-08-16): gdy filtr zwraca ZERO
+ * wyników, `archive-product.php` (rdzeń WooCommerce) w ogóle nie odpala
+ * `before/after_shop_loop` — idzie gałęzią `woocommerce_no_products_found`
+ * zamiast nią (`woocommerce_product_loop()` = `have_posts() || …`, fałsz przy
+ * zerze trafień, nie tylko gdy cały sklep jest pusty). Klasyczne przeładowanie
+ * w tej gałęzi NIE dostaje więc żadnego wrappera (pre-existing luka z
+ * P-8.3b/P-8.3c, formularz filtrów znika razem z siatką — zgłoszone do planu,
+ * NIE naprawiane w P-8.3d). AJAX-owa gałąź (`send_no_products_fragment_and_exit()`)
+ * buduje wrapper ręcznie wokół realnego komunikatu WooCommerce, żeby przy
+ * zero wynikach nie zwracać pustego, martwego panelu.
  *
  * @package Qutlet\Theme
  */
@@ -115,12 +125,20 @@ final class ProductFiltersAjax {
 		add_action( 'woocommerce_before_shop_loop', array( self::class, 'start_inner_buffer' ), -20 );
 		add_action( 'woocommerce_after_shop_loop', array( self::class, 'send_fragment_and_exit' ), 1001 );
 
-		// Defensywnie: gdyby `archive-product.php` poszedł gałęzią
-		// „brak produktów" (CAŁY sklep pusty — nie to samo co „filtr wyzerował
-		// wynik", ten przypadek obsługuje się WEWNĄTRZ before/after_shop_loop),
-		// oba bufory nigdy by się nie zamknęły. Zamykamy je tam też, z pustym
-		// fragmentem, żeby odpowiedź AJAX zawsze była poprawnym JSON-em.
-		add_action( 'woocommerce_no_products_found', array( self::class, 'send_empty_fragment_and_exit' ), 1001 );
+		// `woocommerce_product_loop()` (rdzeń WooCommerce, wc-template-functions.php)
+		// to `have_posts() || 'products' !== woocommerce_get_loop_display_mode()`
+		// — czyli fałsz przy KAŻDYM zestawie filtrów bez trafień, nie tylko gdy
+		// cały sklep jest pusty. `archive-product.php` idzie wtedy gałęzią
+		// `woocommerce_no_products_found` zamiast `before/after_shop_loop` —
+		// nasze hooki wrapper-diva (-10/1000) i wewnętrzny bufor (-20) w ogóle
+		// się nie odpalają. Łapiemy więc realny komunikat WooCommerce
+		// (`wc_no_products_found()`, priorytet 10 na TYM SAMYM hooku) własnym
+		// buforem PRZED nim (priorytet 0) i domykamy PO nim (priorytet 1001) —
+		// bez tego AJAX zwracałby pusty, martwy fragment zamiast komunikatu,
+		// który klasyczne przeładowanie i tak pokazuje (regres wykryty
+		// niezależną recenzją PR-a, sesja 2026-08-16).
+		add_action( 'woocommerce_no_products_found', array( self::class, 'start_inner_buffer' ), 0 );
+		add_action( 'woocommerce_no_products_found', array( self::class, 'send_no_products_fragment_and_exit' ), 1001 );
 	}
 
 	/**
@@ -149,15 +167,18 @@ final class ProductFiltersAjax {
 
 	/**
 	 * Wariant dla gałęzi `woocommerce_no_products_found` (patrz komentarz w
-	 * `maybe_intercept()`) — brak realnego fragmentu do przechwycenia
-	 * (wewnętrzny bufor nigdy nie wystartował), wysyła sam wrapper.
+	 * `maybe_intercept()`) — `open_results_wrapper()`/`close_results_wrapper()`
+	 * nie odpaliły się w tej gałęzi (żyją na `before/after_shop_loop`), więc
+	 * wrapper budujemy tu ręcznie WOKÓŁ realnego komunikatu WooCommerce
+	 * (`wc_no_products_found()`), złapanego wewnętrznym buforem.
 	 *
 	 * @return void
 	 */
-	public static function send_empty_fragment_and_exit(): void {
+	public static function send_no_products_fragment_and_exit(): void {
+		$message = ob_get_clean(); // wewnętrzny bufor (komunikat „brak produktów").
 		ob_end_clean(); // zewnętrzny bufor — odrzucony.
 
-		self::send_json( sprintf( '<div id="%s"></div>', esc_attr( self::RESULTS_WRAPPER_ID ) ) );
+		self::send_json( sprintf( '<div id="%s">%s</div>', esc_attr( self::RESULTS_WRAPPER_ID ), $message ) );
 	}
 
 	/**
