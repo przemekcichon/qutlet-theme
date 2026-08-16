@@ -46,6 +46,8 @@ if ( is_readable( $qutlet_theme_autoload ) ) {
 	require_once $qutlet_theme_autoload;
 
 	\Qutlet\Theme\features\HeaderNav\HeaderNav::boot();
+	\Qutlet\Theme\features\HeaderMenu\HeaderMenu::boot();
+	\Qutlet\Theme\features\HeaderMenu\Blocks::boot();
 	\Qutlet\Theme\features\ProductPage\ProductPage::boot();
 	\Qutlet\Theme\features\ProductFilters\ProductFilters::boot();
 	\Qutlet\Theme\features\Blog\Blog::boot();
