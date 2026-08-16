@@ -130,11 +130,17 @@
 			var form = e.target.closest('.qutlet-filters-form');
 			if (!form) return;
 
-			var isFacetCheckbox = e.target.matches('input[type="checkbox"]');
-			var isSort = e.target.matches('[data-sort-autosubmit]');
-			var isPriceRange = e.target.matches('[data-range-min], [data-range-max]');
-
-			if (!isFacetCheckbox && !isSort && !isPriceRange) return;
+			// WYŁĄCZNIE sort (`.toolbar`, poza szufladą) auto-submituje na
+			// `change`. Checkboxy facetów i suwak ceny żyją WEWNĄTRZ `.drawer`
+			// i celowo NIE odpalają fetcha same z siebie — świeżo doklejony
+			// fragment renderuje szufladę domyślnie zamkniętą (markup startowy
+			// `<aside class="drawer" hidden>`), więc natychmiastowy submit przy
+			// KAŻDYM zaznaczeniu wyglądałby jak szuflada „znika" w trakcie
+			// zaznaczania kolejnych opcji (zgłoszone przez użytkownika, sesja
+			// 2026-08-16) — zamiast pozwolić zaznaczyć kilka filtrów naraz i
+			// dopiero potem kliknąć „Pokaż wyniki". Ten submit (przycisk w
+			// `drawer-foot`) I TAK trafia do listenera `submit` niżej.
+			if (!e.target.matches('[data-sort-autosubmit]')) return;
 
 			e.stopPropagation();
 			loadArchive(formUrl(form));
