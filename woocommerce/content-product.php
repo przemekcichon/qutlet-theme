@@ -68,8 +68,14 @@ $has_market_price = $market_price > 0.0;
 		<?php if ( '' !== $condition_label ) : ?>
 			<div class="pcard-cond">
 				<span class="dot" style="background:<?php echo esc_attr( ProductPage::condition_color( $condition_code ) ); ?>"></span><?php
-					/* translators: 1: condition code (A/B/C/D), 2: condition label. */
-					echo esc_html( sprintf( __( 'Klasa %1$s · %2$s', 'qutlet-theme' ), $condition_code, $condition_label ) );
+					// P-9.7: kod (wolny tekst, kontrakt §2.2) bywa identyczny z nazwą —
+					// bez tego warunku „Klasa X · X" dublowałoby etykietę.
+					echo esc_html(
+						$condition_code === $condition_label
+							? sprintf( __( 'Klasa %s', 'qutlet-theme' ), $condition_label )
+							/* translators: 1: condition code, 2: condition label. */
+							: sprintf( __( 'Klasa %1$s · %2$s', 'qutlet-theme' ), $condition_code, $condition_label )
+					);
 				?>
 			</div>
 		<?php endif; ?>

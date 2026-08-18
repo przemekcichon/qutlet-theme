@@ -391,8 +391,17 @@ final class ProductPage {
 	 * NIE osobna tabela, jeden `spec-row` tutaj; pełna tabela klasyfikacji A/B/C/D
 	 * żyje w akordeonie „Klasyfikacja produktów", zaimplementowanym w P-8.2b).
 	 *
+	 * **P-9.7 (bug, ground-truth sesja 2026-08-19):** `$condition_code` (term
+	 * meta `kod`, kontrakt §2.2) NIE jest ograniczony do pojedynczej litery —
+	 * to wolny tekst (od P-12.1c np. `Nowe`, pełne słowo), więc kurator MOŻE
+	 * dodać klasę, której `kod` jest identyczny z `nazwa` (nic w walidacji ACF
+	 * tego nie zabrania — {@see \Qutlet\Core\ProductCondition\
+	 * ClassDefinitionsTaxonomy::validate_unique_kod()} pilnuje wyłącznie
+	 * unikalności). Bez tego warunku wiersz renderowałby dosłowny duplikat
+	 * („Po zwrocie — Po zwrocie") zamiast czytelnej etykiety.
+	 *
 	 * @param \WC_Product $product         Produkt.
-	 * @param string      $condition_code  Literał klasy stanu (`A`-`D`) lub pusty string.
+	 * @param string      $condition_code  Literał klasy stanu (kod, wolny tekst) lub pusty string.
 	 * @param string      $condition_label Etykieta klasy stanu (`condition_label()`) lub pusty string.
 	 * @return array<int, array{label: string, value: string}>
 	 */
@@ -426,8 +435,12 @@ final class ProductPage {
 		if ( '' !== $condition_code && '' !== $condition_label ) {
 			$rows[] = array(
 				'label' => __( 'Klasa stanu', 'qutlet-theme' ),
-				/* translators: 1: condition code (A-D), 2: condition label. */
-				'value' => sprintf( __( '%1$s — %2$s', 'qutlet-theme' ), $condition_code, $condition_label ),
+				// P-9.7: kod i nazwa bywają identyczne (patrz docblock wyżej) —
+				// dublet pokazywalibyśmy dosłownie, gdyby nie ten warunek.
+				'value' => $condition_code === $condition_label
+					? $condition_label
+					/* translators: 1: kod klasy stanu, 2: etykieta klasy stanu. */
+					: sprintf( __( '%1$s — %2$s', 'qutlet-theme' ), $condition_code, $condition_label ),
 			);
 		}
 
