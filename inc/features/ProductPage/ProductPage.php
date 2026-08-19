@@ -233,7 +233,7 @@ final class ProductPage {
 	 * Jedyny sposób odczytu klasy produktu w tym slice'u od P-12.2c.
 	 *
 	 * @param int $product_id Id produktu.
-	 * @return array{kod: string, term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int}|null
+	 * @return array{kod: string, term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int, zwrot_naglowek: string, zwrot_tag_qutlet: string, zwrot_tag_allegro: string, wysylka_naglowek: string, zwrot_opis_qutlet: string, zwrot_opis_allegro: string, wysylka_opis: string, zwrot_akordeon_opis_qutlet: string, zwrot_akordeon_opis_allegro: string, gwarancja_opis: string, reklamacja_opis: string, stan_uzywany_opis: string}|null
 	 */
 	public static function condition_for_product( int $product_id ): ?array {
 		return ClassDefinitionsTaxonomy::for_product( $product_id );
@@ -244,10 +244,44 @@ final class ProductPage {
 	 * „Klasyfikacja produktów" (`.class-table`, kontrakt §2.2), zamiast dawnej
 	 * hardkodowanej tablicy `$classification_rows` w szablonie.
 	 *
-	 * @return array<string, array{term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int}>
+	 * @return array<string, array{term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int, zwrot_naglowek: string, zwrot_tag_qutlet: string, zwrot_tag_allegro: string, wysylka_naglowek: string, zwrot_opis_qutlet: string, zwrot_opis_allegro: string, wysylka_opis: string, zwrot_akordeon_opis_qutlet: string, zwrot_akordeon_opis_allegro: string, gwarancja_opis: string, reklamacja_opis: string, stan_uzywany_opis: string}>
 	 */
 	public static function all_condition_definitions(): array {
 		return ClassDefinitionsTaxonomy::all();
+	}
+
+	/**
+	 * Tekst polityki (zwrot/gwarancja/wysyłka) per klasa stanu (P-22.5,
+	 * D-22.5.1/D-22.5.2, kontrakt §2.2 „Pola tekstów polityk"). Puste pole term
+	 * meta (przed backfillem — {@see \Qutlet\Core\ProductCondition\BackfillPolicyTextsCommand} —
+	 * albo gdy `$condition_definition` jest `null`, np. produkt bez relacji)
+	 * degraduje się do `$fallback` (dzisiejszy literał), żeby te newralgiczne
+	 * teksty NIGDY nie zniknęły z rendera (w odróżnieniu od `.eco-note`, którą
+	 * wolno ukryć — patrz D-22.5.1/D-22.5.2, kontrakt §2.2).
+	 *
+	 * @param array<string, mixed>|null $condition_definition Definicja klasy z {@see self::condition_for_product()}/{@see self::all_condition_definitions()}, albo `null`.
+	 * @param string                    $key      Nazwa pola term meta (kontrakt §2.2).
+	 * @param string                    $fallback Dzisiejszy literał, gdy pole puste/nieustawione.
+	 * @return string
+	 */
+	public static function policy_text( ?array $condition_definition, string $key, string $fallback ): string {
+		$value = (string) ( $condition_definition[ $key ] ?? '' );
+
+		return '' !== $value ? $value : $fallback;
+	}
+
+	/**
+	 * Podstawia placeholder `{okres}` w tekście polityki gwarancji/reklamacji
+	 * (pola `gwarancja_opis`/`reklamacja_opis`, kontrakt §2.2) sformatowanym
+	 * okresem — zastępuje dotychczasową gałąź liczbową `$claim_months >= 24`
+	 * w pełni redakcyjną treścią per klasa (D-22.5.2).
+	 *
+	 * @param string $text  Tekst z placeholderem `{okres}` ({@see self::policy_text()}).
+	 * @param string $okres Sformatowany okres ({@see self::period_years_text()}).
+	 * @return string
+	 */
+	public static function with_period_placeholder( string $text, string $okres ): string {
+		return str_replace( '{okres}', $okres, $text );
 	}
 
 	/**
