@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.24
+Version:           0.1.25
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -137,21 +137,21 @@ Text Domain:       qutlet-theme
    nie łapie. WP drukuje dla niego OSOBNĄ regułę
    `:where(.wp-site-blocks) > *{margin-block: 24px 0}` (core, nie ten motyw)
    — stąd 24px odstępu między headerem a `<main>`.
-   UWAGA — POPRAWKA PO REGRESJI: pierwsza wersja tej reguły zerowała ten
-   margines SITEWIDE (`.wp-site-blocks > main`). To był błąd — na stronie
-   produktu (i innych stronach zbudowanych PRZED tą sesją) ten margines
-   NIGDY nie był widoczny jako „szew" (tło strony pod nim jest tego samego
-   koloru co tło główne), za to `.breadcrumbs` (P-8.2a, `padding-top: 22px`)
-   był świadomie dostrojony z ZAŁOŻENIEM, że te 24px już tam są — zdjęcie ich
-   sitewide ścieśniło odstęp nad breadcrumbs na KAŻDEJ innej stronie
-   (zgłoszenie użytkownika, realny screenshot strony produktu). Widoczny
-   problem („szew" w innym kolorze) dotyczył WYŁĄCZNIE strony głównej, gdzie
-   pełnoszerokościowe tło `.home-hero-section` zaczyna się od razu pod
-   headerem — margines na `<main>` spycha więc W DÓŁ akurat TO tło, tworząc
-   pasek w kolorze strony między subnavem a hero. `:has()` zawęża regułę
-   WYŁĄCZNIE do tego przypadku (pierwsze dziecko `<main>` to hero), nie
-   dotykając żadnej innej strony — 24px wraca tam, gdzie już był dostrojony. */
-main:has(> .home-hero-section) { margin-block-start: 0; }
+   REWIZJA (decyzja użytkownika, sesja 2026-08-19, zrzuty ekranu strony
+   produktu): wcześniejsza wersja tej reguły (patrz historia PR) zerowała
+   margines WYŁĄCZNIE dla strony głównej (`main:has(> .home-hero-section)`),
+   bo pierwsza próba sitewide ścieśniła wtedy odstęp nad `.breadcrumbs`
+   (`padding-top: 22px`, P-8.2a) na każdej innej stronie i to zostało
+   zgłoszone jako regresja. Użytkownik ponownie ocenił WŁAŚNIE ten efekt na
+   stronie produktu (ciaśniejszy odstęp między subnavem a breadcrumbs) i tym
+   razem uznał go za POŻĄDANY — reset wraca do SITEWIDE, `.breadcrumbs` NIE
+   dostaje kompensującej korekty `padding-top` (obecny wygląd na zrzucie „po"
+   jest end-state, nie efekt uboczny do naprawienia). Selektor 1:1 skopiowany
+   z reguły WP jak reset `.is-layout-flow` wyżej (te same uzasadnienia
+   specyficzności/kolejności ładowania arkuszy) — celowo NIE połączony w
+   jeden selektor z resetem `.is-layout-flow` (inna klasa WP, inny powód
+   istnienia), żeby nie zgubić tego kontekstu przy przyszłej lekturze. */
+:root :where(.wp-site-blocks) > * { margin-block-start: 0; }
 [hidden] { display: none !important; }
 body {
 	margin: 0;
