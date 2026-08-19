@@ -1642,7 +1642,16 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
    sesja 2026-08-19), więc sibling selector wystarcza. Input chowany techniką
    „visually hidden" (nie `display:none`/`opacity:0` bez wymiaru) — zostaje
    klikalny i fokusowalny klawiaturą, `label` (powiązany przez `for`/`id`) niesie
-   wygląd chipa. */
+   wygląd chipa. Wysokość przycisku NIE steruje się `height` — motyw „framework"
+   ustawia ją zmienną CSS `--gf-local-min-height` przez selektor o wysokiej
+   specyficzności (`.gform-theme.gform-theme--framework.gform_wrapper
+   button.button:where(…).gform-theme-button--size-md`, kilka złączonych klas),
+   więc nadpisanie SAMEJ zmiennej też wymaga `!important` (zgłoszenie
+   użytkownika, sesja 2026-08-19, potwierdzone w skompilowanym CSS GF).
+   Font przycisku to `--font-body` (nie `--font-display` jak przy Kontakcie) —
+   `.nl-submit` prototypu nie ma własnego `font-family` (dziedziczy z
+   `button { font-family: inherit }`), inaczej niż Kontaktu `.btn-lg`, który
+   JAWNIE ustawia `--font-display`. */
 .nl-form-card #gform_fields_2 { --gf-form-gap-y: 14px !important; }
 .nl-form-card .gform-field-label {
 	font-size: 13px !important; font-weight: 700 !important; color: var(--ink-soft) !important;
@@ -1654,8 +1663,8 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 }
 .nl-form-card .gform_footer { margin-top: 0; padding: 0; border: 0; }
 .nl-form-card .gform_button {
-	width: 100% !important; height: 52px;
-	font-family: var(--font-display) !important; font-weight: 800 !important; font-size: 15.5px !important;
+	width: 100% !important; --gf-local-min-height: 52px !important;
+	font-family: var(--font-body) !important; font-weight: 800 !important; font-size: 15.5px !important;
 	color: #fff !important; background: var(--accent) !important;
 	border: 0 !important; border-radius: 12px !important;
 	margin-top: 10px;
