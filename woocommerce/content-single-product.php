@@ -282,7 +282,7 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 					<?php if ( $is_last_stock_piece ) : ?>
 						<div class="pd-stock-one">
 							<span class="pd-stock-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"></path><path d="m2 17 10 5 10-5"></path><path d="m2 12 10 5 10-5"></path></svg></span>
-							<b><?php esc_html_e( 'Ostatnia sztuka', 'qutlet-theme' ); ?></b>
+							<b><?php esc_html_e( 'Pojedyncza sztuka', 'qutlet-theme' ); ?></b>
 							<em><?php
 								if ( '' !== $condition_code ) {
 									echo esc_html(
