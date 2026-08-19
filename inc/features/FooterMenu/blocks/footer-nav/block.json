@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "qutlet/footer-nav",
+	"title": "Qutlet: menu kolumny stopki",
+	"category": "qutlet-footer-menu",
+	"icon": "menu",
+	"description": "Płaska lista linków .footer-col — pozycje menu przypisanego do lokalizacji `menuLocation`. Osadzany 3× w parts/footer.html, po jednym na kolumnę.",
+	"textdomain": "qutlet-theme",
+	"editorScript": "qutlet-footer-menu-blocks-editor",
+	"attributes": {
+		"menuLocation": {
+			"type": "string",
+			"default": "stopka-sklep",
+			"enum": [ "stopka-sklep", "stopka-informacje", "stopka-pomoc" ]
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": false,
+		"inserter": false
+	},
+	"render": "file:./render.php"
+}
