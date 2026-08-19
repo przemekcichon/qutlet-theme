@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.25
+Version:           0.1.27
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -1545,6 +1545,46 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 	padding-top: 12px; padding-bottom: 12px; padding-left: 14px; padding-right: 14px;
 	min-height: 150px; resize: vertical;
 }
+
+/* P-23.2: karta `.contact-form-card` osadza `wp:gravityforms/form` (GF 3.0.2.6,
+   motyw „orbital") — 3rd-party markup (`.gform_wrapper`/`.gfield`/`.gform_footer`),
+   nie nasz `.form-grid`/`.field`. Kolor marki i radius pól ustawione przez atrybuty
+   bloku w treści Strony „Kontakt" (`inputPrimaryColor`/`inputBorderRadius` —
+   config poza repo, GF czyta je z JSON bloku, nie z tego arkusza). CSS niżej
+   dogania to, czego atrybuty bloku nie dają: 2-kolumnowy układ `#gform_fields_1`
+   (GF ma WŁASNY grid 12-kolumnowy, bazowa reguła `.gform-theme--foundation
+   .gfield{grid-column:1/-1}` — imię i e-mail zwężamy do połowy), typografia
+   etykiet/opisów pól (`.field label`) i wygląd przycisku 1:1 z
+   `.btn.btn-primary.btn-lg.btn-dark` (kontakt.html — `.btn-dark` bije
+   `.btn-primary` KOLEJNOŚCIĄ w źródle przy tej samej specyficzności, więc
+   realne tło to `var(--ink)`, nie akcent; na `:hover` wygrywa
+   `.btn-primary:hover` przez wyższą specyficzność pseudo-klasy, więc hover
+   zostaje `var(--accent-deep)`). `!important` WSZĘDZIE niżej, bo arkusze GF
+   (`gravity-forms-theme-*.css`) ładują się PO `style.css` motywu (bez
+   zależności w `wp_enqueue_style`) i ich reguły mają TĘ SAMĄ specyficzność co
+   nasze (np. `.gform-theme--foundation .gfield` — też 0,2,0), więc bez
+   `!important` przegrywamy remis kolejnością w źródle (zweryfikowane
+   computed style w przeglądarce, ten sam trik co sekcja WooCommerce niżej
+   w pliku). */
+.contact-form-card #gform_fields_1 { --gf-form-gap-x: 14px !important; --gf-form-gap-y: 14px !important; }
+.contact-form-card .gfield--type-name,
+.contact-form-card .gfield--type-email { grid-column: span 6 !important; }
+.contact-form-card .gform-field-label {
+	font-size: 12.5px !important; font-weight: 700 !important; color: var(--ink-soft) !important;
+}
+.contact-form-card .gfield_description {
+	font-size: 12.5px !important; font-family: var(--font-body) !important; color: var(--muted) !important;
+}
+.contact-form-card .gform_footer { margin-top: 0; padding: 0; border: 0; }
+.contact-form-card .gform_button {
+	display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+	font-family: var(--font-display) !important; font-weight: 800 !important; font-size: 16px !important;
+	color: #fff !important; background: var(--ink) !important;
+	border: 0 !important; border-radius: 12px !important;
+	padding-top: 16px !important; padding-bottom: 16px !important; padding-left: 18px !important; padding-right: 18px !important;
+	margin-top: 16px;
+}
+.contact-form-card .gform_button:hover { background: var(--accent-deep) !important; }
 
 /* ---------- Newsletter (page-newsletter.php) ---------- */
 .nl-page { padding-bottom: 72px; }
