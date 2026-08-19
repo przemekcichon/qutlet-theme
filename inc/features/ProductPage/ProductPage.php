@@ -18,7 +18,7 @@ declare( strict_types=1 );
 namespace Qutlet\Theme\features\ProductPage;
 
 use Qutlet\Core\ProductCondition\ClassDefinitionsTaxonomy;
-use Qutlet\Core\ProductCondition\ConditionManagementSettingsPage;
+use Qutlet\Core\ProductCondition\StoreContentSettingsPage;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -233,7 +233,7 @@ final class ProductPage {
 	 * Jedyny sposób odczytu klasy produktu w tym slice'u od P-12.2c.
 	 *
 	 * @param int $product_id Id produktu.
-	 * @return array{kod: string, term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int, zwrot_naglowek: string, zwrot_tag_qutlet: string, zwrot_tag_allegro: string, wysylka_naglowek: string, zwrot_opis_qutlet: string, zwrot_opis_allegro: string, wysylka_opis: string, zwrot_akordeon_opis_qutlet: string, zwrot_akordeon_opis_allegro: string, gwarancja_opis: string, reklamacja_opis: string, stan_uzywany_opis: string}|null
+	 * @return array{kod: string, term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int, gwarancja_opis: string, reklamacja_opis: string}|null
 	 */
 	public static function condition_for_product( int $product_id ): ?array {
 		return ClassDefinitionsTaxonomy::for_product( $product_id );
@@ -244,20 +244,23 @@ final class ProductPage {
 	 * „Klasyfikacja produktów" (`.class-table`, kontrakt §2.2), zamiast dawnej
 	 * hardkodowanej tablicy `$classification_rows` w szablonie.
 	 *
-	 * @return array<string, array{term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int, zwrot_naglowek: string, zwrot_tag_qutlet: string, zwrot_tag_allegro: string, wysylka_naglowek: string, zwrot_opis_qutlet: string, zwrot_opis_allegro: string, wysylka_opis: string, zwrot_akordeon_opis_qutlet: string, zwrot_akordeon_opis_allegro: string, gwarancja_opis: string, reklamacja_opis: string, stan_uzywany_opis: string}>
+	 * @return array<string, array{term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int, gwarancja_opis: string, reklamacja_opis: string}>
 	 */
 	public static function all_condition_definitions(): array {
 		return ClassDefinitionsTaxonomy::all();
 	}
 
 	/**
-	 * Tekst polityki (zwrot/gwarancja/wysyłka) per klasa stanu (P-22.5,
-	 * D-22.5.1/D-22.5.2, kontrakt §2.2 „Pola tekstów polityk"). Puste pole term
-	 * meta (przed backfillem — {@see \Qutlet\Core\ProductCondition\BackfillPolicyTextsCommand} —
-	 * albo gdy `$condition_definition` jest `null`, np. produkt bez relacji)
+	 * Tekst polityki gwarancji/reklamacji PER KLASA stanu (P-22.5, D-22.5.1/
+	 * D-22.5.2, REWIZJA D-22.5.4 — kontrakt §2.2 „Pola tekstów polityk").
+	 * Od D-22.5.4 dotyczy WYŁĄCZNIE `gwarancja_opis`/`reklamacja_opis` — dziesięć
+	 * pozostałych pól z pierwotnej listy PRZENIESIONO na opcje globalne
+	 * ({@see self::store_text()}, `StoreContentSettingsPage`, kontrakt §19.2).
+	 * Puste pole term meta (przed backfillem —
+	 * {@see \Qutlet\Core\ProductCondition\BackfillPolicyTextsCommand} — albo
+	 * gdy `$condition_definition` jest `null`, np. produkt bez relacji)
 	 * degraduje się do `$fallback` (dzisiejszy literał), żeby te newralgiczne
-	 * teksty NIGDY nie zniknęły z rendera (w odróżnieniu od `.eco-note`, którą
-	 * wolno ukryć — patrz D-22.5.1/D-22.5.2, kontrakt §2.2).
+	 * teksty NIGDY nie zniknęły z rendera.
 	 *
 	 * @param array<string, mixed>|null $condition_definition Definicja klasy z {@see self::condition_for_product()}/{@see self::all_condition_definitions()}, albo `null`.
 	 * @param string                    $key      Nazwa pola term meta (kontrakt §2.2).
@@ -266,6 +269,29 @@ final class ProductPage {
 	 */
 	public static function policy_text( ?array $condition_definition, string $key, string $fallback ): string {
 		$value = (string) ( $condition_definition[ $key ] ?? '' );
+
+		return '' !== $value ? $value : $fallback;
+	}
+
+	/**
+	 * Tekst polityki (zwrot/wysyłka/zapewnienie „używane") GLOBALNY dla całego
+	 * sklepu (P-22.5, REWIZJA D-22.5.4, kontrakt §19.2) — dziesięć tekstów
+	 * pierwotnie zaimplementowanych jako pola per-klasa (D-22.5.1/D-22.5.2),
+	 * przeniesionych na opcje `StoreContentSettingsPage::OPTION_*` po decyzji
+	 * użytkownika, że nie są związane z fizycznym stanem egzemplarza. Opcja
+	 * niesie własny domyślny seed (`register_setting()` → `default`), ale
+	 * `$fallback` przekazany tu jawnie działa NIEZALEŻNIE od tego, czy hook
+	 * `admin_init` zdążył zarejestrować tamten filtr (nie zdąży na froncie
+	 * bez wejścia w wp-admin) — ten sam mechanizm bezpieczeństwa co
+	 * {@see self::policy_text()}.
+	 *
+	 * @param string $option_key Literał opcji (`StoreContentSettingsPage::OPTION_*`, kontrakt §19.2).
+	 * @param string $fallback   Dzisiejszy literał, gdy opcja puste/nieustawiona.
+	 * @return string
+	 */
+	public static function store_text( string $option_key, string $fallback ): string {
+		$value = get_option( $option_key, '' );
+		$value = is_string( $value ) ? trim( $value ) : '';
 
 		return '' !== $value ? $value : $fallback;
 	}
@@ -508,7 +534,7 @@ final class ProductPage {
 	/**
 	 * Sztuki tego samego modelu — widget „Inne sztuki tego modelu" (P-22.4,
 	 * D-22.4.3: zapytanie+render w całości tutaj, NIE w qutlet-core — patrz
-	 * docblock klasy `ConditionManagementSettingsPage` w core dla pełnego
+	 * docblock klasy `StoreContentSettingsPage` w core dla pełnego
 	 * uzasadnienia granicy). Grupuje po natywnym Woo `global_unique_id`
 	 * (meta_key `_global_unique_id`, kontrakt §10.2) — duplikat GTIN między
 	 * produktami jest DOZWOLONY od P-6.7/D-6.7.1, model „1 oferta = 1
@@ -672,7 +698,7 @@ final class ProductPage {
 	 * `zawartosc_zestawu_pozycje` (P-9.2) oznaczonych `w_zestawie=true`.
 	 * Gdy wynik pusty (repeater pusty ALBO żadna pozycja nie jest oznaczona
 	 * jako dołączona) — tekst zastępczy z opcji globalnej
-	 * {@see ConditionManagementSettingsPage::FALLBACK_OPTION} (`qutlet-core`,
+	 * {@see StoreContentSettingsPage::FALLBACK_OPTION} (`qutlet-core`,
 	 * D-22.4.2); puste ustawienie → pusty string (wołający pomija wiersz).
 	 *
 	 * @param int $product_id Id produktu.
@@ -691,7 +717,7 @@ final class ProductPage {
 			return implode( ', ', $included_labels );
 		}
 
-		$fallback = get_option( ConditionManagementSettingsPage::FALLBACK_OPTION, '' );
+		$fallback = get_option( StoreContentSettingsPage::FALLBACK_OPTION, '' );
 
 		return is_string( $fallback ) ? trim( $fallback ) : '';
 	}
