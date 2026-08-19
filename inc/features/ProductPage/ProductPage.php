@@ -387,12 +387,24 @@ final class ProductPage {
 	 * Wiersze specyfikacji (etykieta→wartość) z NATYWNYCH atrybutów WooCommerce
 	 * (kontrakt §9.2 — `$product->get_attributes()`; D-5.1.1: core NIE rejestruje
 	 * dla specyfikacji własnego pola, to natywny mechanizm Woo). Dokłada na
-	 * końcu jeden wiersz „Klasa stanu" (kontrakt §9.2 / `produkt.html:190` —
-	 * NIE osobna tabela, jeden `spec-row` tutaj; pełna tabela klasyfikacji A/B/C/D
-	 * żyje w akordeonie „Klasyfikacja produktów", zaimplementowanym w P-8.2b).
+	 * końcu jeden wiersz klasy stanu — etykieta „Stan produktu" (celowo INNA
+	 * niż nazwa pola ACF „Klasa stanu"/kontrakt §2, decyzja redakcyjna
+	 * użytkownika, sesja 2026-08-19; pierwotnie „Klasa stanu" wzorem
+	 * `produkt.html:190`, kontrakt §9.2) — NIE osobna tabela, jeden `spec-row`
+	 * tutaj; pełna tabela klasyfikacji A/B/C/D żyje w akordeonie „Klasyfikacja
+	 * produktów", zaimplementowanym w P-8.2b.
+	 *
+	 * **P-9.7 (bug, ground-truth sesja 2026-08-19):** `$condition_code` (term
+	 * meta `kod`, kontrakt §2.2) NIE jest ograniczony do pojedynczej litery —
+	 * to wolny tekst (od P-12.1c np. `Nowe`, pełne słowo), więc kurator MOŻE
+	 * dodać klasę, której `kod` jest identyczny z `nazwa` (nic w walidacji ACF
+	 * tego nie zabrania — {@see \Qutlet\Core\ProductCondition\
+	 * ClassDefinitionsTaxonomy::validate_unique_kod()} pilnuje wyłącznie
+	 * unikalności). Bez tego warunku wiersz renderowałby dosłowny duplikat
+	 * („Po zwrocie — Po zwrocie") zamiast czytelnej etykiety.
 	 *
 	 * @param \WC_Product $product         Produkt.
-	 * @param string      $condition_code  Literał klasy stanu (`A`-`D`) lub pusty string.
+	 * @param string      $condition_code  Literał klasy stanu (kod, wolny tekst) lub pusty string.
 	 * @param string      $condition_label Etykieta klasy stanu (`condition_label()`) lub pusty string.
 	 * @return array<int, array{label: string, value: string}>
 	 */
@@ -425,9 +437,17 @@ final class ProductPage {
 
 		if ( '' !== $condition_code && '' !== $condition_label ) {
 			$rows[] = array(
-				'label' => __( 'Klasa stanu', 'qutlet-theme' ),
-				/* translators: 1: condition code (A-D), 2: condition label. */
-				'value' => sprintf( __( '%1$s — %2$s', 'qutlet-theme' ), $condition_code, $condition_label ),
+				// Etykieta wiersza specyfikacji — celowo INNA niż nazwa pola ACF
+				// „Klasa stanu” (kontrakt §2) i tytuł metaboksu „Stan produktu”
+				// (P-20.8) — czysto redakcyjna decyzja użytkownika dla tego
+				// jednego wiersza widocznego na stronie produktu, sesja 2026-08-19.
+				'label' => __( 'Stan produktu', 'qutlet-theme' ),
+				// P-9.7: kod i nazwa bywają identyczne (patrz docblock wyżej) —
+				// dublet pokazywalibyśmy dosłownie, gdyby nie ten warunek.
+				'value' => $condition_code === $condition_label
+					? $condition_label
+					/* translators: 1: kod klasy stanu, 2: etykieta klasy stanu. */
+					: sprintf( __( '%1$s — %2$s', 'qutlet-theme' ), $condition_code, $condition_label ),
 			);
 		}
 
