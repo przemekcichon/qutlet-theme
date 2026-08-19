@@ -263,6 +263,27 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 				</div>
 				<?php endif; ?>
 
+				<?php woocommerce_template_single_add_to_cart(); ?>
+
+				<p class="pd-fine"><?php
+					if ( '' !== $condition_code && '' !== $claim_period_text ) {
+						echo esc_html( sprintf(
+							/* translators: 1: condition code (A/B/C/D), 2: formatted claim period (e.g. "1 rok"). */
+							__( 'Produkt sprzedawany jako używany (Klasa %1$s) • Reklamacja: %2$s', 'qutlet-theme' ),
+							$condition_code,
+							$claim_period_text
+						) );
+					} elseif ( '' !== $claim_period_text ) {
+						echo esc_html( sprintf(
+							/* translators: %s: formatted claim period (e.g. "1 rok"). */
+							__( 'Produkt sprzedawany jako używany • Reklamacja: %s', 'qutlet-theme' ),
+							$claim_period_text
+						) );
+					} else {
+						esc_html_e( 'Produkt sprzedawany jako używany.', 'qutlet-theme' );
+					}
+				?></p>
+
 				<div class="perk-list">
 					<div class="perk-row">
 						<span class="perk-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M4 9h11a5 5 0 0 1 5 5v3"></path></svg></span>
@@ -291,27 +312,6 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 						);
 					?></span>
 				</div>
-
-				<?php woocommerce_template_single_add_to_cart(); ?>
-
-				<p class="pd-fine"><?php
-					if ( '' !== $condition_code && '' !== $claim_period_text ) {
-						echo esc_html( sprintf(
-							/* translators: 1: condition code (A/B/C/D), 2: formatted claim period (e.g. "1 rok"). */
-							__( 'Produkt sprzedawany jako używany (Klasa %1$s) • Reklamacja: %2$s', 'qutlet-theme' ),
-							$condition_code,
-							$claim_period_text
-						) );
-					} elseif ( '' !== $claim_period_text ) {
-						echo esc_html( sprintf(
-							/* translators: %s: formatted claim period (e.g. "1 rok"). */
-							__( 'Produkt sprzedawany jako używany • Reklamacja: %s', 'qutlet-theme' ),
-							$claim_period_text
-						) );
-					} else {
-						esc_html_e( 'Produkt sprzedawany jako używany.', 'qutlet-theme' );
-					}
-				?></p>
 			</div>
 
 			<?php if ( $allegro_enabled ) : ?>
