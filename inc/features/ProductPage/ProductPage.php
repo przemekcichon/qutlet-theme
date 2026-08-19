@@ -548,7 +548,7 @@ final class ProductPage {
 				continue; // D-22.4.4: tylko bieżąca sztuka zostaje mimo braku stanu.
 			}
 
-			$condition        = ClassDefinitionsTaxonomy::for_product( $sibling_id );
+			$condition        = self::condition_for_product( $sibling_id );
 			$price            = (float) $sibling->get_price();
 			$market_price     = (float) self::acf_field( 'cena_rynkowa_nowego', $sibling_id );
 			$has_market_price = $market_price > 0.0;
