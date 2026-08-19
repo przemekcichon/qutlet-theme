@@ -27,6 +27,7 @@
 
 declare( strict_types=1 );
 
+use Qutlet\Core\ProductCondition\StoreContentSettingsPage;
 use Qutlet\Theme\features\ProductCard\ProductCard;
 use Qutlet\Theme\features\ProductPage\ProductPage;
 
@@ -374,8 +375,8 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 				<div class="perk-list">
 					<div class="perk-row">
 						<span class="perk-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M4 9h11a5 5 0 0 1 5 5v3"></path></svg></span>
-						<?php esc_html_e( '14 dni na zwrot', 'qutlet-theme' ); ?>
-						<span class="perk-tag"><?php esc_html_e( 'Koszt po Twojej stronie', 'qutlet-theme' ); ?></span>
+						<?php echo esc_html( ProductPage::store_text( StoreContentSettingsPage::OPTION_ZWROT_NAGLOWEK, __( '14 dni na zwrot', 'qutlet-theme' ) ) ); ?>
+						<span class="perk-tag"><?php echo esc_html( ProductPage::store_text( StoreContentSettingsPage::OPTION_ZWROT_TAG_QUTLET, __( 'Koszt po Twojej stronie', 'qutlet-theme' ) ) ); ?></span>
 					</div>
 					<?php if ( '' !== $warranty_claim_text ) : ?>
 					<div class="perk-row">
@@ -385,7 +386,7 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 					<?php endif; ?>
 					<div class="perk-row">
 						<span class="perk-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg></span>
-						<?php esc_html_e( 'Wysyłka w 1 dzień roboczy', 'qutlet-theme' ); ?>
+						<?php echo esc_html( ProductPage::store_text( StoreContentSettingsPage::OPTION_WYSYLKA_NAGLOWEK, __( 'Wysyłka w 1 dzień roboczy', 'qutlet-theme' ) ) ); ?>
 					</div>
 				</div>
 
@@ -393,10 +394,9 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a5a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><path d="M14 2v6h6"></path></svg>
 					<span><?php
 						echo ProductPage::bold_text( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							/* translators: %s: bolded label. */
-							__( '%s W razie zwrotu produktu kupionego w naszym sklepie, koszty przesyłki zwrotnej pokrywasz sam.', 'qutlet-theme' ),
+							'%s',
 							__( 'Polityka zwrotów:', 'qutlet-theme' )
-						);
+						) . ' ' . esc_html( ProductPage::store_text( StoreContentSettingsPage::OPTION_ZWROT_OPIS_QUTLET, __( 'W razie zwrotu produktu kupionego w naszym sklepie, koszty przesyłki zwrotnej pokrywasz sam.', 'qutlet-theme' ) ) );
 					?></span>
 				</div>
 			</div>
@@ -417,8 +417,8 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 					<div class="perk-list">
 						<div class="perk-row">
 							<span class="perk-icon perk-icon-allegro"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M4 9h11a5 5 0 0 1 5 5v3"></path></svg></span>
-							<?php esc_html_e( '14 dni na zwrot', 'qutlet-theme' ); ?>
-							<span class="perk-tag perk-tag-green"><?php esc_html_e( 'Możliwy bezpłatny', 'qutlet-theme' ); ?></span>
+							<?php echo esc_html( ProductPage::store_text( StoreContentSettingsPage::OPTION_ZWROT_NAGLOWEK, __( '14 dni na zwrot', 'qutlet-theme' ) ) ); ?>
+							<span class="perk-tag perk-tag-green"><?php echo esc_html( ProductPage::store_text( StoreContentSettingsPage::OPTION_ZWROT_TAG_ALLEGRO, __( 'Możliwy bezpłatny', 'qutlet-theme' ) ) ); ?></span>
 						</div>
 						<?php if ( '' !== $warranty_claim_text ) : ?>
 						<div class="perk-row">
@@ -428,16 +428,15 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 						<?php endif; ?>
 						<div class="perk-row">
 							<span class="perk-icon perk-icon-allegro"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg></span>
-							<?php esc_html_e( 'Wysyłka w 1 dzień roboczy', 'qutlet-theme' ); ?>
+							<?php echo esc_html( ProductPage::store_text( StoreContentSettingsPage::OPTION_WYSYLKA_NAGLOWEK, __( 'Wysyłka w 1 dzień roboczy', 'qutlet-theme' ) ) ); ?>
 						</div>
 					</div>
 
 					<div class="ok-note"><?php
 						echo ProductPage::bold_text( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							/* translators: %s: bolded label. */
-							__( '%s Zwrot całkowicie bezpłatny przy wyborze Allegro Delivery oraz dla Allegrowiczów Smart.', 'qutlet-theme' ),
+							'%s',
 							__( 'Polityka zwrotów:', 'qutlet-theme' )
-						);
+						) . ' ' . esc_html( ProductPage::store_text( StoreContentSettingsPage::OPTION_ZWROT_OPIS_ALLEGRO, __( 'Zwrot całkowicie bezpłatny przy wyborze Allegro Delivery oraz dla Allegrowiczów Smart.', 'qutlet-theme' ) ) );
 					?></div>
 
 					<a href="<?php echo esc_url( $allegro_url ); ?>" target="_blank" rel="noopener" class="btn-buy btn-buy-allegro"><?php
@@ -714,7 +713,7 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 				<div class="info-3col">
 					<div class="info-card info-card-slim">
 						<h4><span class="info-card-mini"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg></span><?php esc_html_e( 'Szybka wysyłka', 'qutlet-theme' ); ?></h4>
-						<p><?php esc_html_e( 'Wysyłamy w najbliższy dzień roboczy (sesja rano/popołudnie).', 'qutlet-theme' ); ?><?php if ( $allegro_enabled ) : ?><span data-allegro-only> <?php esc_html_e( 'Dotyczy obu kanałów.', 'qutlet-theme' ); ?></span><?php endif; ?></p>
+						<p><?php echo esc_html( ProductPage::store_text( StoreContentSettingsPage::OPTION_WYSYLKA_OPIS, __( 'Wysyłamy w najbliższy dzień roboczy (sesja rano/popołudnie).', 'qutlet-theme' ) ) ); ?><?php if ( $allegro_enabled ) : ?><span data-allegro-only> <?php esc_html_e( 'Dotyczy obu kanałów.', 'qutlet-theme' ); ?></span><?php endif; ?></p>
 					</div>
 					<div class="info-card info-card-slim info-card-amber">
 						<h4><span class="info-card-mini"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M4 9h11a5 5 0 0 1 5 5v3"></path></svg></span><?php
@@ -724,24 +723,12 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 								?><span data-allegro-off-only><?php esc_html_e( 'Zwrot — 14 dni', 'qutlet-theme' ); ?></span><?php
 							endif;
 						?></h4>
-						<p><?php
-							echo ProductPage::bold_text( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-								/* translators: %s: bolded phrase. */
-								__( '14 dni na zmianę zdania. %s', 'qutlet-theme' ),
-								__( 'Koszt przesyłki zwrotnej po stronie kupującego.', 'qutlet-theme' )
-							);
-						?></p>
+						<p><?php echo esc_html( ProductPage::store_text( StoreContentSettingsPage::OPTION_ZWROT_AKORDEON_OPIS_QUTLET, __( '14 dni na zmianę zdania. Koszt przesyłki zwrotnej po stronie kupującego.', 'qutlet-theme' ) ) ); ?></p>
 					</div>
 					<?php if ( $allegro_enabled ) : ?>
 						<div class="info-card info-card-slim info-card-green" data-allegro-only>
 							<h4><span class="info-card-mini"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M4 9h11a5 5 0 0 1 5 5v3"></path></svg></span><?php esc_html_e( 'Zwrot — Allegro', 'qutlet-theme' ); ?></h4>
-							<p><?php
-								echo ProductPage::bold_text( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-									/* translators: %s: bolded phrase. */
-									__( '14 dni na zmianę zdania. %s — przy wyborze Allegro Delivery lub abonamentu Smart.', 'qutlet-theme' ),
-									__( 'Zwrot bezpłatny', 'qutlet-theme' )
-								);
-							?></p>
+							<p><?php echo esc_html( ProductPage::store_text( StoreContentSettingsPage::OPTION_ZWROT_AKORDEON_OPIS_ALLEGRO, __( '14 dni na zmianę zdania. Zwrot bezpłatny — przy wyborze Allegro Delivery lub abonamentu Smart.', 'qutlet-theme' ) ) ); ?></p>
 						</div>
 					<?php endif; ?>
 				</div>
@@ -759,9 +746,8 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 							$warranty_months_text = ProductPage::period_months_text( $warranty_months );
 
 							if ( '' !== $warranty_months_text ) {
-								echo esc_html( sprintf(
-									/* translators: %s: formatted warranty period (e.g. "12 miesięcy"). */
-									__( '%s gwarancji na każdy produkt. Reklamacje realizujemy w naszym serwisie — szybko i bezproblemowo.', 'qutlet-theme' ),
+								echo esc_html( ProductPage::with_period_placeholder(
+									ProductPage::policy_text( $condition_definition, 'gwarancja_opis', __( '{okres} gwarancji na każdy produkt. Reklamacje realizujemy w naszym serwisie — szybko i bezproblemowo.', 'qutlet-theme' ) ),
 									$warranty_months_text
 								) );
 							} else {
@@ -775,18 +761,9 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 						<p><?php
 							if ( '' === $claim_period_text ) {
 								esc_html_e( 'Okres reklamacji znajdziesz w opisie klasy stanu produktu.', 'qutlet-theme' );
-							} elseif ( $claim_months >= 24 ) {
-								// Rękojmia ustawowa PEŁNA (2 lata) — klasa nie "skraca" niczego (D-12.G1: decyzja
-								// liczbowa, nie `if ($condition_code === 'Nowe')`; patrz docblock SeedClassDefinitionsCommand).
-								echo esc_html( sprintf(
-									/* translators: %s: formatted claim period (e.g. "2 lata"). */
-									__( '%s — zgodnie z ustawowym prawem rękojmi.', 'qutlet-theme' ),
-									$claim_period_text
-								) );
 							} else {
-								echo esc_html( sprintf(
-									/* translators: %s: formatted claim period (e.g. "1 rok"). */
-									__( '%s (zamiast ustawowych 2 lat — dopuszczalne dla towarów używanych, gdy kupujący zostanie wyraźnie poinformowany).', 'qutlet-theme' ),
+								echo esc_html( ProductPage::with_period_placeholder(
+									ProductPage::policy_text( $condition_definition, 'reklamacja_opis', __( '{okres} (zamiast ustawowych 2 lat — dopuszczalne dla towarów używanych, gdy kupujący zostanie wyraźnie poinformowany).', 'qutlet-theme' ) ),
 									$claim_period_text
 								) );
 							}
@@ -796,9 +773,9 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 				<p class="know-fine"><?php
 					echo ProductPage::bold_text( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						/* translators: %s: bolded word. */
-						__( 'Wszystkie produkty w Qutlet sprzedawane są jako %s. Gwarancja i prawo do reklamacji są identyczne dla każdego egzemplarza.', 'qutlet-theme' ),
+						__( 'Wszystkie produkty w Qutlet sprzedawane są jako %s.', 'qutlet-theme' ),
 						__( 'używane', 'qutlet-theme' )
-					);
+					) . ' ' . esc_html( ProductPage::store_text( StoreContentSettingsPage::OPTION_STAN_UZYWANY_OPIS, __( 'Gwarancja i prawo do reklamacji są identyczne dla każdego egzemplarza.', 'qutlet-theme' ) ) );
 				?></p>
 			</div>
 		</div>
