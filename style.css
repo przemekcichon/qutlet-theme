@@ -667,18 +667,40 @@ section.wrap > .usp-grid { margin-top: 18px; }
 a.btn-buy-allegro { background: #ff5a00; box-sizing: border-box; text-decoration: none; }
 a.btn-buy-allegro:hover { background: #e65100; }
 
-/* Stepper ilości (natywny WooCommerce `global/quantity-input.php`) —
-   defensywne minimum tego PR-a, NIE port z design/vanilla (prototyp nie
-   przewiduje selektora ilości — jednosztukowy outlet). Renderuje się
-   wyłącznie, gdy produkt ma `sold_individually=false`
-   (woocommerce/single-product/add-to-cart/simple.php); trzyma format tak,
-   żeby nie wyglądał jak niedokończony natywny formularz obok `.btn-buy`. */
 .cart { display: flex; flex-direction: column; gap: 12px; }
-.quantity { display: flex; }
-.quantity .qty {
-	width: 100%; height: 54px; border: 1.5px solid var(--line); border-radius: 14px;
-	font-family: inherit; font-size: 16px; text-align: center; background: #fff; color: var(--ink);
+
+/* Natywny input ilości (`global/quantity-input.php`) zostaje w DOM — jedyne
+   pole `quantity`, które faktycznie submituje się z formularzem koszyka
+   (D-8.G1: theme nie duplikuje logiki Woo) — ale wizualnie zastępuje go
+   custom `.pd-stepper` (P-22.3, poniżej), zsynchronizowany JS-em
+   (`assets/js/product-stock-stepper.js`). `.pd-stock` renderuje się zawsze,
+   gdy produkt jest w magazynie — czyli za każdym razem, gdy natywny input by
+   się wyrenderował (`!is_sold_individually()`), więc ten selektor pokrywa
+   wszystkie przypadki bez osobnej flagi. */
+.pd-stock ~ .cart .quantity { display: none; }
+
+/* ---------- Stan magazynowy (→ WooCommerce `_stock`, P-22.3, port
+   design/vanilla/produkt-inne-sztuki.html) ---------- */
+.pd-stock { margin-bottom: 14px; }
+.pd-stock-one {
+	display: inline-flex; align-items: center; gap: 9px;
+	background: linear-gradient(135deg, #f4fae6, #eaf6d0); border: 1.5px solid #cfe6a0; border-radius: 999px;
+	padding-top: 8px; padding-bottom: 8px; padding-left: 11px; padding-right: 16px;
 }
+.pd-stock-one .pd-stock-ico { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--lime); color: var(--lime-ink); display: grid; place-items: center; }
+.pd-stock-one b { font-family: var(--font-display); font-size: 14px; font-weight: 800; letter-spacing: -.01em; color: #2f4a08; }
+.pd-stock-one em { font-style: normal; font-size: 13px; color: #46660f; }
+.pd-stock-many { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.pd-stock-avail { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--ink-soft); }
+.pd-stock-avail .stock-dot { width: 9px; height: 9px; border-radius: 50%; background: #3f9b3f; display: block; flex-shrink: 0; }
+.pd-stock-avail b { font-family: var(--font-display); font-weight: 800; color: var(--ink); }
+.pd-qty { display: flex; align-items: center; gap: 10px; }
+.pd-qty-label { font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+.pd-stepper { display: inline-flex; align-items: center; border: 1.5px solid var(--line); border-radius: 11px; overflow: hidden; background: #fff; }
+.pd-stepper button { width: 38px; height: 40px; border: 0; background: #fff; cursor: pointer; color: var(--ink); display: grid; place-items: center; line-height: 1; }
+.pd-stepper button:hover:not(:disabled) { background: var(--panel); }
+.pd-stepper button:disabled { color: #cfcbd6; cursor: default; }
+.pd-qty-val { min-width: 40px; text-align: center; font-family: var(--font-display); font-weight: 800; font-size: 16px; border-left: 1.5px solid var(--line); border-right: 1.5px solid var(--line); align-self: stretch; display: grid; place-items: center; }
 
 /* ---------- Sticky buy bar ---------- */
 .buybar {
