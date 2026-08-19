@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.27
+Version:           0.1.28
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -1550,25 +1550,29 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
    motyw „orbital") — 3rd-party markup (`.gform_wrapper`/`.gfield`/`.gform_footer`),
    nie nasz `.form-grid`/`.field`. Kolor marki i radius pól ustawione przez atrybuty
    bloku w treści Strony „Kontakt" (`inputPrimaryColor`/`inputBorderRadius` —
-   config poza repo, GF czyta je z JSON bloku, nie z tego arkusza). CSS niżej
-   dogania to, czego atrybuty bloku nie dają: 2-kolumnowy układ `#gform_fields_1`
-   (GF ma WŁASNY grid 12-kolumnowy, bazowa reguła `.gform-theme--foundation
-   .gfield{grid-column:1/-1}` — imię i e-mail zwężamy do połowy), typografia
-   etykiet/opisów pól (`.field label`) i wygląd przycisku 1:1 z
-   `.btn.btn-primary.btn-lg.btn-dark` (kontakt.html — `.btn-dark` bije
-   `.btn-primary` KOLEJNOŚCIĄ w źródle przy tej samej specyficzności, więc
-   realne tło to `var(--ink)`, nie akcent; na `:hover` wygrywa
-   `.btn-primary:hover` przez wyższą specyficzność pseudo-klasy, więc hover
-   zostaje `var(--accent-deep)`). `!important` WSZĘDZIE niżej, bo arkusze GF
+   config poza repo, GF czyta je z JSON bloku, nie z tego arkusza).
+   BRAK 2-kolumnowego układu imię+e-mail z prototypu (`kontakt.html` ma tam JEDEN
+   input „Imię i nazwisko"): formularz zbudowany w GF UI ma pole „name" typu
+   „advanced" — renderuje się jako WŁASNY fieldset z dwoma podpolami (Imię/
+   Nazwisko, GF-owy `.gform-grid-row` wewnątrz), więc sam już wizualnie zajmuje
+   dwie kolumny. Wsadzenie e-maila w ten sam rząd dawałoby nierówny układ 3-do-1
+   (zgłoszenie użytkownika, sesja 2026-08-19) — wszystkie pola top-level zostają
+   więc na pełną szerokość (domyślny układ GF, bez `grid-column` override), tylko
+   odstęp między nimi dociągnięty do `.form-grid` (`--gf-form-gap-y: 14px`, GF ma
+   własny grid 12-kolumnowy z domyślnym gapem 40px). CSS niżej dogania resztę tego,
+   czego atrybuty bloku nie dają: typografia etykiet/opisów pól (`.field label`) i
+   wygląd przycisku 1:1 z `.btn.btn-primary.btn-lg.btn-dark` (kontakt.html —
+   `.btn-dark` bije `.btn-primary` KOLEJNOŚCIĄ w źródle przy tej samej
+   specyficzności, więc realne tło to `var(--ink)`, nie akcent; na `:hover`
+   wygrywa `.btn-primary:hover` przez wyższą specyficzność pseudo-klasy, więc
+   hover zostaje `var(--accent-deep)`). `!important` WSZĘDZIE niżej, bo arkusze GF
    (`gravity-forms-theme-*.css`) ładują się PO `style.css` motywu (bez
    zależności w `wp_enqueue_style`) i ich reguły mają TĘ SAMĄ specyficzność co
    nasze (np. `.gform-theme--foundation .gfield` — też 0,2,0), więc bez
    `!important` przegrywamy remis kolejnością w źródle (zweryfikowane
    computed style w przeglądarce, ten sam trik co sekcja WooCommerce niżej
    w pliku). */
-.contact-form-card #gform_fields_1 { --gf-form-gap-x: 14px !important; --gf-form-gap-y: 14px !important; }
-.contact-form-card .gfield--type-name,
-.contact-form-card .gfield--type-email { grid-column: span 6 !important; }
+.contact-form-card #gform_fields_1 { --gf-form-gap-y: 14px !important; }
 .contact-form-card .gform-field-label {
 	font-size: 12.5px !important; font-weight: 700 !important; color: var(--ink-soft) !important;
 }
