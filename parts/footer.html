@@ -6,9 +6,13 @@
 	`action="#"`/`data-nlband-form` zostają jako placeholder do domknięcia
 	razem z resztą JS interakcji (poza zakresem P-8.5, patrz D-8.G3: theme
 	tylko osadza formularz, backend to wtyczka 3rd-party — handoff dotyczy
-	obu miejsc naraz). Linki „Sklep"/kategorie — patrz nota w parts/header.html
-	(FAZA 8/P-8.3, poza zakresem P-8.5); „Informacje"/„Pomoc" (P-8.5) już
-	realne. Banner ukrywany NA stronie newslettera przez klasę
+	obu miejsc naraz). Trzy kolumny `.footer-col` (Sklep/Informacje/Pomoc)
+	czytają realne menu WP przez blok `qutlet/footer-nav` (P-23.1, atrybut
+	`menuLocation`, lokalizacje `stopka-sklep`/`stopka-informacje`/
+	`stopka-pomoc`, `inc/features/FooterMenu/FooterMenu.php`) — kolumna
+	„Sklep" ma dziś puste menu (brak realnych linków do zmigrowania, treść to
+	decyzja admina PO merge'u P-23.1), pozostałe dwie zasiane startową
+	treścią WP-CLI. Banner ukrywany NA stronie newslettera przez klasę
 	`body.qt-hide-nlband` (`Help::filter_body_class()`, style.css) — zastępuje
 	`body[data-page="newsletter"]` z prototypu, którego block template canvas
 	nie ma jak przyjąć (D-8.G1).
@@ -43,24 +47,27 @@
     </div>
     <div class="footer-col">
       <h5>Sklep</h5>
-      <a href="#">Strefa okazji</a>
-      <a href="#">Smartfony</a>
-      <a href="#">Wszystkie kategorie</a>
+<!-- /wp:html -->
+
+<!-- wp:qutlet/footer-nav {"menuLocation":"stopka-sklep"} /-->
+
+<!-- wp:html -->
     </div>
     <div class="footer-col">
       <h5>Informacje</h5>
-      <a href="/jak-to-dziala/">Jak to działa?</a>
-      <a href="/jak-to-dziala/#klasy">Klasy produktów</a>
-      <a href="/blog/">Blog „Drugi obieg”</a>
-      <a href="/newsletter/">Newsletter Ekołowców</a>
+<!-- /wp:html -->
+
+<!-- wp:qutlet/footer-nav {"menuLocation":"stopka-informacje"} /-->
+
+<!-- wp:html -->
     </div>
     <div class="footer-col">
       <h5>Pomoc</h5>
-      <a href="/pomoc/">Centrum pomocy</a>
-      <a href="/regulamin/">Regulamin</a>
-      <a href="/polityka-prywatnosci/">Polityka prywatności</a>
-      <a href="/polityka-cookies/">Polityka cookies</a>
-      <a href="/kontakt/">Kontakt</a>
+<!-- /wp:html -->
+
+<!-- wp:qutlet/footer-nav {"menuLocation":"stopka-pomoc"} /-->
+
+<!-- wp:html -->
     </div>
   </div>
   <div class="wrap footer-bottom">
