@@ -1690,10 +1690,14 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 	position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden;
 	clip: rect(0, 0, 0, 0); white-space: nowrap;
 }
+/* `--gf-local-margin-x` (motyw „framework") daje `.gform-field-label--type-inline`
+   domyślny margin po lewej, myślany na odstęp checkbox-ikona↔tekst w natywnym
+   układzie GF — dla chipa (bez natywnej ikony, cała etykieta = tło pilla) to
+   zbędny odstęp psujący padding (zgłoszenie użytkownika, sesja 2026-08-19). */
 .nl-form-card .gchoice label {
 	display: inline-block; font-size: 13.5px !important; font-weight: 700 !important;
 	border-radius: 999px; border: 1.5px solid var(--line); background: #fff; color: var(--ink-soft) !important;
-	cursor: pointer; padding-top: 9px; padding-bottom: 9px; padding-left: 15px; padding-right: 15px;
+	cursor: pointer; padding-top: 9px; padding-bottom: 9px; padding-left: 15px; padding-right: 15px; margin-left: 0;
 }
 .nl-form-card .gfield-choice-input:checked + label {
 	border-color: var(--accent); background: var(--accent); color: #fff !important;
