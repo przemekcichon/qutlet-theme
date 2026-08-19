@@ -178,8 +178,11 @@ a { color: inherit; }
    „constrained" (`<main class="wp-block-group is-layout-constrained">`)
    sam z siebie nic nie ogranicza — stąd ten nagłówek (i bez tej poprawki
    też `.grid-3`/toolbar filtrów, patrz loop-start.php/filters-and-sort.php)
-   rozlewał się na całą szerokość ekranu. */
-.wrap, .woocommerce-products-header {
+   rozlewał się na całą szerokość ekranu. `.woocommerce-notices-wrapper`
+   (P-22.1) tym samym wzorcem — renderuje się jako rodzeństwo `.wrap` w
+   `content-single-product.php` (przed `woocommerce_before_single_product`),
+   więc bez własnego wpisu też rozlewał się na całą szerokość. */
+.wrap, .woocommerce-products-header, .woocommerce-notices-wrapper {
 	max-width: 1240px;
 	margin-left: auto;
 	margin-right: auto;
