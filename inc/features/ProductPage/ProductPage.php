@@ -71,6 +71,14 @@ final class ProductPage {
 			\Qutlet\Theme\VERSION,
 			true
 		);
+
+		wp_enqueue_script(
+			'qutlet-theme-product-stock-stepper',
+			get_theme_file_uri( 'assets/js/product-stock-stepper.js' ),
+			array(),
+			\Qutlet\Theme\VERSION,
+			true
+		);
 	}
 
 	/**

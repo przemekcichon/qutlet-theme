@@ -19,10 +19,17 @@
  *    szablonu (który woła stepper bezwarunkowo). Dodane, bo
  *    `design/vanilla/produkt.html` nie przewiduje żadnego selektora ilości
  *    na stronie produktu (jednosztukowy outlet). Gdy produkt ma
- *    `sold_individually=false` (ustawienie per-produkt w adminie Woo, poza
- *    kontrolą motywu), stepper i tak się wyrenderuje — `.quantity`/`.qty` w
- *    `style.css` ma minimalne stylowanie na tę okoliczność (patrz sekcja
- *    P-8.2b), żeby nie wyglądał jak niedokończony natywny formularz.
+ *    `sold_individually=false`, natywny input i tak się renderuje (musi
+ *    istnieć w DOM — jedyne pole `quantity`, które faktycznie submituje się
+ *    z formularzem), ale `.pd-stock ~ .cart .quantity` w `style.css` (P-22.3)
+ *    chowa go wizualnie: `woocommerce/content-single-product.php` renderuje
+ *    WŁASNY custom stepper (`.pd-stepper`, `assets/js/product-stock-stepper.js`)
+ *    tuż nad tym formularzem i syncuje jego wartość do tego ukrytego inputa —
+ *    zero duplikacji logiki submit/walidacji (D-8.G1).
+ * 3) natywny `wc_get_stock_html()` renderuje się TYLKO gdy produkt jest OUT
+ *    OF STOCK — dla in-stock tę rolę przejął `.pd-stock`
+ *    (`content-single-product.php`, P-22.3), więc podwójny badge byłby
+ *    duplikacją tej samej informacji dwoma różnymi stylami.
  *
  * @package Qutlet\Theme
  * @see     https://woocommerce.com/document/template-structure/
@@ -36,7 +43,9 @@ if ( ! $product->is_purchasable() ) {
 	return;
 }
 
-echo wc_get_stock_html( $product ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+if ( ! $product->is_in_stock() ) {
+	echo wc_get_stock_html( $product ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+}
 
 if ( $product->is_in_stock() ) :
 	?>

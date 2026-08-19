@@ -27,6 +27,7 @@
 
 declare( strict_types=1 );
 
+use Qutlet\Theme\features\ProductCard\ProductCard;
 use Qutlet\Theme\features\ProductPage\ProductPage;
 
 defined( 'ABSPATH' ) || exit;
@@ -114,6 +115,19 @@ if ( $warranty_months > 0 && $claim_months > 0 ) {
 }
 
 $claim_period_text = ProductPage::period_years_text( $claim_months );
+
+/*
+ * Stan magazynowy (P-22.3, kontrakt: `_stock` odzwierciedla stock.available
+ * POJEDYNCZEJ oferty Allegro — `qutlet-allegro\OfferSync\ProductWriter.php`).
+ * `null`/`< 1` traktowane jak pojedynczy egzemplarz — ta sama konwencja co
+ * `ProductCard::qty_label()` (karta produktu, P-8.3a), żeby oba miejsca
+ * zgadzały się co do znaczenia braku śledzenia stanu. `is_sold_individually()`
+ * wymusza wariant „ostatnia sztuka" niezależnie od `_stock` — klient i tak
+ * może kupić tylko 1 szt. tego produktu.
+ */
+$stock_quantity      = $product->managing_stock() ? $product->get_stock_quantity() : null;
+$stock_count         = ( null === $stock_quantity || $stock_quantity < 1 ) ? 1 : $stock_quantity;
+$is_last_stock_piece = $product->is_sold_individually() || $stock_count <= 1;
 
 /*
  * Sekcja treści (P-8.2c): taby „Co w przesyłce" / „Opis i specyfikacja".
@@ -260,6 +274,60 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 				<div class="eco-note">
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5a8a14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4M12 8h.01"></path></svg>
 					<span><?php echo esc_html( $condition_definition['dlaczego_taniej'] ); ?></span>
+				</div>
+				<?php endif; ?>
+
+				<?php if ( $product->is_in_stock() ) : ?>
+				<div class="pd-stock" data-stock data-stock-count="<?php echo esc_attr( (string) $stock_count ); ?>">
+					<?php if ( $is_last_stock_piece ) : ?>
+						<div class="pd-stock-one">
+							<span class="pd-stock-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"></path><path d="m2 17 10 5 10-5"></path><path d="m2 12 10 5 10-5"></path></svg></span>
+							<b><?php esc_html_e( 'Ostatnia sztuka', 'qutlet-theme' ); ?></b>
+							<em><?php
+								if ( '' !== $condition_code ) {
+									echo esc_html(
+										sprintf(
+											/* translators: %s: condition code (A/B/C/D). */
+											__( '— jedyny egzemplarz w klasie %s', 'qutlet-theme' ),
+											$condition_code
+										)
+									);
+								} else {
+									esc_html_e( '— jedyny dostępny egzemplarz', 'qutlet-theme' );
+								}
+							?></em>
+						</div>
+					<?php else : ?>
+						<div class="pd-stock-many">
+							<span class="pd-stock-avail">
+								<span class="stock-dot"></span>
+								<span data-stock-avail-count>
+									<b><?php echo esc_html( ProductCard::qty_label( $product ) ); ?></b>
+									<?php
+									if ( '' !== $condition_code ) {
+										echo esc_html(
+											sprintf(
+												/* translators: %s: condition code (A/B/C/D). */
+												__( 'dostępne w klasie %s', 'qutlet-theme' ),
+												$condition_code
+											)
+										);
+									} else {
+										esc_html_e( 'dostępne', 'qutlet-theme' );
+									}
+									?>
+								</span>
+							</span>
+							<div class="pd-qty">
+								<span class="pd-qty-label"><?php esc_html_e( 'Ilość', 'qutlet-theme' ); ?></span>
+								<div class="pd-stepper" data-stepper>
+									<button type="button" data-qty-dec aria-label="<?php esc_attr_e( 'Zmniejsz ilość', 'qutlet-theme' ); ?>"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+									<span class="pd-qty-val" data-qty-val aria-live="polite">1</span>
+									<button type="button" data-qty-inc aria-label="<?php esc_attr_e( 'Zwiększ ilość', 'qutlet-theme' ); ?>"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+								</div>
+							</div>
+						</div>
+					<?php endif; ?>
 				</div>
 				<?php endif; ?>
 
