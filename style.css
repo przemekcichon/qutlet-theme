@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.28
+Version:           0.1.29
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -1625,6 +1625,86 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .nl-success h3 { font-size: 24px; font-weight: 800; margin: 0 0 10px; }
 .nl-success p { font-size: 15px; color: var(--ink-soft); line-height: 1.6; }
 .nl-success .accent { color: var(--accent); font-weight: 800; }
+
+/* P-23.3: karta `.nl-form-card` osadza `wp:gravityforms/form` (formularz ID 2,
+   GF 3.0.2.6, motyw „orbital") — ten sam mechanizm 3rd-party co `.contact-form-card`
+   (P-23.2, patrz komentarz tam po uzasadnienie `!important` — GF-owe arkusze
+   ładują się PO `style.css` bez zależności w `wp_enqueue_style`, remisy
+   specyficzności rozstrzyga tam kolejność w źródle). Kolor marki ustawiony
+   atrybutem bloku (`inputPrimaryColor` w treści Strony „Newsletter", config poza
+   repo) — `inputBorderRadius:12` (nie 10 jak przy Kontakcie), bo `.nl-field input`
+   prototypu ma promień 12px, nie 10px jak `.field input` na Kontakcie. Tło i
+   ramka pól nadpisane wprost (nie przez zmienną CSS GF) na `var(--panel)`/
+   `var(--line)` — `.nl-field input` prototypu ma szare tło, GF-owy default biały.
+   Checkbox „Co Cię interesuje?" (pole 3, 6 wyborów) stylowany jako `.nl-chip`
+   czystym CSS `:checked + label`, zero JS — GF renderuje `<input>`+`<label>` jako
+   rodzeństwo wewnątrz `.gchoice` (zweryfikowane na realnym markupie w przeglądarce,
+   sesja 2026-08-19), więc sibling selector wystarcza. Input chowany techniką
+   „visually hidden" (nie `display:none`/`opacity:0` bez wymiaru) — zostaje
+   klikalny i fokusowalny klawiaturą, `label` (powiązany przez `for`/`id`) niesie
+   wygląd chipa. Wysokość przycisku NIE steruje się `height` — motyw „framework"
+   ustawia ją zmienną CSS `--gf-local-min-height` przez selektor o wysokiej
+   specyficzności (`.gform-theme.gform-theme--framework.gform_wrapper
+   button.button:where(…).gform-theme-button--size-md`, kilka złączonych klas),
+   więc nadpisanie SAMEJ zmiennej też wymaga `!important` (zgłoszenie
+   użytkownika, sesja 2026-08-19, potwierdzone w skompilowanym CSS GF).
+   Font przycisku to `--font-body` (nie `--font-display` jak przy Kontakcie) —
+   `.nl-submit` prototypu nie ma własnego `font-family` (dziedziczy z
+   `button { font-family: inherit }`), inaczej niż Kontaktu `.btn-lg`, który
+   JAWNIE ustawia `--font-display`. */
+.nl-form-card #gform_fields_2 { --gf-form-gap-y: 14px !important; }
+.nl-form-card .gform-field-label {
+	font-size: 13px !important; font-weight: 700 !important; color: var(--ink-soft) !important;
+}
+.nl-form-card .ginput_container_email input,
+.nl-form-card .ginput_container_text input {
+	height: 48px !important; border-radius: 12px !important; background: var(--panel) !important;
+	border: 1.5px solid var(--line) !important; font-size: 15px !important;
+}
+.nl-form-card .gform_footer { margin-top: 0; padding: 0; border: 0; }
+.nl-form-card .gform_button {
+	width: 100% !important; --gf-local-min-height: 52px !important;
+	font-family: var(--font-body) !important; font-weight: 800 !important; font-size: 15.5px !important;
+	color: #fff !important; background: var(--accent) !important;
+	border: 0 !important; border-radius: 12px !important;
+	margin-top: 10px;
+}
+.nl-form-card .gform_button:hover { background: var(--accent-deep) !important; }
+.nl-form-card fieldset.gfield--type-checkbox { border: 0; margin: 0; padding: 0; }
+/* GF-owy `.gfield_checkbox` domyślnie `flex-direction: column` (motyw
+   „foundation", lista wyborów jedna pod drugą) — trzeba jawnie na `row`, samo
+   `display: flex` nie wystarczy. `.gchoice` domyślnie `inline-size: 100%`
+   (logiczny odpowiednik `width`, GF-owy arkusz go używa zamiast fizycznej
+   właściwości) — nadpisane OBIE formy, bo w cieniu równej wagi (`!important`
+   kontra `!important` się tu nie ściera, ale różne przeglądarki różnie
+   priorytetyzują `width`/`inline-size` jako alias tej samej właściwości fizycznej
+   przy tej samej ważności/źródle, więc nadpisujemy obie dla pewności — zweryfikowane
+   na realnym markupie, sesja 2026-08-19). */
+.nl-form-card .gfield_checkbox {
+	display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 9px !important;
+}
+.nl-form-card .gchoice {
+	display: inline-flex !important; width: auto !important; inline-size: auto !important; position: relative;
+}
+.nl-form-card .gfield-choice-input {
+	position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden;
+	clip: rect(0, 0, 0, 0); white-space: nowrap;
+}
+/* `--gf-local-margin-x` (motyw „framework") daje `.gform-field-label--type-inline`
+   domyślny margin po lewej, myślany na odstęp checkbox-ikona↔tekst w natywnym
+   układzie GF — dla chipa (bez natywnej ikony, cała etykieta = tło pilla) to
+   zbędny odstęp psujący padding (zgłoszenie użytkownika, sesja 2026-08-19). */
+.nl-form-card .gchoice label {
+	display: inline-block; font-size: 13.5px !important; font-weight: 700 !important;
+	border-radius: 999px; border: 1.5px solid var(--line); background: #fff; color: var(--ink-soft) !important;
+	cursor: pointer; padding-top: 9px; padding-bottom: 9px; padding-left: 15px; padding-right: 15px; margin-left: 0;
+}
+.nl-form-card .gfield-choice-input:checked + label {
+	border-color: var(--accent); background: var(--accent); color: #fff !important;
+}
+.nl-form-card .gfield-choice-input:focus-visible + label {
+	outline: 2px solid var(--accent); outline-offset: 2px;
+}
 
 /* Newsletter/„Jak to działa" — karty eko + 3 perki + cytat (współdzielone) */
 .eko-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 60px; align-items: self-end; }
