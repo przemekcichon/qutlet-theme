@@ -125,7 +125,7 @@ $claim_period_text = ProductPage::period_years_text( $claim_months );
  * wymusza wariant „ostatnia sztuka" niezależnie od `_stock` — klient i tak
  * może kupić tylko 1 szt. tego produktu.
  */
-$stock_quantity      = $product->managing_stock() ? $product->get_stock_quantity() : null;
+$stock_quantity      = $product->get_stock_quantity();
 $stock_count         = ( null === $stock_quantity || $stock_quantity < 1 ) ? 1 : $stock_quantity;
 $is_last_stock_piece = $product->is_sold_individually() || $stock_count <= 1;
 
