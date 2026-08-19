@@ -18,6 +18,7 @@ declare( strict_types=1 );
 namespace Qutlet\Theme\features\ProductPage;
 
 use Qutlet\Core\ProductCondition\ClassDefinitionsTaxonomy;
+use Qutlet\Core\ProductCondition\ConditionManagementSettingsPage;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -75,6 +76,14 @@ final class ProductPage {
 		wp_enqueue_script(
 			'qutlet-theme-product-stock-stepper',
 			get_theme_file_uri( 'assets/js/product-stock-stepper.js' ),
+			array(),
+			\Qutlet\Theme\VERSION,
+			true
+		);
+
+		wp_enqueue_script(
+			'qutlet-theme-product-other-pieces',
+			get_theme_file_uri( 'assets/js/product-other-pieces.js' ),
 			array(),
 			\Qutlet\Theme\VERSION,
 			true
@@ -460,5 +469,196 @@ final class ProductPage {
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * Sztuki tego samego modelu — widget „Inne sztuki tego modelu" (P-22.4,
+	 * D-22.4.3: zapytanie+render w całości tutaj, NIE w qutlet-core — patrz
+	 * docblock klasy `ConditionManagementSettingsPage` w core dla pełnego
+	 * uzasadnienia granicy). Grupuje po natywnym Woo `global_unique_id`
+	 * (meta_key `_global_unique_id`, kontrakt §10.2) — duplikat GTIN między
+	 * produktami jest DOZWOLONY od P-6.7/D-6.7.1, model „1 oferta = 1
+	 * produkt" (P-6.1/P-6.7) BEZ ZMIAN (D-6.7.3 ODRZUCONA dla tego zakresu,
+	 * `docs/plan.md` P-22.4).
+	 *
+	 * Wynik WŁĄCZA bieżący produkt (żeby wyznaczyć jego miejsce w kolejności
+	 * cenowej — wzorem `produkt-inne-sztuki.html:286-343`, gdzie bieżąca
+	 * sztuka siedzi na swoim miejscu cenowym, nie na końcu/początku listy),
+	 * posortowany rosnąco po cenie. Sztuki INNE niż bieżąca znikają z wyniku,
+	 * gdy wyprzedane (D-22.4.4 — `.ism-fine` prototypu: „sztuka znika z listy
+	 * po sprzedaży"); bieżąca zostaje bezwarunkowo (na stronie produktu
+	 * dostępnego ma zawsze `_stock`>0 — warunek czysto defensywny, pod
+	 * przyszłą integrację ze stroną „produkt wyprzedany", POZA zakresem
+	 * P-22.4).
+	 *
+	 * Pusta tablica, gdy wynik ma mniej niż 2 sztuki (kontrakt widgetu:
+	 * renderuje się TYLKO gdy jest z kim porównać) — wołający NIE musi
+	 * osobno liczyć elementów przed decyzją czy renderować sekcję.
+	 *
+	 * @param int $product_id Id bieżącego produktu.
+	 * @return array<int, array{
+	 *     product_id: int,
+	 *     permalink: string,
+	 *     title: string,
+	 *     image_id: int,
+	 *     is_current: bool,
+	 *     is_cheapest: bool,
+	 *     condition_kod: string,
+	 *     condition_label: string,
+	 *     condition_color: string,
+	 *     price: float,
+	 *     price_text: string,
+	 *     has_market_price: bool,
+	 *     market_price_text: string,
+	 *     save_percent: int,
+	 *     contents_sentence: string,
+	 * }>
+	 */
+	public static function other_pieces( int $product_id ): array {
+		if ( ! function_exists( 'wc_get_product' ) ) {
+			return array();
+		}
+
+		$product = wc_get_product( $product_id );
+
+		if ( ! $product instanceof \WC_Product ) {
+			return array();
+		}
+
+		$gtin = trim( (string) $product->get_global_unique_id() );
+
+		if ( '' === $gtin ) {
+			return array();
+		}
+
+		$sibling_ids = self::sibling_product_ids_by_gtin( $gtin );
+
+		$rows = array();
+
+		foreach ( $sibling_ids as $sibling_id ) {
+			$sibling = wc_get_product( $sibling_id );
+
+			if ( ! $sibling instanceof \WC_Product ) {
+				continue;
+			}
+
+			$is_current = $sibling->get_id() === $product_id;
+
+			if ( ! $is_current && ! $sibling->is_in_stock() ) {
+				continue; // D-22.4.4: tylko bieżąca sztuka zostaje mimo braku stanu.
+			}
+
+			$condition        = self::condition_for_product( $sibling_id );
+			$price            = (float) $sibling->get_price();
+			$market_price     = (float) self::acf_field( 'cena_rynkowa_nowego', $sibling_id );
+			$has_market_price = $market_price > 0.0;
+
+			$rows[] = array(
+				'product_id'        => $sibling_id,
+				'permalink'         => (string) get_permalink( $sibling_id ),
+				'title'             => get_the_title( $sibling_id ),
+				'image_id'          => (int) $sibling->get_image_id(),
+				'is_current'        => $is_current,
+				'is_cheapest'       => false, // ustalane niżej, po sortowaniu.
+				'condition_kod'     => $condition['kod'] ?? '',
+				'condition_label'   => $condition['nazwa'] ?? '',
+				'condition_color'   => $condition['kolor'] ?? '',
+				'price'             => $price,
+				'price_text'        => self::price_text( $price ),
+				'has_market_price'  => $has_market_price,
+				'market_price_text' => $has_market_price ? self::price_text( $market_price ) : '',
+				'save_percent'      => $has_market_price ? self::save_percent( $price, $market_price ) : 0,
+				'contents_sentence' => self::contents_sentence( $sibling_id ),
+			);
+		}
+
+		if ( count( $rows ) < 2 ) {
+			return array();
+		}
+
+		usort(
+			$rows,
+			static function ( array $a, array $b ): int {
+				return $a['price'] <=> $b['price'];
+			}
+		);
+
+		$rows[0]['is_cheapest'] = true;
+
+		return $rows;
+	}
+
+	/**
+	 * Id produktów `publish` dzielących ten sam `global_unique_id` (WŁĄCZNIE
+	 * z produktem, dla którego GTIN podano — wołający filtruje/oznacza
+	 * bieżący sam). Odpytuje BEZPOŚREDNIO indeksowaną tabelę
+	 * `wc_product_meta_lookup` (kolumna `global_unique_id`) — TEN SAM
+	 * mechanizm, którym natywne `wc_get_product_id_by_global_unique_id()`
+	 * znajduje JEDNO dopasowanie (`class-wc-product-data-store-cpt.php`).
+	 *
+	 * **Świadomie NIE `wc_get_products( array( 'meta_query' => … ) )`** —
+	 * `WC_Data_Store::get_wp_query_args()` (`class-wc-data-store-wp.php`)
+	 * jawnie POMIJA klucz `meta_query` (`'meta_query' === $key` → `continue`),
+	 * więc taki argument jest po cichu ignorowany i zapytanie zwraca
+	 * WSZYSTKIE produkty zamiast filtrowanych — znalezione i zweryfikowane
+	 * runtime w tej sesji (Playwright, 501 „sztuk" zamiast 3 na testowym
+	 * duplikacie GTIN), zanim trafiło do repo.
+	 *
+	 * @param string $gtin Wartość `global_unique_id`.
+	 * @return array<int, int>
+	 */
+	private static function sibling_product_ids_by_gtin( string $gtin ): array {
+		global $wpdb;
+
+		if ( ! isset( $wpdb->wc_product_meta_lookup ) ) {
+			return array();
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- brak natywnego API WooCommerce dla wielokrotnego dopasowania po `global_unique_id` (patrz docblock), lookup table jest indeksowana po tej kolumnie.
+		$ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"
+				SELECT posts.ID
+				FROM {$wpdb->posts} AS posts
+				INNER JOIN {$wpdb->wc_product_meta_lookup} AS lookup ON posts.ID = lookup.product_id
+				WHERE posts.post_type = 'product'
+				AND posts.post_status = 'publish'
+				AND lookup.global_unique_id = %s
+				",
+				$gtin
+			)
+		);
+
+		return array_map( 'intval', $ids );
+	}
+
+	/**
+	 * Jednozdaniowe „co w zestawie" dla widgetu „Inne sztuki tego modelu"
+	 * (P-22.4, D-22.4.1) — złączenie etykiet pozycji repeatera
+	 * `zawartosc_zestawu_pozycje` (P-9.2) oznaczonych `w_zestawie=true`.
+	 * Gdy wynik pusty (repeater pusty ALBO żadna pozycja nie jest oznaczona
+	 * jako dołączona) — tekst zastępczy z opcji globalnej
+	 * {@see ConditionManagementSettingsPage::FALLBACK_OPTION} (`qutlet-core`,
+	 * D-22.4.2); puste ustawienie → pusty string (wołający pomija wiersz).
+	 *
+	 * @param int $product_id Id produktu.
+	 * @return string
+	 */
+	private static function contents_sentence( int $product_id ): string {
+		$included_labels = array();
+
+		foreach ( self::ship_items( $product_id ) as $item ) {
+			if ( $item['included'] ) {
+				$included_labels[] = $item['label'];
+			}
+		}
+
+		if ( array() !== $included_labels ) {
+			return implode( ', ', $included_labels );
+		}
+
+		$fallback = get_option( ConditionManagementSettingsPage::FALLBACK_OPTION, '' );
+
+		return is_string( $fallback ) ? trim( $fallback ) : '';
 	}
 }

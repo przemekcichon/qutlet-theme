@@ -130,6 +130,25 @@ $stock_count         = ( null === $stock_quantity || $stock_quantity < 1 ) ? 1 :
 $is_last_stock_piece = $product->is_sold_individually() || $stock_count <= 1;
 
 /*
+ * Widget „Inne sztuki tego modelu" (P-22.4, agregacja po `global_unique_id`
+ * — realizuje ❓ P-6.10). Read-only, model „1 oferta = 1 produkt" (P-6.7)
+ * BEZ ZMIAN (D-6.7.3 ODRZUCONA dla tego zakresu). `ProductPage::other_pieces()`
+ * zwraca pustą tablicę, gdy jest mniej niż 2 sztuki tego GTIN — sekcja
+ * wtedy w ogóle się nie renderuje (`$has_other_pieces` niżej).
+ */
+$other_pieces          = ProductPage::other_pieces( $product_id );
+$has_other_pieces      = array() !== $other_pieces;
+$other_pieces_count    = count( $other_pieces );
+$other_pieces_cheapest = 0.0;
+
+foreach ( $other_pieces as $other_piece ) {
+	if ( $other_piece['is_cheapest'] ) {
+		$other_pieces_cheapest = $other_piece['price'];
+		break;
+	}
+}
+
+/*
  * Sekcja treści (P-8.2c): taby „Co w przesyłce" / „Opis i specyfikacja".
  * Zawartość zestawu = repeater ACF `zawartosc_zestawu_pozycje` (P-9.2,
  * D-9.2.1 — zastąpił WYSIWYG z P-1.2). Karuzela dostaje TYLKO wiersze ze
@@ -430,6 +449,151 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 			<?php endif; ?>
 		</div>
 	</div>
+
+	<?php if ( $has_other_pieces ) : ?>
+	<section class="ism" id="ism" data-layout="list">
+		<div class="ism-head">
+			<div>
+				<span class="ism-kicker">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+					<?php esc_html_e( 'Ten sam model', 'qutlet-theme' ); ?>
+				</span>
+				<h2><?php esc_html_e( 'Inne sztuki tego modelu', 'qutlet-theme' ); ?></h2>
+				<p class="ism-sub"><?php
+					echo wp_kses_post( sprintf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- oba argumenty przechodzą przez ProductPage::bold_text() (wp_kses_post + esc_html wewnątrz).
+						/* translators: 1: pogrubiona liczba sztuk (HTML), 2: pogrubiona cena najtańszej sztuki (HTML). */
+						__( 'Mamy ten model w %1$s — %2$s. Każda sztuka ma własną stronę, zdjęcia i klasę stanu. Wybierz egzemplarz, który Ci odpowiada.', 'qutlet-theme' ),
+						ProductPage::bold_text( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+							'%s',
+							sprintf(
+								/* translators: %d: liczba sztuk tego modelu. */
+								__( '%d sztukach', 'qutlet-theme' ),
+								$other_pieces_count
+							)
+						),
+						ProductPage::bold_text( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+							'%s',
+							sprintf(
+								/* translators: %s: cena najtańszej sztuki. */
+								__( 'od %s', 'qutlet-theme' ),
+								ProductPage::price_text( $other_pieces_cheapest )
+							)
+						)
+					) );
+				?></p>
+			</div>
+			<div class="ism-seg" role="tablist" aria-label="<?php esc_attr_e( 'Układ listy', 'qutlet-theme' ); ?>">
+				<button type="button" data-ism-layout="list" class="active" aria-label="<?php esc_attr_e( 'Widok listy', 'qutlet-theme' ); ?>">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+					<?php esc_html_e( 'Lista', 'qutlet-theme' ); ?>
+				</button>
+				<button type="button" data-ism-layout="cards" aria-label="<?php esc_attr_e( 'Widok kafelków', 'qutlet-theme' ); ?>">
+					<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+					<?php esc_html_e( 'Kafelki', 'qutlet-theme' ); ?>
+				</button>
+			</div>
+		</div>
+
+		<div class="ism-list">
+			<?php foreach ( $other_pieces as $piece ) : ?>
+				<a
+					href="<?php echo esc_url( $piece['permalink'] ); ?>"
+					class="ism-row<?php echo $piece['is_current'] ? ' current' : ''; ?>"
+					<?php echo $piece['is_current'] ? ' aria-current="page"' : ''; ?>
+				>
+					<div class="ism-thumb"><?php
+						if ( $piece['image_id'] > 0 ) {
+							echo wp_get_attachment_image( $piece['image_id'], 'thumbnail' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						}
+					?></div>
+					<div>
+						<div class="ism-pills">
+							<?php if ( '' !== $piece['condition_label'] ) : ?>
+								<span class="ism-cls"><span class="ism-dot" style="background:<?php echo esc_attr( $piece['condition_color'] ); ?>"></span><?php echo esc_html( $piece['condition_label'] ); ?></span>
+							<?php endif; ?>
+							<?php if ( $piece['is_cheapest'] ) : ?>
+								<span class="ism-cheap"><?php esc_html_e( 'Najniższa cena', 'qutlet-theme' ); ?></span>
+							<?php endif; ?>
+							<?php if ( $piece['is_current'] ) : ?>
+								<span class="ism-cur"><?php esc_html_e( 'Oglądasz teraz', 'qutlet-theme' ); ?></span>
+							<?php endif; ?>
+						</div>
+						<?php if ( '' !== $piece['contents_sentence'] ) : ?>
+							<div class="ism-contents"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg><span><?php echo esc_html( $piece['contents_sentence'] ); ?></span></div>
+						<?php endif; ?>
+					</div>
+					<div class="ism-right">
+						<div class="ism-price">
+							<div class="ism-now"><?php echo esc_html( $piece['price_text'] ); ?></div>
+							<?php if ( $piece['has_market_price'] ) : ?>
+								<div class="ism-old"><s><?php echo esc_html( $piece['market_price_text'] ); ?></s> <span class="save">-<?php echo esc_html( (string) $piece['save_percent'] ); ?>%</span></div>
+							<?php endif; ?>
+						</div>
+						<?php if ( $piece['is_current'] ) : ?>
+							<span class="ism-go cur"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="m9 12 2 2 4-4"></path></svg></span>
+						<?php else : ?>
+							<span class="ism-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></span>
+						<?php endif; ?>
+					</div>
+				</a>
+			<?php endforeach; ?>
+		</div>
+
+		<div class="ism-cards-wrap">
+			<button type="button" class="ism-car-btn prev" data-ism-prev aria-label="<?php esc_attr_e( 'Poprzednie', 'qutlet-theme' ); ?>"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>
+			<div class="ism-cards" data-ism-track>
+				<?php foreach ( $other_pieces as $piece ) : ?>
+					<a
+						href="<?php echo esc_url( $piece['permalink'] ); ?>"
+						class="ism-card<?php echo $piece['is_current'] ? ' current' : ''; ?>"
+						<?php echo $piece['is_current'] ? ' aria-current="page"' : ''; ?>
+					>
+						<div class="ism-card-img">
+							<?php if ( '' !== $piece['condition_label'] ) : ?>
+								<span class="ism-cls"><span class="ism-dot" style="background:<?php echo esc_attr( $piece['condition_color'] ); ?>"></span><?php echo esc_html( $piece['condition_label'] ); ?></span>
+							<?php endif; ?>
+							<?php if ( $piece['is_cheapest'] ) : ?>
+								<span class="ism-card-tr ism-cheap"><?php
+									/* translators: %s: price of the cheapest piece. */
+									echo esc_html( sprintf( __( 'Od %s', 'qutlet-theme' ), $piece['price_text'] ) );
+								?></span>
+							<?php endif; ?>
+							<?php if ( $piece['is_current'] ) : ?>
+								<span class="ism-card-bl ism-cur"><?php esc_html_e( 'Oglądasz teraz', 'qutlet-theme' ); ?></span>
+							<?php endif; ?>
+							<?php if ( $piece['image_id'] > 0 ) : ?>
+								<?php echo wp_get_attachment_image( $piece['image_id'], 'medium' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<?php endif; ?>
+						</div>
+						<div class="ism-card-body">
+							<?php if ( '' !== $piece['condition_label'] ) : ?>
+								<span class="ism-cond"><?php echo esc_html( $piece['condition_label'] ); ?></span>
+							<?php endif; ?>
+							<?php if ( '' !== $piece['contents_sentence'] ) : ?>
+								<div class="ism-card-contents"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg><span><?php echo esc_html( $piece['contents_sentence'] ); ?></span></div>
+							<?php endif; ?>
+							<div class="ism-card-price">
+								<span class="now"><?php echo esc_html( $piece['price_text'] ); ?></span>
+								<?php if ( $piece['has_market_price'] ) : ?>
+									<span class="old"><s><?php echo esc_html( $piece['market_price_text'] ); ?></s></span>
+									<span class="save">-<?php echo esc_html( (string) $piece['save_percent'] ); ?>%</span>
+								<?php endif; ?>
+							</div>
+							<?php if ( $piece['is_current'] ) : ?>
+								<span class="ism-cta cur"><?php esc_html_e( 'Ta strona', 'qutlet-theme' ); ?></span>
+							<?php else : ?>
+								<span class="ism-cta"><?php esc_html_e( 'Zobacz tę sztukę', 'qutlet-theme' ); ?> <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></span>
+							<?php endif; ?>
+						</div>
+					</a>
+				<?php endforeach; ?>
+			</div>
+			<button type="button" class="ism-car-btn next" data-ism-next aria-label="<?php esc_attr_e( 'Następne', 'qutlet-theme' ); ?>"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></button>
+		</div>
+
+		<p class="ism-fine"><?php esc_html_e( 'Ceny i dostępność każdej sztuki mogą się różnić — sztuka znika z listy po sprzedaży. Egzemplarze grupujemy po numerze GTIN modelu.', 'qutlet-theme' ); ?></p>
+	</section>
+	<?php endif; ?>
 
 	<?php if ( $has_ship || $has_desc ) : ?>
 	<div class="pd-tabs-section">
