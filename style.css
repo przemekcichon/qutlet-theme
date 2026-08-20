@@ -2152,6 +2152,17 @@ body.woocommerce-checkout .nlband { display: none; }
 .wc-block-cart-item__wrap .qutlet-cart-badges { grid-column: 1; grid-row: 2; }
 .qutlet-cart-badges { display: flex; gap: 8px; flex-wrap: wrap; }
 .wc-block-components-product-metadata:empty { display: none; }
+/* P-25.4 (D-25.4.1): w koszyku ten kontener bywa NIEPUSTY dla produktów z
+   przerobionym AI `post_content` (np. post 3810) — `:empty` wyżej go wtedy
+   nie łapie. Bez ograniczenia trafia do kolumny `auto` obok ceny i rozpycha
+   ją do szerokości swojej treści, zabierając miejsce kolumnie `1fr` z nazwą
+   (zmierzone: 434px kontenera opisu, nazwa spadała do 104px i ucinała się
+   do jednego słowa mimo `max-width:80%` wyżej). `cartRow()` w prototypie
+   (`design/vanilla/js/templates.js`) nie ma pola opisu w ogóle — kontener w
+   Koszyku jest całkowicie zbędny, chowamy go W CAŁOŚCI, scope'owane do
+   `.wc-block-cart-item__wrap` (nie global — w Kasie ten sam kontener jest
+   hostem `.qutlet-summary-meta`, patrz D-25.4.2 niżej). */
+.wc-block-cart-item__wrap .wc-block-components-product-metadata { display: none; }
 /* Pozycjonowanie (grid-column/row/justify-self/text-align) scope'owane do
    koszyka (`.wc-block-cart-item__wrap`) — w kasie ten sam element żyje w
    flex-column (patrz nota przy `.wc-block-components-product-name` wyżej),
@@ -3024,6 +3035,18 @@ body.woocommerce-checkout .wp-block-post-title {
    wyżej, sprawiał, że jednostkowa cena tu w ogóle była wytłuszczona/widoczna).
    Chowamy jednostkową, total-price zostaje jedyną widoczną ceną wiersza. */
 .wc-block-components-order-summary-item__description .wc-block-cart-item__prices {
+	display: none;
+}
+/* P-25.4 (D-25.4.2): dla produktów z przerobionym AI `post_content` (np.
+   post 3810) WC Blocks wypełnia `.wc-block-components-product-metadata__description`
+   surowym opisem (przycięty po stronie klienta, „…" w textContent) i renderuje
+   go NAD `.qutlet-summary-meta` — obcy, ok. 48px wysoki akapit między nazwą a
+   podpisem „Klasa · Gwarancja · N szt.". W Kasie kontener rodzica NIE kradnie
+   szerokości (flex-column narzucony kartą, nie treścią — inny mechanizm niż
+   Koszyk wyżej), więc chowamy WYŁĄCZNIE to dziecko, nie cały
+   `.wc-block-components-product-metadata` — ten kontener MUSI zostać
+   widoczny, to host wstrzyknięcia `.qutlet-summary-meta` niżej. */
+.wc-block-components-order-summary-item__description .wc-block-components-product-metadata__description {
 	display: none;
 }
 .wc-block-components-order-summary-item__total-price .wc-block-components-product-price__value {
