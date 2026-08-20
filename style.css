@@ -5,7 +5,7 @@ Theme URI:         https://github.com/przemekcichon/qutlet-theme
 Author:            Qutlet
 Author URI:        https://qutlet.pl
 Description:       Warstwa graficzna Qutlet — motyw blokowy. Renderuje dane dostarczane przez qutlet-core (WooCommerce + pola ACF). Nie rejestruje pól ACF ani CPT i nie zawiera glue do WooCommerce.
-Version:           0.1.29
+Version:           0.1.30
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           proprietary
@@ -1097,6 +1097,14 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 .page-btn[aria-disabled] { opacity: .4; cursor: default; }
 .pager-dots { color: var(--muted); padding-left: 4px; padding-right: 4px; }
+
+/* ---------- Wyniki wyszukiwania (P-23.4) ----------
+   Bez wzorca w design/vanilla (brak strony-referencji dla wyszukiwarki w
+   prototypie) — decyzja użytkownika (sesja 2026-08-20): osobne sekcje
+   Produkty/Wpisy blog, każda reużywa GOTOWY grid (.grid-3/.post-grid) i
+   nagłówek (.section-head-solo/.section-title), search.php. Odstęp
+   WYŁĄCZNIE między dwiema sekcjami (nie po jedynej/ostatniej). */
+.search-results-section + .search-results-section { margin-top: 46px; }
 
 /* ============================================================
    Blog „Drugi obieg" (P-8.4, rewizja P-11.3) — port design/vanilla/css/blog.css
