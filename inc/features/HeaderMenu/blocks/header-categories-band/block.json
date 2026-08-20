@@ -2,10 +2,10 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "qutlet/header-categories-band",
-	"title": "Qutlet: pigułki kategorii (belka)",
+	"title": "Qutlet: belka kategorii (pigułki)",
 	"category": "qutlet-header-menu",
 	"icon": "category",
-	"description": "Pigułki .subnav-band — pozycje menu `kategorie` z widoczna_na_belce=true.",
+	"description": "Pełny pasek .subnav-band: pigułki kategorii (widoczna_na_belce=true) + przycisk „Więcej”.",
 	"textdomain": "qutlet-theme",
 	"editorScript": "qutlet-header-menu-blocks-editor",
 	"supports": {
