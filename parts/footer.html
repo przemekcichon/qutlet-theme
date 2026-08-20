@@ -2,11 +2,17 @@
 <!--
 	Qutlet — footer + banner newslettera (port design/vanilla/partials/footer.html).
 	Ten baner (`.nlband`) to osobny, uproszczony formularz zapisu (adres
-	e-mail + przycisk) — NIE ten sam formularz co page-newsletter.php, więc
-	`action="#"`/`data-nlband-form` zostają jako placeholder do domknięcia
-	razem z resztą JS interakcji (poza zakresem P-8.5, patrz D-8.G3: theme
-	tylko osadza formularz, backend to wtyczka 3rd-party — handoff dotyczy
-	obu miejsc naraz). Trzy kolumny `.footer-col` (Sklep/Informacje/Pomoc)
+	e-mail + przycisk) — NIE ten sam formularz co page-newsletter.php.
+	Zamiast własnego zapisu (który dublowałby wpis do MailerLite, P-23.3),
+	`.nlband-form` (P-23.6) to zwykły formularz GET, `action="/newsletter/"`
+	— przekierowuje na Stronę Newsletter z parametrem `?email=…`, a pole
+	„Adres e-mail" formularza Gravity Forms ID 2 tam czyta ten parametr przez
+	natywny mechanizm GF „Allow field to be populated dynamically" (Parameter
+	Name `email`, włączone w konfiguracji formularza — poza repo). Faktyczny
+	zapis do MailerLite robi jedynie formularz GF na `/newsletter/`.
+	`data-nlband-form` zostaje jako stabilny hook (np. pod przyszłą analitykę),
+	bez żadnej logiki JS — samo przekierowanie działa natywnie przez
+	`method="get"`. Trzy kolumny `.footer-col` (Sklep/Informacje/Pomoc)
 	czytają realne menu WP przez blok `qutlet/footer-nav` (P-23.1, atrybut
 	`menuLocation`, lokalizacje `stopka-sklep`/`stopka-informacje`/
 	`stopka-pomoc`, `inc/features/FooterMenu/FooterMenu.php`) — kolumna
@@ -25,7 +31,7 @@
         <h2 class="nlband-title">Najlepsze sztuki <span class="lime">znikają pierwsze</span>.</h2>
         <p class="nlband-lead">Nowości, zamknięte okazje i sprzęt z górnej półki — zanim zobaczą je wszyscy. Bo mądry zakup to nie kwestia budżetu, tylko podejścia.</p>
       </div>
-      <form class="nlband-form" data-nlband-form action="#" method="get">
+      <form class="nlband-form" data-nlband-form action="/newsletter/" method="get">
         <div class="nlband-input-row">
           <input type="email" name="email" required placeholder="Twój adres e-mail" aria-label="Adres e-mail">
           <button type="submit" class="btn btn-lime">Dołączam</button>

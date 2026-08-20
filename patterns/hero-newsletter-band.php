@@ -13,6 +13,12 @@
  * `<main class="wrap">`; dublowanie `.wrap` podwoiłoby padding poziomy
  * (recenzja P-11.1, zweryfikowane runtime).
  *
+ * `.nlband-form` (P-23.6): jak w parts/footer.html — zwykły formularz GET,
+ * `action="/newsletter/"`, bez własnego zapisu; realny zapis do MailerLite
+ * robi formularz Gravity Forms ID 2 na Stronie Newsletter, który czyta
+ * parametr `?email=…` przez natywne GF „Allow field to be populated
+ * dynamically" (Parameter Name `email`).
+ *
  * @package Qutlet\Theme
  */
 
@@ -45,7 +51,7 @@ defined( 'ABSPATH' ) || exit;
 <!-- /wp:group -->
 
 <!-- wp:html -->
-<form class="nlband-form" data-nlband-form action="#" method="get">
+<form class="nlband-form" data-nlband-form action="/newsletter/" method="get">
 	<div class="nlband-input-row">
 		<input type="email" name="email" required placeholder="<?php echo esc_attr__( 'Twój adres e-mail', 'qutlet-theme' ); ?>" aria-label="<?php echo esc_attr__( 'Adres e-mail', 'qutlet-theme' ); ?>">
 		<button type="submit" class="btn btn-lime"><?php echo esc_html__( 'Dołączam', 'qutlet-theme' ); ?></button>
