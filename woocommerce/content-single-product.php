@@ -349,9 +349,36 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 						</div>
 					<?php endif; ?>
 				</div>
+				<?php else : ?>
+				<div class="pd-sold">
+					<span class="pd-sold-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 14.14 14.14"></path></svg></span>
+					<div class="pd-sold-txt">
+						<b><?php esc_html_e( 'Ta sztuka została sprzedana', 'qutlet-theme' ); ?></b>
+						<span><?php
+							if ( '' !== $condition_code ) {
+								echo esc_html(
+									sprintf(
+										/* translators: %s: condition code (A/B/C/D). */
+										__( 'To był pojedynczy egzemplarz w klasie %s — sprzedaż zakończona.', 'qutlet-theme' ),
+										$condition_code
+									)
+								);
+							} else {
+								esc_html_e( 'To był pojedynczy egzemplarz — sprzedaż zakończona.', 'qutlet-theme' );
+							}
+						?></span>
+					</div>
+				</div>
 				<?php endif; ?>
 
 				<?php woocommerce_template_single_add_to_cart(); ?>
+
+				<?php if ( ! $product->is_in_stock() && $has_other_pieces ) : ?>
+					<a class="btn-alt" href="#ism">
+						<?php esc_html_e( 'Zobacz inne sztuki tego modelu', 'qutlet-theme' ); ?>
+						<span class="btn-alt-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg></span>
+					</a>
+				<?php endif; ?>
 
 				<p class="pd-fine"><?php
 					if ( '' !== $condition_code && '' !== $claim_period_text ) {
@@ -866,6 +893,8 @@ if ( function_exists( 'wc' ) && wc()->structured_data ) {
 			<button type="submit" name="add-to-cart" value="<?php echo esc_attr( $product_id ); ?>" form="qutlet-add-to-cart-form" class="btn btn-primary" data-buybar-qutlet>
 				<?php esc_html_e( 'Dodaj', 'qutlet-theme' ); ?> <span><?php esc_html_e( 'do koszyka', 'qutlet-theme' ); ?></span>
 			</button>
+		<?php elseif ( $product->is_purchasable() ) : ?>
+			<button type="button" class="btn btn-primary is-disabled" disabled aria-disabled="true" data-buybar-qutlet><?php esc_html_e( 'Produkt niedostępny', 'qutlet-theme' ); ?></button>
 		<?php endif; ?>
 		<?php if ( $allegro_enabled ) : ?>
 			<a href="<?php echo esc_url( $allegro_url ); ?>" target="_blank" rel="noopener" class="btn-buybar-allegro" data-buybar-allegro data-allegro-only hidden><?php esc_html_e( 'Kup przez Allegro', 'qutlet-theme' ); ?></a>
