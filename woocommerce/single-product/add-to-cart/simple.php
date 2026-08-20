@@ -26,10 +26,10 @@
  *    WŁASNY custom stepper (`.pd-stepper`, `assets/js/product-stock-stepper.js`)
  *    tuż nad tym formularzem i syncuje jego wartość do tego ukrytego inputa —
  *    zero duplikacji logiki submit/walidacji (D-8.G1).
- * 3) natywny `wc_get_stock_html()` renderuje się TYLKO gdy produkt jest OUT
- *    OF STOCK — dla in-stock tę rolę przejął `.pd-stock`
- *    (`content-single-product.php`, P-22.3), więc podwójny badge byłby
- *    duplikacją tej samej informacji dwoma różnymi stylami.
+ * 3) gdy produkt jest OUT OF STOCK, renderuje się disabled `.btn-buy.is-disabled`
+ *    (port design/vanilla/produkt-wyprzedany.html, P-22.6) zamiast natywnego
+ *    `wc_get_stock_html()` — usunięte, bo dublowałoby informację, którą
+ *    `.pd-sold` (`content-single-product.php`, P-22.6) już przekazuje.
  *
  * @package Qutlet\Theme
  * @see     https://woocommerce.com/document/template-structure/
@@ -43,9 +43,14 @@ if ( ! $product->is_purchasable() ) {
 	return;
 }
 
-if ( ! $product->is_in_stock() ) {
-	echo wc_get_stock_html( $product ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-}
+if ( ! $product->is_in_stock() ) :
+	?>
+	<button type="button" class="btn-buy is-disabled" disabled aria-disabled="true">
+		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 2-1.58l1.65-7.42H5.12"></path></svg>
+		<?php esc_html_e( 'Produkt niedostępny', 'qutlet-theme' ); ?>
+	</button>
+	<?php
+endif;
 
 if ( $product->is_in_stock() ) :
 	?>
