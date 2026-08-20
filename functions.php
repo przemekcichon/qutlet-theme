@@ -45,6 +45,7 @@ $qutlet_theme_autoload = __DIR__ . '/vendor/autoload.php';
 if ( is_readable( $qutlet_theme_autoload ) ) {
 	require_once $qutlet_theme_autoload;
 
+	\Qutlet\Theme\features\Favicon\Favicon::boot();
 	\Qutlet\Theme\features\HeaderNav\HeaderNav::boot();
 	\Qutlet\Theme\features\HeaderMenu\HeaderMenu::boot();
 	\Qutlet\Theme\features\HeaderMenu\Blocks::boot();
