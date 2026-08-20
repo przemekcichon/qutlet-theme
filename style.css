@@ -201,8 +201,17 @@ a { color: inherit; }
    przeładowania, Wątek 3) bez rozgałęzień. Kolor/paleta świadomie NIE
    ruszone (D-22.7.3) — banner dziedziczy klasy WC Blocks
    (`wc-block-components-notice-banner is-success/is-error/is-info`,
-   `wc-blocks-style`), tu WYŁĄCZNIE pozycja/kształt/cień. */
-.woocommerce-notices-wrapper {
+   `wc-blocks-style`), tu WYŁĄCZNIE pozycja/kształt/cień.
+
+   Prefiks `body.single-product` (recenzja PR #54) — `.woocommerce-notices-wrapper`
+   to TA SAMA klasa, którą `woocommerce_output_all_notices()` renderuje też na
+   Koszyku/Kasie/Moje koncie/archiwum sklepu (i blok `wp:woocommerce/store-notices`
+   w `templates/page-cart.html`/`page-checkout.html`) — bez tego prefiksu ten
+   floating toast (zakres P-22.7 WYŁĄCZNIE strona produktu) po cichu zmieniałby
+   prezentację natywnych komunikatów Woo na stronach poza zakresem tego punktu.
+   `single-product` to natywna klasa WP na `<body>` singularnych stron CPT
+   `product` (`wp-includes/post-template.php`, `get_body_class()`). */
+body.single-product .woocommerce-notices-wrapper {
 	position: fixed;
 	right: 24px;
 	bottom: 24px;
@@ -213,7 +222,7 @@ a { color: inherit; }
 	gap: 10px;
 	pointer-events: none;
 }
-.woocommerce-notices-wrapper .wc-block-components-notice-banner {
+body.single-product .woocommerce-notices-wrapper .wc-block-components-notice-banner {
 	position: relative;
 	border-radius: var(--radius);
 	box-shadow: var(--shadow-pop);
@@ -223,7 +232,7 @@ a { color: inherit; }
 /* Przycisk „×" (D-22.7.2, brak auto-hide) — żaden szablon Woo
    (`templates/block-notices/*.php`) go nie renderuje, dokładany przez JS
    (`assets/js/product-add-to-cart-ajax.js`). */
-.woocommerce-notices-wrapper .toast-close {
+body.single-product .woocommerce-notices-wrapper .toast-close {
 	position: absolute;
 	top: 10px;
 	right: 10px;
@@ -244,7 +253,7 @@ a { color: inherit; }
    użytkownik klika „Dodaj" z buybara, byłby on najbardziej narażony na
    zasłonięcie świeżo pojawionego toastu. `:has()` unosi toast ponad bar,
    tylko gdy realnie widoczny (scroll-triggered, `assets/js/product-buy-tabs.js`). */
-body:has(.buybar.visible) .woocommerce-notices-wrapper {
+body.single-product:has(.buybar.visible) .woocommerce-notices-wrapper {
 	bottom: 100px;
 }
 
