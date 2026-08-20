@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * dostawały `style.css?ver=0.1.0` i serwowały stary, scache'owany plik mimo
  * realnych zmian w CSS na dysku. Bumpować OBIE wartości razem.
  */
-const VERSION = '0.1.86';
+const VERSION = '0.1.87';
 
 /*
  * Autoloader Composera (D-G1): ładowany z guardem. Brak `vendor/autoload.php`
@@ -46,6 +46,7 @@ if ( is_readable( $qutlet_theme_autoload ) ) {
 	require_once $qutlet_theme_autoload;
 
 	\Qutlet\Theme\features\Favicon\Favicon::boot();
+	\Qutlet\Theme\features\EditorPreferences\EditorPreferences::boot();
 	\Qutlet\Theme\features\HeaderNav\HeaderNav::boot();
 	\Qutlet\Theme\features\HeaderMenu\HeaderMenu::boot();
 	\Qutlet\Theme\features\HeaderMenu\Blocks::boot();
