@@ -13,6 +13,8 @@
 # przeszedł na blokowe templates/*.html, patrz nagłówek inc/features/Blog/Blog.php)
 # ORAZ block patterns (P-11.1: patterns/*.php — te same wywołania i18n/escaping
 # co page-*.php, tylko odkrywane auto-discovery WP zamiast hierarchii szablonów)
+# ORAZ search.php (P-23.4: klasyczny szablon wyników wyszukiwania, wybierany
+# przez `locate_block_template()` na tej samej zasadzie co page-*.php wyżej)
 # — to REALNY kod z logiką, nie deklaratywna powierzchnia jak
 # theme.json/templates/*.html/block.json (te faktycznie nie są PHP i zostają
 # poza analizą).
@@ -35,6 +37,7 @@ parameters:
         - page-polityka-prywatnosci.php
         - page-polityka-cookies.php
         - patterns/
+        - search.php
     excludePaths:
         - vendor/
     # Stuby WooCommerce — twarda zależność motywu (D-G5: theme → Woo + core).

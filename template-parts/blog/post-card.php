@@ -47,7 +47,7 @@ $primary_cat = $categories[0] ?? null;
 			<span class="post-read"><?php echo esc_html( Blog::reading_time_label( $post_id, false ) ); ?></span>
 		</div>
 		<h3><?php echo esc_html( get_the_title( $post_id ) ); ?></h3>
-		<p><?php echo esc_html( get_the_excerpt( $post_obj ) ); ?></p>
+		<p><?php echo wp_kses_post( get_the_excerpt( $post_obj ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- na wynikach wyszukiwania (P-23.4) Relevanssi podmienia `get_the_excerpt()` na fragment z podświetleniem (`<span class="excerpt_part">`/`<strong class="relevanssi-query-term">`) — `esc_html()` pokazywałoby te znaczniki jako czysty tekst. Na archiwum bloga excerpt jest zwykłym tekstem bez znaczników, `wp_kses_post()` tam nic nie zmienia. ?></p>
 		<div class="post-meta"><?php echo esc_html( get_the_date( 'j F Y', $post_id ) ); ?></div>
 	</div>
 </a>
