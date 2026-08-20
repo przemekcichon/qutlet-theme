@@ -32,10 +32,18 @@ defined( 'ABSPATH' ) || exit;
 
 get_header();
 
-$products_count = 0;
-$posts_count    = 0;
+$search_query    = get_search_query();
+$products_count  = 0;
+$posts_count     = 0;
 
-if ( have_posts() ) {
+// Licznik TYLKO dla niepustej frazy — dla pustej frazy `is_search()` (WP-core)
+// i Relevanssi NIE zawężają głównego zapytania (`Search::restrict_query()`
+// wychodzi wcześnie), więc `have_posts()` zwraca wtedy treść niezwiązaną z
+// wyszukiwaniem; port `design/vanilla/js/app.js:456-459` (`if (qn) {...}`),
+// który też liczy produkty/wpisy TYLKO dla niepustego zapytania — bez tego
+// warunku `.search-summary` pokazywałby mylącą, niezerową liczbę tuż nad
+// komunikatem pustego stanu „Wpisz, czego szukasz".
+if ( ! empty( $search_query ) && have_posts() ) {
 	while ( have_posts() ) :
 		the_post();
 
@@ -62,7 +70,6 @@ if ( have_posts() ) {
 
 $has_products = $products_count > 0;
 $has_posts    = $posts_count > 0;
-$search_query = get_search_query();
 
 // Link „strefa okazji"/„blog" we wspólnym komunikacie pustego stanu (oba
 // warianty niżej) — wzorem `wp_kses_post( sprintf( ... ) )` w
