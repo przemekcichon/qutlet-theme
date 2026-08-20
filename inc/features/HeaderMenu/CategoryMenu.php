@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Odczyt + grupowanie pozycji menu lokalizacji `kategorie` — jeden odczyt
  * `wp_get_nav_menu_items()` per request (memoizowany), dzielony między trzy
  * bloki dynamiczne (`qutlet/header-categories-band`, `qutlet/header-mega-grid`,
- * `qutlet/header-categories-mnav`) osadzone w `parts/header.html` (D-16.G4).
+ * `qutlet/header-mobile-nav`) osadzone w `parts/header.html` (D-16.G4).
  */
 final class CategoryMenu {
 

@@ -15,13 +15,16 @@
 	`method="get"`. Trzy kolumny `.footer-col` (Sklep/Informacje/Pomoc)
 	czytają realne menu WP przez blok `qutlet/footer-nav` (P-23.1, atrybut
 	`menuLocation`, lokalizacje `stopka-sklep`/`stopka-informacje`/
-	`stopka-pomoc`, `inc/features/FooterMenu/FooterMenu.php`) — kolumna
-	„Sklep" ma dziś puste menu (brak realnych linków do zmigrowania, treść to
-	decyzja admina PO merge'u P-23.1), pozostałe dwie zasiane startową
-	treścią WP-CLI. Banner ukrywany NA stronie newslettera przez klasę
-	`body.qt-hide-nlband` (`Help::filter_body_class()`, style.css) — zastępuje
-	`body[data-page="newsletter"]` z prototypu, którego block template canvas
-	nie ma jak przyjąć (D-8.G1).
+	`stopka-pomoc`, `inc/features/FooterMenu/FooterMenu.php`) — blok renderuje
+	CAŁĄ kolumnę (wrapper + nagłówek + linki, rozszerzone P-25.2b/D-25.2.1:
+	dawniej wrapper `.footer-col` był rozcięty na osobne fragmenty core/html
+	wokół bloku, co w Site Editorze psuło podgląd, patrz komentarz w
+	parts/header.html) — kolumna „Sklep" ma dziś puste menu (brak realnych
+	linków do zmigrowania, treść to decyzja admina PO merge'u P-23.1),
+	pozostałe dwie zasiane startową treścią WP-CLI. Banner ukrywany NA stronie
+	newslettera przez klasę `body.qt-hide-nlband` (`Help::filter_body_class()`,
+	style.css) — zastępuje `body[data-page="newsletter"]` z prototypu, którego
+	block template canvas nie ma jak przyjąć (D-8.G1).
 -->
 <section class="nlband">
   <div class="wrap">
@@ -51,30 +54,15 @@
       <span class="logo-sub">Elektronika outletowa</span>
       <p class="footer-about">Sprawdzona elektronika ze zwrotów konsumenckich i z drugiej ręki. Mniej e-waste, więcej rozsądnych zakupów.</p>
     </div>
-    <div class="footer-col">
-      <h5>Sklep</h5>
 <!-- /wp:html -->
 
 <!-- wp:qutlet/footer-nav {"menuLocation":"stopka-sklep"} /-->
 
-<!-- wp:html -->
-    </div>
-    <div class="footer-col">
-      <h5>Informacje</h5>
-<!-- /wp:html -->
-
 <!-- wp:qutlet/footer-nav {"menuLocation":"stopka-informacje"} /-->
-
-<!-- wp:html -->
-    </div>
-    <div class="footer-col">
-      <h5>Pomoc</h5>
-<!-- /wp:html -->
 
 <!-- wp:qutlet/footer-nav {"menuLocation":"stopka-pomoc"} /-->
 
 <!-- wp:html -->
-    </div>
   </div>
   <div class="wrap footer-bottom">
     <span>© 2026 Qutlet. Wszystkie produkty sprzedawane jako używane.</span>

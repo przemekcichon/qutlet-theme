@@ -5,7 +5,7 @@
 	"title": "Qutlet: menu kolumny stopki",
 	"category": "qutlet-footer-menu",
 	"icon": "menu",
-	"description": "Płaska lista linków .footer-col — pozycje menu przypisanego do lokalizacji `menuLocation`. Osadzany 3× w parts/footer.html, po jednym na kolumnę.",
+	"description": "Pełna kolumna .footer-col: nagłówek (wyprowadzony z `menuLocation`) + płaska lista linków menu przypisanego do tej lokalizacji. Osadzany 3× w parts/footer.html, po jednym na kolumnę.",
 	"textdomain": "qutlet-theme",
 	"editorScript": "qutlet-footer-menu-blocks-editor",
 	"attributes": {

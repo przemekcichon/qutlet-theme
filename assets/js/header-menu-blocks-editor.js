@@ -19,7 +19,7 @@
 		'qutlet/header-nav',
 		'qutlet/header-categories-band',
 		'qutlet/header-mega-grid',
-		'qutlet/header-categories-mnav',
+		'qutlet/header-mobile-nav',
 	];
 
 	BLOCK_NAMES.forEach( function ( name ) {

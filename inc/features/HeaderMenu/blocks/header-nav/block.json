@@ -2,10 +2,10 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "qutlet/header-nav",
-	"title": "Qutlet: menu nawigacyjne nagłówka",
+	"title": "Qutlet: pasek nawigacji nagłówka",
 	"category": "qutlet-header-menu",
 	"icon": "menu",
-	"description": "4 proste linki menu nawigacyjnego (.header-nav) — lokalizacja `nawigacja`.",
+	"description": "Pełny <nav class=\"header-nav\">: linki menu nawigacyjnego (lokalizacja `nawigacja`) + dropdowny koszyk/konto + hamburger.",
 	"textdomain": "qutlet-theme",
 	"editorScript": "qutlet-header-menu-blocks-editor",
 	"supports": {

@@ -7,6 +7,15 @@
 	kategorie) są placeholderem "#" do domknięcia w odpowiednim punkcie FAZY 8
 	(P-8.3); "/" (strona główna), "/blog/" (P-8.4) oraz "/jak-to-dziala/" i
 	"/pomoc/" (P-8.5) są stabilne już teraz.
+
+	Bloki dynamiczne `qutlet/header-*` (P-16.1/P-16.2b, rozszerzone P-25.2b/
+	D-25.2.1) renderują KOMPLETNE, samo-zagnieżdżone fragmenty (włącznie z
+	otaczającym statycznym wrapperem, m.in. <nav>, .mega[hidden],
+	.mnav-panel[hidden]) — nie dzielimy pojedynczego elementu HTML na kilka
+	bloków core/html z blokiem dynamicznym pomiędzy nimi: w Site Editorze
+	każdy fragment core/html renderuje się we WŁASNYM, piaskownicowym iframe,
+	więc taki podział psuł zagnieżdżenie i atrybut hidden w PODGLĄDZIE
+	edytora (front-end nie był dotknięty, ground-truth docs/plan.md D-25.2.1).
 -->
 <header class="site-header">
   <div class="wrap header-row">
@@ -18,75 +27,22 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a59cae" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
       <input type="search" name="s" placeholder="Szukaj: smartfon, laptop, słuchawki…" aria-label="Szukaj">
     </form>
-
-    <nav class="header-nav">
 <!-- /wp:html -->
 
 <!-- wp:qutlet/header-nav /-->
 
 <!-- wp:html -->
-      <div class="header-menu-wrap">
-        <button type="button" class="icon-btn" data-toggle-menu="cart" aria-label="Koszyk">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-          <span class="cart-badge" data-cart-count hidden>0</span>
-        </button>
-        <div class="dropdown cart-menu" data-menu="cart" hidden></div>
-      </div>
-
-      <div class="header-menu-wrap">
-        <button type="button" class="icon-btn" data-toggle-menu="account" aria-label="Moje konto">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"></path></svg>
-        </button>
-        <div class="dropdown acct-menu" data-menu="account" hidden></div>
-      </div>
-
-      <button type="button" class="icon-btn mnav-toggle" data-open-mnav aria-label="Menu">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
-      </button>
-    </nav>
   </div>
-
-  <div class="subnav-band">
-    <div class="wrap subnav">
 <!-- /wp:html -->
 
 <!-- wp:qutlet/header-categories-band /-->
 
-<!-- wp:html -->
-      <button type="button" class="more-btn" data-toggle-mega>
-        Więcej
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
-      </button>
-    </div>
-  </div>
-
-  <div class="mega" data-mega hidden>
-<!-- /wp:html -->
-
 <!-- wp:qutlet/header-mega-grid /-->
 
 <!-- wp:html -->
-  </div>
 </header>
 
 <!-- Mobilna nawigacja (sheet) -->
-<div class="mnav-overlay" data-mnav hidden>
-  <div class="mnav-panel">
-    <button type="button" class="icon-btn mnav-close" data-close-mnav aria-label="Zamknij">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
-    </button>
-    <!-- /wp:html -->
-
-    <!-- wp:qutlet/header-categories-mnav /-->
-
-    <!-- wp:html -->
-    <a href="#" class="mnav-link">Wszystkie kategorie</a>
-    <div class="mnav-sep"></div>
-    <a href="#" class="mnav-link">Strefa okazji</a>
-    <a href="/jak-to-dziala/" class="mnav-link">Jak to działa?</a>
-    <a href="/blog/" class="mnav-link">Blog „Drugi obieg”</a>
-    <a href="/pomoc/" class="mnav-link">Pomoc</a>
-    <a href="#" class="mnav-link" data-mnav-account>Zaloguj się</a>
-  </div>
-</div>
 <!-- /wp:html -->
+
+<!-- wp:qutlet/header-mobile-nav /-->
