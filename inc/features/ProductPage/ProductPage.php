@@ -37,6 +37,8 @@ final class ProductPage {
 	public static function boot(): void {
 		add_action( 'wp_enqueue_scripts', array( self::class, 'enqueue' ) );
 		add_filter( 'body_class', array( self::class, 'body_class' ) );
+		add_action( 'woocommerce_ajax_added_to_cart', array( self::class, 'ajax_add_to_cart_message' ) );
+		add_filter( 'woocommerce_add_to_cart_fragments', array( self::class, 'ajax_add_to_cart_notices_fragment' ) );
 	}
 
 	/**
@@ -88,6 +90,59 @@ final class ProductPage {
 			\Qutlet\Theme\VERSION,
 			true
 		);
+
+		// P-22.7: `jquery` — most do natywnego jQuery `added_to_cart`
+		// (`woocommerce/assets/js/frontend/add-to-cart.js`, enqueued sitewide
+		// przez WooCommerce niezależnie od tego motywu), które ten skrypt
+		// ręcznie wyzwala po sukcesie AJAX (D-22.7.4, D-8.G1 — zero
+		// duplikacji podmiany fragmentów).
+		wp_enqueue_script(
+			'qutlet-theme-product-add-to-cart-ajax',
+			get_theme_file_uri( 'assets/js/product-add-to-cart-ajax.js' ),
+			array( 'jquery' ),
+			\Qutlet\Theme\VERSION,
+			true
+		);
+	}
+
+	/**
+	 * Kolejkuje komunikat sukcesu do sesji Woo na AJAX add-to-cart (P-22.7,
+	 * Wątek 5, D-22.7.5) — `WC_AJAX::add_to_cart()` woła
+	 * `wc_add_to_cart_message()` WYŁĄCZNIE gdy
+	 * `woocommerce_cart_redirect_after_add=yes` (`class-wc-ajax.php:545-547`),
+	 * u nas `no` (brak przekierowania do koszyka po dodaniu) — bez tego haka
+	 * fragment `.woocommerce-notices-wrapper` ({@see self::ajax_add_to_cart_notices_fragment()})
+	 * byłby zawsze pusty na ścieżce sukcesu.
+	 *
+	 * @param int $product_id Id dodanego produktu (`woocommerce_ajax_added_to_cart`).
+	 * @return void
+	 */
+	public static function ajax_add_to_cart_message( int $product_id ): void {
+		wc_add_to_cart_message( $product_id, true );
+	}
+
+	/**
+	 * Dorzuca `.woocommerce-notices-wrapper` do fragmentów AJAX add-to-cart
+	 * (P-22.7, Wątek 2/5, D-22.7.5) — natywny `WC_AJAX::get_refreshed_fragments()`
+	 * niesie WYŁĄCZNIE mini-koszyk (`div.widget_shopping_cart_content`), więc
+	 * bez tego komunikat zakolejkowany w {@see self::ajax_add_to_cart_message()}
+	 * nigdy nie trafiłby do DOM. `wc_print_notices( true )` respektuje
+	 * podmiankę na warianty blokowe WC Blocks (`Notices::get_notices_template()`,
+	 * `wp_is_block_theme()` zawsze `true` niezależnie od kontekstu requestu) —
+	 * ta sama markup/i18n co przy pełnym przeładowaniu strony
+	 * (`woocommerce_output_all_notices()`), zero duplikacji.
+	 *
+	 * @param array<string, string> $fragments Fragmenty Woo (selektor => HTML).
+	 * @return array<string, string>
+	 */
+	public static function ajax_add_to_cart_notices_fragment( array $fragments ): array {
+		if ( ! function_exists( 'wc_print_notices' ) ) {
+			return $fragments;
+		}
+
+		$fragments['.woocommerce-notices-wrapper'] = '<div class="woocommerce-notices-wrapper">' . wc_print_notices( true ) . '</div>';
+
+		return $fragments;
 	}
 
 	/**

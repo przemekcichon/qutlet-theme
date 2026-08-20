@@ -179,16 +179,73 @@ a { color: inherit; }
    sam z siebie nic nie ogranicza — stąd ten nagłówek (i bez tej poprawki
    też `.grid-3`/toolbar filtrów, patrz loop-start.php/filters-and-sort.php)
    rozlewał się na całą szerokość ekranu. `.woocommerce-notices-wrapper`
-   (P-22.1) tym samym wzorcem — hook `woocommerce_before_single_product`
-   echoje ten wrapper w `content-single-product.php` przed otwarciem
-   `<div class="wrap">`, więc renderuje się jako jego rodzeństwo i bez
-   własnego wpisu też rozlewał się na całą szerokość. */
-.wrap, .woocommerce-products-header, .woocommerce-notices-wrapper {
+   (P-22.1) świadomie WYPADA z tej reguły od P-22.7/D-22.7.6 — patrz jego
+   własna reguła niżej („Toast »dodano do koszyka«"). */
+.wrap, .woocommerce-products-header {
 	max-width: 1240px;
 	margin-left: auto;
 	margin-right: auto;
 	padding-left: 24px;
 	padding-right: 24px;
+}
+
+/* ---------- Toast „dodano do koszyka" (P-22.7) ---------- */
+/* `.woocommerce-notices-wrapper` (P-22.1, hook `woocommerce_before_single_product`
+   w `content-single-product.php`) — komunikat „dodano do koszyka" przestaje
+   być paskiem WEWNĄTRZ treści strony (przesuwał layout w dół) i staje się
+   floating toastem prawy-dół, `position:fixed` (D-22.7.6). Element ISTNIEJE
+   ZAWSZE w DOM, ale PUSTY (`childCount:0`) przy braku komunikatu
+   (zweryfikowane runtime, P-22.7 Wątek 4) — `position:fixed` na pustym divie
+   jest niewidoczne, więc JEDNA reguła bezwarunkowo obsługuje zarówno sukces
+   (fragment AJAX, D-22.7.4/D-22.7.5) jak i błąd (natywny fallback pełnego
+   przeładowania, Wątek 3) bez rozgałęzień. Kolor/paleta świadomie NIE
+   ruszone (D-22.7.3) — banner dziedziczy klasy WC Blocks
+   (`wc-block-components-notice-banner is-success/is-error/is-info`,
+   `wc-blocks-style`), tu WYŁĄCZNIE pozycja/kształt/cień. */
+.woocommerce-notices-wrapper {
+	position: fixed;
+	right: 24px;
+	bottom: 24px;
+	z-index: 100;
+	width: min(380px, calc(100vw - 48px));
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	pointer-events: none;
+}
+.woocommerce-notices-wrapper .wc-block-components-notice-banner {
+	position: relative;
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-pop);
+	padding-right: 44px;
+	pointer-events: auto;
+}
+/* Przycisk „×" (D-22.7.2, brak auto-hide) — żaden szablon Woo
+   (`templates/block-notices/*.php`) go nie renderuje, dokładany przez JS
+   (`assets/js/product-add-to-cart-ajax.js`). */
+.woocommerce-notices-wrapper .toast-close {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	width: 24px;
+	height: 24px;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, .55);
+	color: inherit;
+	font-size: 18px;
+	line-height: 1;
+	cursor: pointer;
+	display: grid;
+	place-items: center;
+}
+/* Sticky buybar (`.buybar.visible`, niżej) jest globalnym fixed-bottom barem
+   BEZ media query ograniczającego go do mobile — dokładnie wtedy, gdy
+   użytkownik klika „Dodaj" z buybara, byłby on najbardziej narażony na
+   zasłonięcie świeżo pojawionego toastu. `:has()` unosi toast ponad bar,
+   tylko gdy realnie widoczny (scroll-triggered, `assets/js/product-buy-tabs.js`). */
+body:has(.buybar.visible) .woocommerce-notices-wrapper {
+	bottom: 100px;
 }
 
 /* ---------- Przyciski / badge / pigułki ---------- */
