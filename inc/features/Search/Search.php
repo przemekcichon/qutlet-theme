@@ -68,4 +68,31 @@ final class Search {
 
 		$query->set( 'post_type', self::SEARCHABLE_POST_TYPES );
 	}
+
+	/**
+	 * Polska odmiana liczebnika (1 / 2-4 poza 12-14 / pozostałe, w tym 0) —
+	 * PORT `QT.plural` (`design/vanilla/js/data.js:104`), zwraca gotowe
+	 * „N słowo" (`.search-summary`/`.results-section-count`, search.php).
+	 * Konkatenacja liczby + przetłumaczonej formy bez dodatkowego owijania w
+	 * `__()` — sam wzorzec placeholderów nie niesie treści do tłumaczenia
+	 * (kolejność liczba→słowo jest tu stała, nie językowa), wzorem
+	 * `ProductCard::qty_label()`.
+	 *
+	 * @param int    $count Liczba.
+	 * @param string $one   Forma dla 1.
+	 * @param string $few   Forma dla 2-4 (poza 12-14).
+	 * @param string $many  Forma dla pozostałych (w tym 0).
+	 * @return string
+	 */
+	public static function count_label( int $count, string $one, string $few, string $many ): string {
+		if ( 1 === $count ) {
+			$word = $one;
+		} else {
+			$mod10  = $count % 10;
+			$mod100 = $count % 100;
+			$word   = ( $mod10 >= 2 && $mod10 <= 4 && ! ( $mod100 >= 12 && $mod100 <= 14 ) ) ? $few : $many;
+		}
+
+		return $count . ' ' . $word;
+	}
 }

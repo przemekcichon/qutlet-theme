@@ -26,15 +26,24 @@
 declare( strict_types=1 );
 
 use Qutlet\Theme\features\Blog\Blog;
+use Qutlet\Theme\features\Search\Search;
 
 defined( 'ABSPATH' ) || exit;
 
 get_header();
 
-$has_products = false;
-$has_posts    = false;
+$search_query    = get_search_query();
+$products_count  = 0;
+$posts_count     = 0;
 
-if ( have_posts() ) {
+// Licznik TYLKO dla niepustej frazy — dla pustej frazy `is_search()` (WP-core)
+// i Relevanssi NIE zawężają głównego zapytania (`Search::restrict_query()`
+// wychodzi wcześnie), więc `have_posts()` zwraca wtedy treść niezwiązaną z
+// wyszukiwaniem; port `design/vanilla/js/app.js:456-459` (`if (qn) {...}`),
+// który też liczy produkty/wpisy TYLKO dla niepustego zapytania — bez tego
+// warunku `.search-summary` pokazywałby mylącą, niezerową liczbę tuż nad
+// komunikatem pustego stanu „Wpisz, czego szukasz".
+if ( ! empty( $search_query ) && have_posts() ) {
 	while ( have_posts() ) :
 		the_post();
 
@@ -50,14 +59,27 @@ if ( have_posts() ) {
 			$found_product = wc_get_product( get_the_ID() );
 
 			if ( $found_product instanceof WC_Product && $found_product->is_visible() ) {
-				$has_products = true;
+				++$products_count;
 			}
 		} elseif ( 'post' === get_post_type() ) {
-			$has_posts = true;
+			++$posts_count;
 		}
 	endwhile;
 	rewind_posts();
 }
+
+$has_products = $products_count > 0;
+$has_posts    = $posts_count > 0;
+
+// Link „strefa okazji"/„blog" we wspólnym komunikacie pustego stanu (oba
+// warianty niżej) — wzorem `wp_kses_post( sprintf( ... ) )` w
+// `woocommerce/content-product.php`, bo sprintf wstawia gotowe znaczniki `<a>`.
+$empty_state_links = sprintf(
+	/* translators: 1: link do strefy okazji, 2: link do bloga. */
+	__( 'Spróbuj innego hasła albo przejdź do %1$s lub %2$s.', 'qutlet-theme' ),
+	'<a href="' . esc_url( '/strefa-okazji/' ) . '">' . esc_html__( 'strefy okazji', 'qutlet-theme' ) . '</a>',
+	'<a href="' . esc_url( Blog::blog_url() ) . '">' . esc_html__( 'bloga', 'qutlet-theme' ) . '</a>'
+);
 ?>
 <main class="wrap page-main">
 	<nav class="breadcrumbs">
@@ -71,24 +93,47 @@ if ( have_posts() ) {
 			printf(
 				/* translators: %s: wyszukiwana fraza. */
 				esc_html__( 'Wyniki wyszukiwania dla „%s”', 'qutlet-theme' ),
-				esc_html( get_search_query() )
+				esc_html( $search_query )
 			);
 			?>
 		</h1>
+		<p class="search-summary">
+			<b><?php echo esc_html( Search::count_label( $products_count + $posts_count, __( 'wynik', 'qutlet-theme' ), __( 'wyniki', 'qutlet-theme' ), __( 'wyników', 'qutlet-theme' ) ) ); ?></b>
+			— <?php esc_html_e( 'produkty i wpisy na blogu.', 'qutlet-theme' ); ?>
+		</p>
 	</div>
 
-	<?php if ( ! $has_products && ! $has_posts ) : ?>
+	<?php if ( empty( $search_query ) ) : ?>
 		<div class="empty-state">
 			<svg width="56" height="56" viewBox="0 0 24 24" fill="none" class="empty-icon" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path><path d="M8 11h6"></path></svg>
-			<h3><?php esc_html_e( 'Brak wyników dla podanej frazy', 'qutlet-theme' ); ?></h3>
-			<p><?php esc_html_e( 'Spróbuj innego słowa kluczowego albo sprawdź pisownię.', 'qutlet-theme' ); ?></p>
+			<h3><?php esc_html_e( 'Wpisz, czego szukasz', 'qutlet-theme' ); ?></h3>
+			<p><?php echo wp_kses_post( $empty_state_links ); ?></p>
+		</div>
+	<?php elseif ( ! $has_products && ! $has_posts ) : ?>
+		<div class="empty-state">
+			<svg width="56" height="56" viewBox="0 0 24 24" fill="none" class="empty-icon" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path><path d="M8 11h6"></path></svg>
+			<h3>
+				<?php
+				printf(
+					/* translators: %s: wyszukiwana fraza. */
+					esc_html__( 'Brak wyników dla „%s”', 'qutlet-theme' ),
+					esc_html( $search_query )
+				);
+				?>
+			</h3>
+			<p><?php echo wp_kses_post( $empty_state_links ); ?></p>
 		</div>
 	<?php else : ?>
 
 		<?php if ( $has_products ) : ?>
-			<section class="search-results-section">
-				<div class="section-head-solo">
-					<h2 class="section-title"><?php esc_html_e( 'Produkty', 'qutlet-theme' ); ?></h2>
+			<section class="results-section">
+				<div class="results-section-head">
+					<h2><?php esc_html_e( 'Produkty', 'qutlet-theme' ); ?></h2>
+					<span class="results-section-count"><?php echo esc_html( Search::count_label( $products_count, __( 'produkt', 'qutlet-theme' ), __( 'produkty', 'qutlet-theme' ), __( 'produktów', 'qutlet-theme' ) ) ); ?></span>
+					<a class="results-section-more" href="<?php echo esc_url( '/strefa-okazji/' ); ?>">
+						<?php esc_html_e( 'Cała strefa okazji', 'qutlet-theme' ); ?>
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+					</a>
 				</div>
 				<div class="grid-3">
 					<?php
@@ -106,9 +151,14 @@ if ( have_posts() ) {
 		<?php endif; ?>
 
 		<?php if ( $has_posts ) : ?>
-			<section class="search-results-section">
-				<div class="section-head-solo">
-					<h2 class="section-title"><?php esc_html_e( 'Wpisy blog', 'qutlet-theme' ); ?></h2>
+			<section class="results-section">
+				<div class="results-section-head">
+					<h2><?php esc_html_e( 'Wpisy na blogu', 'qutlet-theme' ); ?></h2>
+					<span class="results-section-count"><?php echo esc_html( Search::count_label( $posts_count, __( 'wpis', 'qutlet-theme' ), __( 'wpisy', 'qutlet-theme' ), __( 'wpisów', 'qutlet-theme' ) ) ); ?></span>
+					<a class="results-section-more" href="<?php echo esc_url( Blog::blog_url() ); ?>">
+						<?php esc_html_e( 'Cały blog „Drugi obieg”', 'qutlet-theme' ); ?>
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+					</a>
 				</div>
 				<div class="post-grid">
 					<?php

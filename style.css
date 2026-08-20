@@ -1104,13 +1104,21 @@ body.allegro-off .info-card-amber h4 { color: inherit; }
 .page-btn[aria-disabled] { opacity: .4; cursor: default; }
 .pager-dots { color: var(--muted); padding-left: 4px; padding-right: 4px; }
 
-/* ---------- Wyniki wyszukiwania (P-23.4) ----------
-   Bez wzorca w design/vanilla (brak strony-referencji dla wyszukiwarki w
-   prototypie) — decyzja użytkownika (sesja 2026-08-20): osobne sekcje
-   Produkty/Wpisy blog, każda reużywa GOTOWY grid (.grid-3/.post-grid) i
-   nagłówek (.section-head-solo/.section-title), search.php. Odstęp
-   WYŁĄCZNIE między dwiema sekcjami (nie po jedynej/ostatniej). */
-.search-results-section + .search-results-section { margin-top: 46px; }
+/* ---------- Wyniki wyszukiwania (P-23.4, nagłówek sekcji P-25.1) ----------
+   Port 1:1 `design/vanilla/css/style.css:1153-1163` (bez `.section-empty` —
+   D-25.1, sekcja jednego typu z zerem wyników jest w search.php POMIJANA
+   całkowicie, nie renderowana jako pusta z komunikatem). Klasy DEDYKOWANE
+   tej stronie (nie `.section-head-solo`/`.section-title`, współdzielone z
+   innymi stronami — patrz komentarz w search.php). */
+.search-summary { font-size: 15px; color: var(--ink-soft); margin-top: 4px; }
+.search-summary b { color: var(--ink); font-weight: 800; }
+.results-section { margin-top: 44px; }
+.results-section:first-of-type { margin-top: 0; }
+.results-section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.results-section-head h2 { font-family: var(--font-display); font-size: 22px; font-weight: 800; letter-spacing: -.02em; margin: 0; }
+.results-section-count { font-size: 14px; font-weight: 700; color: var(--muted); }
+.results-section-more { margin-left: auto; font-size: 14px; font-weight: 700; color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.results-section-more:hover { text-decoration: underline; }
 
 /* ============================================================
    Blog „Drugi obieg" (P-8.4, rewizja P-11.3) — port design/vanilla/css/blog.css
