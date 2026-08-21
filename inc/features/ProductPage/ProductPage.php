@@ -218,7 +218,7 @@ final class ProductPage {
 	 * @return array{term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int}|null
 	 */
 	public static function condition_definition( string $code ): ?array {
-		if ( '' === $code ) {
+		if ( '' === $code || ! class_exists( ClassDefinitionsTaxonomy::class ) ) {
 			return null;
 		}
 
@@ -236,6 +236,10 @@ final class ProductPage {
 	 * @return array{kod: string, term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int, gwarancja_opis: string, reklamacja_opis: string}|null
 	 */
 	public static function condition_for_product( int $product_id ): ?array {
+		if ( ! class_exists( ClassDefinitionsTaxonomy::class ) ) {
+			return null;
+		}
+
 		return ClassDefinitionsTaxonomy::for_product( $product_id );
 	}
 
@@ -247,6 +251,10 @@ final class ProductPage {
 	 * @return array<string, array{term_id: int, nazwa: string, kolor: string, opis_chip: string, stan_wizualny: string, charakterystyka: string, dlaczego_taniej: string, okres_gwarancji_miesiace: int, okres_reklamacji_miesiace: int, gwarancja_opis: string, reklamacja_opis: string}>
 	 */
 	public static function all_condition_definitions(): array {
+		if ( ! class_exists( ClassDefinitionsTaxonomy::class ) ) {
+			return array();
+		}
+
 		return ClassDefinitionsTaxonomy::all();
 	}
 
