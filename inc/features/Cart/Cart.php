@@ -9,7 +9,10 @@
  * których stock cart item Woo nie ma (klasa stanu, stara cena/oszczędności —
  * kontrakt §2/§6), dostarcza WooCommerce Blocks Integration: Store API
  * `woocommerce_store_api_register_endpoint_data()` (namespace `qutlet-klasa`,
- * endpointy `cart-item` i `cart`) + JS wstrzykujący węzły DOM na podstawie
+ * endpointy `cart-item` i `cart`), rejestrowane od P-26.2 przez
+ * `\Qutlet\Core\Cart\CartStoreApiData` w `qutlet-core` (glue do WooCommerce
+ * — wg `CLAUDE.md` nie żyje w motywie, audyt bezpieczeństwa 2026-08-21,
+ * ustalenie #1) + JS wstrzykujący węzły DOM na podstawie
  * `wp.data.select('wc/store/cart')` (`CartBlocksIntegration`,
  * `assets/js/cart-block-filters.js`).
  *
@@ -33,37 +36,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Bootstrap + dane Cart Block i mini-koszyka headera.
+ *
+ * P-26.2: dane Store API (`register_store_api_data()`/`cart_item_data()`/
+ * `cart_item_schema()`/`cart_totals_data()`/`cart_totals_schema()`)
+ * przeniesione do `\Qutlet\Core\Cart\CartStoreApiData` (glue do WooCommerce
+ * — `CLAUDE.md`). Ta klasa zostaje odpowiedzialna wyłącznie za warstwę
+ * graficzną: blocks integration Cart Block i mini-koszyk headera.
  */
 final class Cart {
 
 	/**
-	 * Namespace danych rozszerzających Store API (`item.extensions.<ns>`).
-	 *
-	 * @var string
-	 */
-	const EXTENSION_NAMESPACE = 'qutlet-klasa';
-
-	/**
-	 * Podpina hooki bootstrapu (D-8.6a.1, D-8.6a.3).
-	 *
-	 * `woocommerce_blocks_loaded` odpala się z konstruktora `Bootstrap`
-	 * (`src/Blocks/Domain/Bootstrap.php`), zwykle na `plugins_loaded` —
-	 * czyli PRZED tym, jak motyw w ogóle zdąży wykonać `functions.php`
-	 * (kolejność bootu WP: plugins_loaded → setup_theme). `add_action()` po
-	 * fakcie nigdy by się nie odpalił, więc rejestrujemy się WPROST, gdy hook
-	 * już przeleciał — ten sam wzorzec obronny co natywne
-	 * `woocommerce_register_additional_checkout_field()`
-	 * (`src/Blocks/Domain/Services/functions.php:17-26`).
+	 * Podpina hooki bootstrapu (D-8.6a.3).
 	 *
 	 * @return void
 	 */
 	public static function boot(): void {
-		if ( did_action( 'woocommerce_blocks_loaded' ) ) {
-			self::register_store_api_data();
-		} else {
-			add_action( 'woocommerce_blocks_loaded', array( self::class, 'register_store_api_data' ) );
-		}
-
 		add_action( 'woocommerce_blocks_cart_block_registration', array( self::class, 'register_blocks_integration' ) );
 		add_filter( 'woocommerce_add_to_cart_fragments', array( self::class, 'cart_fragments' ) );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'enqueue_cart_fragments' ) );
@@ -91,202 +78,6 @@ final class Cart {
 	 */
 	public static function register_blocks_integration( $registry ): void {
 		$registry->register( new CartBlocksIntegration() );
-	}
-
-	/**
-	 * Rejestruje rozszerzenia schematu Store API dla `cart-item` i `cart`.
-	 *
-	 * @return void
-	 */
-	public static function register_store_api_data(): void {
-		if ( ! function_exists( 'woocommerce_store_api_register_endpoint_data' ) ) {
-			return;
-		}
-
-		woocommerce_store_api_register_endpoint_data(
-			array(
-				// Literał 'cart-item', nie CartItemSchema::IDENTIFIER — klasa żyje w
-				// src/StoreApi (WooCommerce), poza zasięgiem woocommerce-stubs (PHPStan).
-				'endpoint'        => 'cart-item',
-				'namespace'       => self::EXTENSION_NAMESPACE,
-				'data_callback'   => array( self::class, 'cart_item_data' ),
-				'schema_callback' => array( self::class, 'cart_item_schema' ),
-				'schema_type'     => ARRAY_A,
-			)
-		);
-
-		woocommerce_store_api_register_endpoint_data(
-			array(
-				'endpoint'        => 'cart',
-				'namespace'       => self::EXTENSION_NAMESPACE,
-				'data_callback'   => array( self::class, 'cart_totals_data' ),
-				'schema_callback' => array( self::class, 'cart_totals_schema' ),
-				'schema_type'     => ARRAY_A,
-			)
-		);
-	}
-
-	/**
-	 * Dane per-wiersz koszyka: klasa stanu + kolor + gwarancja/reklamacja +
-	 * stara cena (kontrakt §2/§2.2, P-12.1b — REWIZJA: `klasa_kolor`/
-	 * `gwarancja_text`/`reklamacja_text` czytane z bytu {@see
-	 * \Qutlet\Core\ProductCondition\ClassDefinitionsTaxonomy} przez {@see
-	 * ProductPage::condition_for_product()} (P-12.2c — REWIZJA: relacja
-	 * per-produkt, nie literał + join po `kod`), dawniej „Gwarancja 1 rok" był
-	 * gołym literałem w `assets/js/cart-block-filters.js`, reklamacja wcale
-	 * nie była pokazywana). TE SAME dane czyta blok Checkout (`assets/js/
-	 * checkout-block-filters.js`) — D-12.G2, endpoint Store API `cart-item`
-	 * jest współdzielony między Cart i Checkout, więc kasa dostaje je bez
-	 * osobnej rejestracji.
-	 *
-	 * Stara cena wróciła po jednej sesji bez niej (usunięta, potem
-	 * przywrócona — decyzje użytkownika, sesja 2026-08-05) — problemem nie
-	 * było samo pole, tylko układ, w którym nierówna wysokość wiersza
-	 * (przez `.cart-old-price`) rozjeżdżała odznaki/ilość/usuń między
-	 * produktami. Finalny layout (patrz `style.css`, jawne `grid-row` na
-	 * każdym elemencie) ma na to miejsce zarezerwowane niezależnie od tego,
-	 * czy się wypełni.
-	 *
-	 * @param array $cart_item Wiersz koszyka (`WC_Cart::get_cart()`).
-	 * @return array<string, string>
-	 */
-	public static function cart_item_data( array $cart_item ): array {
-		$product = $cart_item['data'] ?? null;
-
-		if ( ! $product instanceof \WC_Product ) {
-			return array();
-		}
-
-		$product_id     = $product->get_id();
-		$definition     = ProductPage::condition_for_product( $product_id ); // P-12.2c: relacja, nie literał + join po `kod`.
-		$condition_code = $definition['kod'] ?? '';
-		$market_price   = (float) ProductPage::acf_field( 'cena_rynkowa_nowego', $product_id );
-		$sale_price     = (float) $product->get_price();
-
-		return array(
-			'klasa_stanu'            => $condition_code,
-			'klasa_kolor'            => $definition['kolor'] ?? '',
-			'gwarancja_text'         => null !== $definition ? sprintf(
-				/* translators: %s: formatted warranty period (e.g. "1 rok"). */
-				__( 'Gwarancja %s', 'qutlet-theme' ),
-				ProductPage::period_years_text( $definition['okres_gwarancji_miesiace'] )
-			) : '',
-			'reklamacja_text'        => null !== $definition ? sprintf(
-				/* translators: %s: formatted claim period (e.g. "1 rok"). */
-				__( 'Reklamacja %s', 'qutlet-theme' ),
-				ProductPage::period_years_text( $definition['okres_reklamacji_miesiace'] )
-			) : '',
-			'old_price_formatted'    => $market_price > $sale_price ? wp_kses_post( wc_price( $market_price ) ) : '',
-			// Oszczędność PER SZTUKĘ (jak `old_price_formatted`, NIE razy ilość) —
-			// ten sam punkt odniesienia co cena sprzedaży w wierszu, która też jest
-			// jednostkowa, nie linią razem. Suma całego koszyka (razy ilość) już
-			// istnieje w `cart_totals_data()` (`total_savings_formatted`) — osobne pole,
-			// osobny cel (wiersz produktu vs. podsumowanie).
-			'item_savings_formatted' => $market_price > $sale_price ? wp_kses_post( wc_price( $market_price - $sale_price ) ) : '',
-		);
-	}
-
-	/**
-	 * Schemat pól z `cart_item_data()` (wymagany przez Store API).
-	 *
-	 * @return array<string, array<string, mixed>>
-	 */
-	public static function cart_item_schema(): array {
-		return array(
-			'klasa_stanu'            => array(
-				'description' => __( 'Kod klasy stanu (join key bytu klas stanu, dziś A-D).', 'qutlet-theme' ),
-				'type'        => array( 'string', 'null' ),
-				'context'     => array( 'view', 'edit' ),
-				'readonly'    => true,
-			),
-			'klasa_kolor'            => array(
-				'description' => __( 'Kolor klasy stanu (hex, z bytu klas stanu) — kropka odznaki.', 'qutlet-theme' ),
-				'type'        => array( 'string', 'null' ),
-				'context'     => array( 'view', 'edit' ),
-				'readonly'    => true,
-			),
-			'gwarancja_text'         => array(
-				'description' => __( 'Sformatowany tekst „Gwarancja X" (okres z bytu klas stanu).', 'qutlet-theme' ),
-				'type'        => array( 'string', 'null' ),
-				'context'     => array( 'view', 'edit' ),
-				'readonly'    => true,
-			),
-			'reklamacja_text'        => array(
-				'description' => __( 'Sformatowany tekst „Reklamacja X" (okres z bytu klas stanu).', 'qutlet-theme' ),
-				'type'        => array( 'string', 'null' ),
-				'context'     => array( 'view', 'edit' ),
-				'readonly'    => true,
-			),
-			'old_price_formatted'    => array(
-				'description' => __( 'Sformatowana cena rynkowa nowego (tylko gdy wyższa od ceny sprzedaży).', 'qutlet-theme' ),
-				'type'        => array( 'string', 'null' ),
-				'context'     => array( 'view', 'edit' ),
-				'readonly'    => true,
-			),
-			'item_savings_formatted' => array(
-				'description' => __( 'Sformatowana oszczędność per sztuka vs. cena rynkowa nowego (tylko gdy > 0).', 'qutlet-theme' ),
-				'type'        => array( 'string', 'null' ),
-				'context'     => array( 'view', 'edit' ),
-				'readonly'    => true,
-			),
-		);
-	}
-
-	/**
-	 * Suma oszczędności całego koszyka vs. ceny rynkowe nowych produktów
-	 * (kontrakt §6, odpowiednik `data-cart-savings-row` z prototypu).
-	 *
-	 * @return array<string, string>
-	 */
-	public static function cart_totals_data(): array {
-		$cart          = WC()->cart;
-		$total_savings = 0.0;
-
-		foreach ( $cart->get_cart() as $cart_item ) {
-			$product = $cart_item['data'] ?? null;
-
-			if ( ! $product instanceof \WC_Product ) {
-				continue;
-			}
-
-			$market_price = (float) ProductPage::acf_field( 'cena_rynkowa_nowego', $product->get_id() );
-			$sale_price   = (float) $product->get_price();
-
-			if ( $market_price > $sale_price ) {
-				$total_savings += ( $market_price - $sale_price ) * (int) $cart_item['quantity'];
-			}
-		}
-
-		return array(
-			// Store API zwraca gotowy HTML (wc_price()) — JS wstrzykuje ten wiersz
-			// jako WĘZEŁ DOM (ten sam mechanizm co odznaki per-wiersz), nie przez
-			// registerCheckoutFilters, więc surowy HTML jest tu bezpieczny (patrz
-			// nagłówek assets/js/cart-block-filters.js).
-			'subtotal_formatted'      => wp_kses_post( wc_price( (float) $cart->get_subtotal() ) ),
-			'total_savings_formatted' => $total_savings > 0.0 ? wp_kses_post( wc_price( $total_savings ) ) : '',
-		);
-	}
-
-	/**
-	 * Schemat pól z `cart_totals_data()`.
-	 *
-	 * @return array<string, array<string, mixed>>
-	 */
-	public static function cart_totals_schema(): array {
-		return array(
-			'subtotal_formatted'      => array(
-				'description' => __( 'Sformatowana wartość produktów (suma cen sprzedaży, bez dostawy).', 'qutlet-theme' ),
-				'type'        => array( 'string', 'null' ),
-				'context'     => array( 'view', 'edit' ),
-				'readonly'    => true,
-			),
-			'total_savings_formatted' => array(
-				'description' => __( 'Suma oszczędności koszyka vs. ceny rynkowe nowych produktów.', 'qutlet-theme' ),
-				'type'        => array( 'string', 'null' ),
-				'context'     => array( 'view', 'edit' ),
-				'readonly'    => true,
-			),
-		);
 	}
 
 	/**
