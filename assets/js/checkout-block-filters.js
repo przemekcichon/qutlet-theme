@@ -75,7 +75,8 @@
 	/**
 	 * Podpis pozycji „Klasa {X} · Gwarancja {Y} · Reklamacja {Z} · {N} szt."
 	 * (D-12.G2 — te same TRZY fakty co w koszyku; P-12.1b: `gwarancja_text`/
-	 * `reklamacja_text` czytane z bytu klas stanu przez `Cart::cart_item_data()`
+	 * `reklamacja_text` czytane z bytu klas stanu przez
+	 * `\Qutlet\Core\Cart\CartStoreApiData::cart_item_data()`
 	 * — TEN SAM endpoint Store API `cart-item`, D-12.G2, bez osobnej rejestracji
 	 * dla Checkout. Dawniej gwarancja była statycznym literałem „1 rok" wpisanym
 	 * wprost w ten plik, a reklamacja nie była pokazywana wcale — usunięte w
@@ -144,7 +145,8 @@
 	 * renameFooterTotalLabel() w cart-block-filters.js). W przeciwieństwie do
 	 * koszyka natywny wiersz „Kwota" (subtotal) ZAWSZE się renderuje w kasie
 	 * (nie znika, gdy równa się sumie) — bez potrzeby budowania własnego
-	 * wiersza `.qutlet-cart-subtotal-row` jak w Cart::cart_totals_data().
+	 * wiersza `.qutlet-cart-subtotal-row` jak w
+	 * `\Qutlet\Core\Cart\CartStoreApiData::cart_totals_data()`.
 	 */
 	function renameSummaryLabels() {
 		document.querySelectorAll('.wc-block-components-totals-item__label').forEach(function (label) {

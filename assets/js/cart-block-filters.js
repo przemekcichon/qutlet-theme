@@ -1,11 +1,12 @@
 /**
  * Qutlet — odznaki/oszczędności/wartość produktów w bloku Cart (D-8.6a.1).
  *
- * Czyta dane wystawione przez Cart::cart_item_data()/cart_totals_data()
- * (Store API `item.extensions['qutlet-klasa']` / `cart.extensions['qutlet-klasa']`,
- * patrz inc/features/Cart/Cart.php). Bez build stepu — global `window.wp.data`
- * (WooCommerce 10.9.4 wystawia gotowy runtime bundle, dependency script handle
- * `wc-blocks-data-store`, patrz CartBlocksIntegration::initialize()). Ceny/
+ * Czyta dane wystawione przez `\Qutlet\Core\Cart\CartStoreApiData::cart_item_data()`/
+ * `cart_totals_data()` (Store API `item.extensions['qutlet-klasa']` /
+ * `cart.extensions['qutlet-klasa']`, qutlet-core od P-26.2). Bez build stepu —
+ * global `window.wp.data` (WooCommerce 10.9.4 wystawia gotowy runtime bundle,
+ * dependency script handle `wc-blocks-data-store`, patrz
+ * CartBlocksIntegration::initialize()). Ceny/
  * kwoty przychodzą już sformatowane z PHP (`wc_price()`) — ten plik tylko
  * wkleja gotowe stringi, nie liczy walut.
  *
@@ -158,7 +159,8 @@
 			// w podsumowaniu, ale własna, mniejsza klasa: to pigułka w wierszu
 			// produktu, nie pełnoszerokościowy box podsumowania. Brak
 			// `cena_rynkowa_nowego` → `item_savings_formatted` puste (PHP,
-			// Cart::cart_item_data()) → nic się nie wstawia, zgodnie z prośbą.
+			// `\Qutlet\Core\Cart\CartStoreApiData::cart_item_data()`) → nic się
+			// nie wstawia, zgodnie z prośbą.
 			if (ext.item_savings_formatted && !row.querySelector('.qutlet-item-savings')) {
 				var savings = document.createElement('small');
 				savings.className = 'qutlet-item-savings';
