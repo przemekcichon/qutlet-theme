@@ -144,7 +144,12 @@ final class ProductFilters {
 
 		foreach ( array( ProductFilterQuery::BRAND_PARAM, ProductFilterQuery::CATEGORY_PARAM, ProductFilterQuery::CONDITION_PARAM, 'min_price', 'max_price', 'orderby' ) as $key ) {
 			if ( isset( $_GET[ $key ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- odczyt stanu filtrów do wyświetlenia, nie mutuje stanu.
-				$args[ $key ] = wp_unslash( $_GET[ $key ] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				$raw = wp_unslash( $_GET[ $key ] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+				// Utwardzenie (defense-in-depth, P-26.3): brand/category/condition bywają
+				// tablicą (multi-select), pozostałe klucze są zawsze skalarne — esc_url()
+				// w loop/filters-and-sort.php dalej owija wynik na wyjściu.
+				$args[ $key ] = is_array( $raw ) ? array_map( 'sanitize_text_field', $raw ) : sanitize_text_field( $raw );
 			}
 		}
 
