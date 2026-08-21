@@ -11,7 +11,8 @@
  * TĄ SAMĄ nowoczesną ścieżką co koszyk (D-8.6a.1, potwierdzone na wyraźną
  * prośbę użytkownika w tej sesji): dane per-wiersz (klasa stanu, stara
  * cena/oszczędności) już istnieją na Store API `qutlet-klasa` zarejestrowanym
- * przez `Cart::register_store_api_data()` (endpointy `cart-item`/`cart`) —
+ * przez `\Qutlet\Core\Cart\CartStoreApiData::register_store_api_data()`
+ * (endpointy `cart-item`/`cart`, qutlet-core od P-26.2) —
  * D-12.G2 potwierdzone ground-truthem RUNTIME (Playwright): te same
  * rozszerzenia są widoczne w `wp.data.select('wc/store/cart').getCartData()`
  * na stronie `/kasa/`, bo blok Checkout czyta z TEGO SAMEGO zasobu Store API
