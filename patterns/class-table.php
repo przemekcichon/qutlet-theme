@@ -16,6 +16,12 @@ use Qutlet\Core\ProductCondition\ClassDefinitionsTaxonomy;
 
 defined( 'ABSPATH' ) || exit;
 
+// P-26.1: qutlet-core nieaktywny → wzorzec nic nie renderuje (ten sam idiom co
+// ProductFilters::render()), zamiast fatal error na wywołaniu nieistniejącej klasy.
+if ( ! class_exists( ClassDefinitionsTaxonomy::class ) ) {
+	return;
+}
+
 ?>
 <!-- wp:table {"className":"class-table"} -->
 <figure class="wp-block-table class-table"><table>
